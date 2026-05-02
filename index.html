@@ -1,70 +1,33 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>My Board View</title>
-  <script src="https://cdn.jsdelivr.net/npm/monday-sdk-js/dist/main.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monday Item Viewer</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Load monday.com SDK first -->
+    <script src="https://cdn.jsdelivr.net/npm/monday-sdk-js/dist/main.js"></script>
 </head>
 <body>
 
-    <h2 id="item-name">Loading item...</h2>
-    <div id="column-container">
-        <p class="loading">Fetching column data...</p>
+    <header>
+        <h2 id="item-name">Loading...</h2>
+    </header>
+
+    <main id="column-container">
+        <p class="status-message">Initializing SDK...</p>
+    </main>
+
+    <div>
+        <div class="item-dropdown">
+            <label for="options">Choose an item:</label>
+            <select name="options" id="options">
+                <option value=""></option>
+            </select>
+        </div>
     </div>
 
-    <script>
-        const monday = mondaySdk();
-
-        async function fetchItemData() {
-            try {
-                // 1. Get the context (tells us which item/board we are looking at)
-                const context = await monday.get("context");
-                const itemId = context.data.itemId || context.data.itemIds[0];
-
-                if (!itemId) {
-                    document.getElementById('item-name').innerText = "No item selected.";
-                    return;
-                }
-
-                // 2. Query the monday API for this specific item's columns
-                const query = `query {
-                    items (ids: [${itemId}]) {
-                        name
-                        column_values {
-                            column {
-                                title
-                            }
-                            text
-                        }
-                    }
-                }`;
-
-                const response = await monday.api(query);
-                const item = response.data.items[0];
-
-                renderData(item);
-            } catch (error) {
-                console.error(error);
-                document.getElementById('column-container').innerHTML = "Error loading data.";
-            }
-        }
-
-        function renderData(item) {
-            document.getElementById('item-name').innerText = item.name;
-            const container = document.getElementById('column-container');
-            container.innerHTML = ""; // Clear loading text
-
-            item.column_values.forEach(cv => {
-                const row = document.createElement('div');
-                row.className = 'column-row';
-                row.innerHTML = `
-                    <span class="column-name">${cv.column.title}</span>
-                    <span class="column-value">${cv.text || '<em>Empty</em>'}</span>
-                `;
-                container.appendChild(row);
-            });
-        }
-
-        fetchItemData();
-    </script>
+    <!-- Your logic goes last -->
+    <script src="script.js"></script>
 </body>
 </html>
