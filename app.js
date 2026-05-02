@@ -26,14 +26,14 @@ function num(v) {
 
 function calculateTotals() {
   const travelTotal = ['airfare','mileage','transport','fees']
-    .reduce((sum,id)=>sum+num(document.querySelector(`[data-col="${id}"]`).value),0);
+    .reduce((sum,id)=>sum+num(document.querySelector(`#${id}`).value),0);
 
   const lodgingTotal = ['per_diem','meals','lodging']
-    .reduce((sum,id)=>sum+num(document.querySelector(`[data-col="${id}"]`).value),0);
+    .reduce((sum,id)=>sum+num(document.querySelector(`#${id}`).value),0);
 
   const grandTotal = travelTotal + lodgingTotal +
-    num(document.querySelector('[data-col="conference_fees"]').value) +
-    num(document.querySelector('[data-col="other_expenses"]').value);
+    num(document.querySelector('#conference_fees').value) +
+    num(document.querySelector('#other_expenses').value);
 
   document.getElementById('travelTotal').textContent = `$${travelTotal.toFixed(2)}`;
   document.getElementById('lodgingTotal').textContent = `$${lodgingTotal.toFixed(2)}`;
