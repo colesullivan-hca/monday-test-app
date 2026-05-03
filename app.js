@@ -38,6 +38,20 @@ function calculateTotals() {
   document.getElementById('travelTotal').textContent = `$${travelTotal.toFixed(2)}`;
   document.getElementById('lodgingTotal').textContent = `$${lodgingTotal.toFixed(2)}`;
   document.getElementById('grandTotal').textContent = `$${grandTotal.toFixed(2)}`;
+
+  const travelPOTotal = ['airfarePO','mileagePO','transportPO','feesPO','parkingPO','car_rentalPO']
+    .reduce((sum,id)=>sum+num(document.querySelector(`#${id}`).value),0);
+
+  const lodgingPOTotal = ['per_diemPO','mealsPO','lodgingPO']
+    .reduce((sum,id)=>sum+num(document.querySelector(`#${id}`).value),0);
+
+  const grandPOTotal = travelPOTotal + lodgingPOTotal +
+    num(document.querySelector('#conference_feesPO').value) +
+    num(document.querySelector('#other_expensesPO').value);
+
+  document.getElementById('travelPOTotal').textContent = `$${travelPOTotal.toFixed(2)}`;
+  document.getElementById('lodgingPOTotal').textContent = `$${lodgingPOTotal.toFixed(2)}`;
+  document.getElementById('grandPOTotal').textContent = `$${grandPOTotal.toFixed(2)}`;
 }
 
 document.querySelectorAll('.cost').forEach(input => {
