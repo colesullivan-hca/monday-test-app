@@ -25,7 +25,7 @@ function num(v) {
 }
 
 function calculateTotals() {
-  const travelTotal = ['airfare','mileage','transport','fees']
+  const travelTotal = ['airfare','mileage','transport','fees','parking','car_rental']
     .reduce((sum,id)=>sum+num(document.querySelector(`#${id}`).value),0);
 
   const lodgingTotal = ['per_diem','meals','lodging']
