@@ -112,7 +112,7 @@ async function init() {
 
     document.querySelectorAll('[data-col]').forEach(field => {
       const col = item.column_values.find(c => c.id === field.dataset.col);
-      field.value = col?.text || '';
+      field.value = col?.text || '0';
       field.setAttribute('readonly', true);
     });
 
