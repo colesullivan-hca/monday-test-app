@@ -58,7 +58,7 @@ th {
 }
 
 .center { text-align: center; }
-.right { text-align: right; }
+.right, .cost { text-align: right; }
 
 input, textarea {
   width: 100%;
