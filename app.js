@@ -1,6 +1,6 @@
 const monday = window.mondaySdk();
 let currentBoardId = null;
-let items = [];
+let currentItemId = null;
 
 const BOARD_QUERY = (boardId) => `
   query {
@@ -20,8 +20,51 @@ const BOARD_QUERY = (boardId) => `
   }
 `;
 
+// Helper to parse numbers
 function num(v) {
   return parseFloat(v) || 0;
+}
+
+// Collects all [data-col] values and sends to monday
+async function saveAllData() {
+  const columnValues = {};
+  
+  document.querySelectorAll('[data-col]').forEach(field => {
+    const colId = field.dataset.col;
+    // For monday 'numbers' columns, we just send the value as a string
+    columnValues[colId] = field.value;
+  });
+
+  try {
+    const query = `mutation ($itemId: ID!, $boardId: ID!, $columnValues: JSON!) {
+      change_multiple_column_values (
+        item_id: $itemId, 
+        board_id: $boardId, 
+        column_values: $columnValues
+      ) {
+        id
+      }
+    }`;
+
+    const variables = {
+      itemId: currentItemId,
+      boardId: currentBoardId,
+      columnValues: JSON.stringify(columnValues)
+    };
+
+    await monday.api(query, { variables });
+    
+    monday.execute('notice', {
+      message: 'Changes saved successfully!',
+      type: 'success'
+    });
+  } catch (err) {
+    console.error(err);
+    monday.execute('notice', {
+      message: 'Error saving data.',
+      type: 'error'
+    });
+  }
 }
 
 function calculateTotals() {
@@ -61,56 +104,53 @@ document.querySelectorAll('.cost').forEach(input => {
 async function init() {
   monday.setToken('');
 
-  const context = await monday.get('context');
-  console.log(context.data);
-
   try {
-    const ctx = await monday.get('context');
-    const itemId = ctx?.data?.itemId;
-    const boardId = ctx?.data?.boardId;
+    const context = await monday.get('context');
+    currentItemId = context?.data?.itemId;
+    currentBoardId = context?.data?.boardId;
 
-    if (!itemId || !boardId) {
-      throw new Error('No item/board context found. Open this in a monday item view.');
+    if (!currentItemId || !currentBoardId) {
+      throw new Error('Please open this in a monday item view.');
     }
 
-    currentBoardId = boardId;
-
-    const query = `
-      query {
-        items(ids: [${itemId}]) {
+    const query = `query {
+      items(ids: [${currentItemId}]) {
+        column_values {
           id
-          name
-          column_values {
-            id
-            text
-            value
-          }
+          text
+          type
         }
       }
-    `;
+    }`;
 
     const res = await monday.api(query);
-
-    if (res?.errors?.length) {
-      throw new Error(res.errors.map(e => e.message).join('; '));
-    }
-
     const item = res?.data?.items?.[0];
-    if (!item) throw new Error('Item not found');
+    
+    // 2. Status Check: Change 'status' to your actual Status Column ID
+    const statusCol = item.column_values.find(c => c.id === 'color_mm2xe9t'); 
+    const isLocked = statusCol?.text.includes('Ready');
 
     document.querySelectorAll('[data-col]').forEach(field => {
       const col = item.column_values.find(c => c.id === field.dataset.col);
       field.value = col?.text || '0';
-      field.setAttribute('readonly', true);
+      
+      if (isLocked) {
+        field.setAttribute('readonly', true);
+        field.classList.add('locked-field'); // Optional CSS styling
+      }
     });
+
+    // 3. Handle Save Button Visibility
+    const saveBtn = document.getElementById('saveButton');
+    if (isLocked) {
+      saveBtn.style.display = 'none';
+    } else {
+      saveBtn.addEventListener('click', saveAllData);
+    }
 
     calculateTotals();
   } catch (err) {
-    console.error('[TravelForm]', err);
-    monday.execute('notice', {
-      message: err.message || 'Failed to load item',
-      type: 'error'
-    });
+    console.error(err);
   }
 }
 
