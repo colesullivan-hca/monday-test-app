@@ -106,7 +106,7 @@ input[type="date"] {
 }
 
 .saveButton {
-  /* display: none; */
+  display: none;
   padding: 7px 13px;
   background-color: #0073ea;
   border-radius: 15px;
