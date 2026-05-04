@@ -99,7 +99,7 @@ document.querySelectorAll('.cost').forEach(input => {
 });
 
 async function init() {
-  monday.setToken('');
+  // monday.setToken('');
 
   try {
     const context = await monday.get('context');
