@@ -100,11 +100,13 @@ input[type="date"] {
   display: flex;
   justify-content: center;
   align-items: center;
-  position: sticky;
+  position: fixed;
   top: 10px;
+  left: 0;
 }
 
-.saveButton {
+#saveButton {
+  display: none;
   padding: 7px 13px;
   background-color: #0073ea;
   border-radius: 15px;
@@ -115,7 +117,7 @@ input[type="date"] {
   cursor: pointer;
 }
 
-.saveButton:hover {
+#saveButton:hover {
   background-color: #0060b9;
 }
 

@@ -1,6 +1,7 @@
 const monday = window.mondaySdk();
 let currentBoardId = null;
 let currentItemId = null;
+let isLocked;
 const originalValues = {};
 
 // Helper to parse numbers
@@ -55,6 +56,9 @@ async function saveAllData() {
       message: 'Changes saved successfully!',
       type: 'success'
     });
+
+    const saveBtn = document.getElementById('saveButton');
+    saveBtn.classList.add("saveInactive");
   } catch (err) {
     console.error('Save error:', err);
     monday.execute('notice', {
@@ -92,6 +96,12 @@ function calculateTotals() {
   document.getElementById('travelPOTotal').textContent = `$${travelPOTotal.toFixed(2)}`;
   document.getElementById('lodgingPOTotal').textContent = `$${lodgingPOTotal.toFixed(2)}`;
   document.getElementById('grandPOTotal').textContent = `$${grandPOTotal.toFixed(2)}`;
+
+  if(!isLocked) {
+    const saveBtn = document.getElementById('saveButton');
+    saveBtn.classList.remove("saveInactive");
+  }
+
 }
 
 document.querySelectorAll('.cost').forEach(input => {
@@ -129,7 +139,7 @@ async function init() {
 
     // Status check: change 'color_mm2xe9t' to your actual Status column ID if needed
     const statusCol = item.column_values.find(c => c.id === 'color_mm2xe9t');
-    const isLocked = statusCol?.text.includes('Ready');
+    isLocked = statusCol?.text.includes('Ready');
 
     document.querySelectorAll('[data-col]').forEach(field => {
       const col = item.column_values.find(c => c.id === field.dataset.col);
@@ -146,8 +156,8 @@ async function init() {
 
     const saveBtn = document.getElementById('saveButton');
     if (isLocked) {
-      saveBtn.style.display = 'none';
     } else {
+      saveBtn.style.display = 'block';
       saveBtn.addEventListener('click', saveAllData);
     }
 
