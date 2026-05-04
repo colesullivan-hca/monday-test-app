@@ -97,17 +97,17 @@ function calculateTotals() {
 
 document.querySelectorAll('.cost').forEach(input => {
   input.addEventListener('input', calculateTotals);
-  input.addEventListener('input', field => setSaveStatus(field));
+  input.addEventListener('input', event => setSaveStatus(event.target));
 });
 
 function setSaveStatus(field) {
   const colId = field.dataset.col;
   const saveBtn = document.getElementById('saveButton');
   if (field.value !== originalValues[colId]) {
-    saveBtn.classList.add('inactive');
+    saveBtn.classList.remove('inactive');
   }
   else {
-    saveBtn.classList.remove('inactive');
+    saveBtn.classList.add('inactive');
   }
 }
 
