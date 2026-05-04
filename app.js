@@ -1,45 +1,37 @@
 const monday = window.mondaySdk();
 let currentBoardId = null;
 let currentItemId = null;
-
-const BOARD_QUERY = (boardId) => `
-  query {
-    boards(ids: [${boardId}]) {
-      items_page(limit: 100) {
-        items {
-          id
-          name
-          column_values {
-            id
-            text
-            value
-          }
-        }
-      }
-    }
-  }
-`;
+const originalValues = {};
 
 // Helper to parse numbers
 function num(v) {
   return parseFloat(v) || 0;
 }
 
-// Collects all [data-col] values and sends to monday
+// Only sends fields that have changed since last load/save
 async function saveAllData() {
   const columnValues = {};
-  
+
   document.querySelectorAll('[data-col]').forEach(field => {
     const colId = field.dataset.col;
-    // For monday 'numbers' columns, we just send the value as a string
-    columnValues[colId] = field.value;
+    if (field.value !== originalValues[colId]) {
+      columnValues[colId] = field.value;
+    }
   });
+
+  if (Object.keys(columnValues).length === 0) {
+    monday.execute('notice', {
+      message: 'No changes to save.',
+      type: 'info'
+    });
+    return;
+  }
 
   try {
     const query = `mutation ($itemId: ID!, $boardId: ID!, $columnValues: JSON!) {
       change_multiple_column_values (
-        item_id: $itemId, 
-        board_id: $boardId, 
+        item_id: $itemId,
+        board_id: $boardId,
         column_values: $columnValues
       ) {
         id
@@ -53,13 +45,18 @@ async function saveAllData() {
     };
 
     await monday.api(query, { variables });
-    
+
+    // Update baseline so subsequent saves don't re-send unchanged fields
+    Object.keys(columnValues).forEach(colId => {
+      originalValues[colId] = columnValues[colId];
+    });
+
     monday.execute('notice', {
       message: 'Changes saved successfully!',
       type: 'success'
     });
   } catch (err) {
-    console.error(err);
+    console.error('Save error:', err);
     monday.execute('notice', {
       message: 'Error saving data.',
       type: 'error'
@@ -68,11 +65,11 @@ async function saveAllData() {
 }
 
 function calculateTotals() {
-  const travelTotal = ['airfare','mileage','transport','fees','parking','car_rental']
-    .reduce((sum,id)=>sum+num(document.querySelector(`#${id}`).value),0);
+  const travelTotal = ['airfare', 'mileage', 'transport', 'fees', 'parking', 'car_rental']
+    .reduce((sum, id) => sum + num(document.querySelector(`#${id}`).value), 0);
 
-  const lodgingTotal = ['per_diem','meals','lodging']
-    .reduce((sum,id)=>sum+num(document.querySelector(`#${id}`).value),0);
+  const lodgingTotal = ['per_diem', 'meals', 'lodging']
+    .reduce((sum, id) => sum + num(document.querySelector(`#${id}`).value), 0);
 
   const grandTotal = travelTotal + lodgingTotal +
     num(document.querySelector('#conference_fees').value) +
@@ -82,11 +79,11 @@ function calculateTotals() {
   document.getElementById('lodgingTotal').textContent = `$${lodgingTotal.toFixed(2)}`;
   document.getElementById('grandTotal').textContent = `$${grandTotal.toFixed(2)}`;
 
-  const travelPOTotal = ['airfarePO','mileagePO','transportPO','feesPO','parkingPO','car_rentalPO']
-    .reduce((sum,id)=>sum+num(document.querySelector(`#${id}`).value),0);
+  const travelPOTotal = ['airfarePO', 'mileagePO', 'transportPO', 'feesPO', 'parkingPO', 'car_rentalPO']
+    .reduce((sum, id) => sum + num(document.querySelector(`#${id}`).value), 0);
 
-  const lodgingPOTotal = ['per_diemPO','mealsPO','lodgingPO']
-    .reduce((sum,id)=>sum+num(document.querySelector(`#${id}`).value),0);
+  const lodgingPOTotal = ['per_diemPO', 'mealsPO', 'lodgingPO']
+    .reduce((sum, id) => sum + num(document.querySelector(`#${id}`).value), 0);
 
   const grandPOTotal = travelPOTotal + lodgingPOTotal +
     num(document.querySelector('#conference_feesPO').value) +
@@ -125,22 +122,28 @@ async function init() {
 
     const res = await monday.api(query);
     const item = res?.data?.items?.[0];
-    
-    // 2. Status Check: Change 'status' to your actual Status Column ID
-    const statusCol = item.column_values.find(c => c.id === 'color_mm2xe9t'); 
+
+    if (!item) {
+      throw new Error('Could not load item data.');
+    }
+
+    // Status check: change 'color_mm2xe9t' to your actual Status column ID if needed
+    const statusCol = item.column_values.find(c => c.id === 'color_mm2xe9t');
     const isLocked = statusCol?.text.includes('Ready');
 
     document.querySelectorAll('[data-col]').forEach(field => {
       const col = item.column_values.find(c => c.id === field.dataset.col);
       field.value = col?.text || '0';
-      
+
+      // Snapshot original value for dirty tracking
+      originalValues[field.dataset.col] = field.value;
+
       if (isLocked) {
         field.setAttribute('readonly', true);
-        field.classList.add('locked-field'); // Optional CSS styling
+        field.classList.add('locked-field');
       }
     });
 
-    // 3. Handle Save Button Visibility
     const saveBtn = document.getElementById('saveButton');
     if (isLocked) {
       saveBtn.style.display = 'none';
@@ -150,7 +153,7 @@ async function init() {
 
     calculateTotals();
   } catch (err) {
-    console.error(err);
+    console.error('Init error:', err);
   }
 }
 
