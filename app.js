@@ -56,9 +56,6 @@ async function saveAllData() {
       message: 'Changes saved successfully!',
       type: 'success'
     });
-
-    const saveBtn = document.getElementById('saveButton');
-    saveBtn.classList.add("saveInactive");
   } catch (err) {
     console.error('Save error:', err);
     monday.execute('notice', {
@@ -96,17 +93,23 @@ function calculateTotals() {
   document.getElementById('travelPOTotal').textContent = `$${travelPOTotal.toFixed(2)}`;
   document.getElementById('lodgingPOTotal').textContent = `$${lodgingPOTotal.toFixed(2)}`;
   document.getElementById('grandPOTotal').textContent = `$${grandPOTotal.toFixed(2)}`;
-
-  if(!isLocked) {
-    const saveBtn = document.getElementById('saveButton');
-    saveBtn.classList.remove("saveInactive");
-  }
-
 }
 
 document.querySelectorAll('.cost').forEach(input => {
   input.addEventListener('input', calculateTotals);
+  input.addEventListener('input', field => setSaveStatus(field));
 });
+
+function setSaveStatus(field) {
+  const colId = field.dataset.col;
+  const saveBtn = document.getElementById('saveButton');
+  if (field.value !== originalValues[colId]) {
+    saveBtn.classList.add('inactive');
+  }
+  else {
+    saveBtn.classList.remove('inactive');
+  }
+}
 
 async function init() {
   // monday.setToken('');
