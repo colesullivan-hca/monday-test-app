@@ -105,7 +105,7 @@ input[type="date"] {
   left: 0;
 }
 
-#saveButton {
+.saveButton {
   display: none;
   padding: 7px 13px;
   background-color: #0073ea;
@@ -117,7 +117,7 @@ input[type="date"] {
   cursor: pointer;
 }
 
-#saveButton:hover {
+.saveButton:hover {
   background-color: #0060b9;
 }
 
