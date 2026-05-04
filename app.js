@@ -56,6 +56,8 @@ async function saveAllData() {
       message: 'Changes saved successfully!',
       type: 'success'
     });
+    const saveBtn = document.getElementById('saveButton');
+    saveBtn.classList.add('inactive');
   } catch (err) {
     console.error('Save error:', err);
     monday.execute('notice', {
@@ -97,16 +99,13 @@ function calculateTotals() {
 
 document.querySelectorAll('.cost').forEach(input => {
   input.addEventListener('input', calculateTotals);
-  input.addEventListener('input', event => setSaveStatus(event.target));
+});
+document.querySelectorAll('[data-col]').forEach(field => {
+  field.addEventListener('input', event => setSaveStatus(event.target));
 });
 
 function setSaveStatus(field) {
   const colId = field.dataset.col;
-  const currentVal = field.value;
-  const originalVal = originalValues[colId];
-  console.log(`Checking Column: ${colId}`);
-  console.log(`Current: "${currentVal}" | Original: "${originalVal}"`);
-  console.log(`Match? ${currentVal === originalVal}`);
   const saveBtn = document.getElementById('saveButton');
   if (field.value !== originalValues[colId]) {
     saveBtn.classList.remove('inactive');
