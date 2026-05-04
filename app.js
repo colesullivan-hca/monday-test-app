@@ -58,32 +58,6 @@ document.querySelectorAll('.cost').forEach(input => {
   input.addEventListener('input', calculateTotals);
 });
 
-function populateItemDropdown(items) {
-  const selector = document.getElementById('itemSelector');
-  selector.innerHTML = items.map(item =>
-    `<option value="${item.id}">${item.name}</option>`
-  ).join('');
-
-  selector.addEventListener('change', e => loadItemData(e.target.value));
-
-  if (items.length) {
-    loadItemData(items[0].id);
-  }
-}
-
-function loadItemData(itemId) {
-  const item = items.find(i => i.id == itemId);
-  if (!item) return;
-
-  document.querySelectorAll('[data-col]').forEach(field => {
-    const colId = field.dataset.col;
-    const col = item.column_values.find(c => c.id === colId);
-    field.value = col?.text || '';
-  });
-
-  calculateTotals();
-}
-
 async function init() {
   monday.setToken('');
 
