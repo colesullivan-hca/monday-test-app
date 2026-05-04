@@ -102,6 +102,11 @@ document.querySelectorAll('.cost').forEach(input => {
 
 function setSaveStatus(field) {
   const colId = field.dataset.col;
+  const currentVal = field.value;
+  const originalVal = originalValues[colId];
+  console.log(`Checking Column: ${colId}`);
+  console.log(`Current: "${currentVal}" | Original: "${originalVal}"`);
+  console.log(`Match? ${currentVal === originalVal}`);
   const saveBtn = document.getElementById('saveButton');
   if (field.value !== originalValues[colId]) {
     saveBtn.classList.remove('inactive');
