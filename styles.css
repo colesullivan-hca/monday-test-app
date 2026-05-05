@@ -1,15 +1,7 @@
 @media print {
-  /* Hide the print button so it doesn't show up on paper */
-  #printButton {
+  .save {
     display: none !important;
   }
-
-  /* Ensure the body takes up the full width of the paper */
-  /* body {
-    width: 100%;
-    margin: 0;
-    padding: 0;
-  } */
 }
 
 body {
@@ -137,6 +129,9 @@ input[type="date"] {
   top: 10px;
   right: 10px;
   width: fit-content;
+  border: 1px solid #c3c6d4;
+  color: #323338;
+  background-color: white;
 }
 
 .saveButton:hover {
