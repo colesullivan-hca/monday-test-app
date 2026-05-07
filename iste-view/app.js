@@ -7,27 +7,40 @@ const originalValues = {};
 async function generatePdf(data) {
     const { PDFDocument } = PDFLib;
 
-    // 2. Fetch your static PDF template
     const url = './ISTE.pdf';
     const existingPdfBytes = await fetch(url).then(res => res.arrayBuffer());
 
-    // 3. Load the PDF and get the form fields
     const pdfDoc = await PDFDocument.load(existingPdfBytes);
     const form = pdfDoc.getForm();
 
-    // 4. Fill the fields by their names (set in Acrobat/LibreOffice)
     document.querySelectorAll('[data-pdf]').forEach(field => {
-      const pdfId = field.dataset.pdf;
-      const text = field.value || field.textContent;
-      form.getTextField(pdfId).setText(text);
+        const pdfFieldName = field.dataset.pdf;
+        
+        try {
+            const pdfField = form.getField(pdfFieldName);
+
+            if (field.type === 'checkbox') {
+                // Check or uncheck based on the HTML checked state
+                field.checked ? pdfField.check() : pdfField.uncheck();
+            } 
+            else if (field.tagName === 'SELECT') {
+                // selectOption handles dropdowns/combo boxes
+                pdfField.select(field.value);
+            } 
+            else {
+                // Default to text for inputs, textareas, etc.
+                const text = field.value || field.textContent || '';
+                pdfField.setText(text);
+            }
+        } catch (error) {
+            console.warn(`Field "${pdfFieldName}" not found in PDF or type mismatch:`, error);
+        }
     });
 
-    // 5. Save the PDF and create a local URL
     const pdfBytes = await pdfDoc.save();
     const blob = new Blob([pdfBytes], { type: 'application/pdf' });
     const pdfUrl = URL.createObjectURL(blob);
 
-    // 6. Push to the iframe
     const iframe = document.getElementById('pdf-viewer');
     iframe.src = pdfUrl;
     iframe.style.display = "block";
