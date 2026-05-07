@@ -44,7 +44,7 @@ async function generatePdf(data) {
     // const pdfBase64 = await pdfDoc.saveAsBase64({ dataUri: true });
 
     const iframe = document.getElementById('pdf-viewer');
-    iframe.src = pdfBase64;
+    iframe.src = pdfUrl;
     iframe.style.display = "block";
 }
 
