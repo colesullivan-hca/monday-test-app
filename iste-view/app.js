@@ -70,7 +70,10 @@ function addPDFInputs() {
             if(num === 0) num = i;
             else num = i+1;
             let newInput = input.slice(0, -1) + num;
-            if(input === "OTHERRow1.0") newInput = 'OTHERRow' + (i + 1);
+            if(input === "OTHERRow1.0") {
+              num = i + 1;
+              newInput = 'OTHERRow' + num;
+            }
             child.firstElementChild.dataset.pdf = newInput;
         }
     }
