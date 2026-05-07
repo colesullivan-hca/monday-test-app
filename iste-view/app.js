@@ -37,6 +37,7 @@ async function generatePdf(data) {
         }
     });
 
+    form.flatten();
     const pdfBytes = await pdfDoc.save();
     const blob = new Blob([pdfBytes], { type: 'application/pdf' });
     const pdfUrl = URL.createObjectURL(blob);
