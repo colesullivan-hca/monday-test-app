@@ -1,67 +1,46 @@
-async function generatePdf(data) {
-    const { PDFDocument } = PDFLib;
+const monday = window.mondaySdk();
+let currentBoardId = null;
+let currentItemId = null;
+let isLocked;
+const originalValues = {};
 
-    // 2. Fetch your static PDF template
-    const url = './ISTE.pdf';
-    const existingPdfBytes = await fetch(url).then(res => res.arrayBuffer());
-
-    // 3. Load the PDF and get the form fields
-    const pdfDoc = await PDFDocument.load(existingPdfBytes);
-    const form = pdfDoc.getForm();
-
-    // 4. Fill the fields by their names (set in Acrobat/LibreOffice)
-    // If the field name doesn't exist, this will throw an error, 
-    // so use try/catch or check if field exists.
-//   form.getTextField('full_name').setText(userData.name);
-//   form.getTextField('date_field').setText(userData.date);
-    form.getTextField('PAGE').setText('1');
-    form.getTextField('AGENCY NAME').setText('');
-    form.getTextField('VOUCHER').setText(''); // Business Unit
-    form.getTextField('VOUCHER NUMBER').setText('');
-    form.getTextField('SUPPLIER NAME').setText('');
-    form.getTextField('SUPPLIER ID').setText('');
-    // form.getDropdown('Dropdown5').set(''); // attendance
-    // form.getDropdown('Dropdown6').select(''); // meeting length
-    form.getTextField('SUPPLIER ID').setText('');
-    form.getTextField('DATE ITEMIZED COSTS BY DAYRow1.0').setText('700');
-
-
-    // 5. Save the PDF and create a local URL
-    const pdfBytes = await pdfDoc.save();
-    const blob = new Blob([pdfBytes], { type: 'application/pdf' });
-    const pdfUrl = URL.createObjectURL(blob);
-
-    // 6. Push to the iframe
-    document.getElementById('pdf-viewer').src = pdfUrl;
+// Helper to parse numbers
+function num(v) {
+  return parseFloat(v) || 0;
 }
 
-async function downloadFilledPdf() {
-    const { PDFDocument } = PDFLib;
-
-    // ... (Your code to load and fill the PDF form) ...
-    
-    // 1. Serialize the PDFDocument to bytes (a Uint8Array)
-    const pdfBytes = await pdfDoc.save();
-
-    // 2. Create a Blob from the PDF bytes
-    const blob = new Blob([pdfBytes], { type: 'application/pdf' });
-
-    // 3. Create a download link
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = 'filled-form.pdf'; // The name the user will see
-
-    // 4. Append to body, click, and remove
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    
-    // 5. Clean up the URL object to free memory
-    URL.revokeObjectURL(link.href);
+function int(v) {
+    return parseInt(v) || 0;
 }
 
-async function intit () {
+// Adds to the html datasets for the itemized rows for the pdf input names
+function addPDFInputs() {
+    const itemRows = document.querySelectorAll('.item-row');
+    for (let i = 1; i < 15; i++) {
+        const itemRow = itemRows[i];
+        for (const child of itemRow.children) {
+            const input = child.firstElementChild.dataset.pdf;
+            let num = int(input.at(-1));
+            if(num === 0) num = i;
+            else num = i+1;
+            const newInput = input.slice(0, -1) + num;
+            child.firstElementChild.dataset.pdf = newInput;
+        }
+    }
+}
+
+async function init() {
     try {
+        const itemRows = [];
+        const itemRow = document.querySelector(".item-row");
+        itemRows.push(itemRow);
+        for (let i = 0; i < 14; i++) {
+            const clone = itemRow.cloneNode(true);
+            itemRows.push(clone);
+        }
+        itemRow.after(...itemRows);
+        addPDFInputs();
+
         const context = await monday.get('context');
         currentItemId = context?.data?.itemId;
         currentBoardId = context?.data?.boardId;
@@ -96,25 +75,73 @@ async function intit () {
             throw new Error('Could not load item data.');
         }
 
-        const agencyName = item.column_values.find(c => c.id === "text_mm32f6m5");
-        const businessUnit = item.column_values.find(c => c.id === "text_mm32vzws");
-        const voucherNumber = item.column_values.find(c => c.id === "text_mm33zev5");
-        const supplierName = item.column_values.find(c => c.id === "text_mm32xqxs");
-        const supplierID = item.column_values.find(c => c.id === "text_mm32zdd2");
-        const attendance = item.column_values.find(c => c.id === "color_mm322zrz");
-        const lengthOfMeeting = item.column_values.find(c => c.id === "color_mm32ddxm");
-        const license = item.column_values.find(c => c.id === "text_mm328jte");
-        const vehicleModel = item.column_values.find(c => c.id === "text_mm32vtpv");
-        const vehicleType = item.column_values.find(c => c.id === "color_mm32b86r");
-        const postOfDuty = item.column_values.find(c => c.id === "text_mm32ydbs");
-        const residence = item.column_values.find(c => c.id === "text_mm32f377");
-        const prepaidVoucher = item.column_values.find(c => c.id === "boolean_mm32z5q7");
-        const finalVoucher = item.column_values.find(c => c.id === "boolean_mm32n5pq");
-        const perDiemBasedOn = item.column_values.find(c => c.id === "color_mm33q5cs");
+        const elements = document.querySelectorAll('.item-row');
+        subitems.array.forEach((subitem, index) => {
+            const tds = elements[index].children;
+            for (const field of tds) {
+                field.dataset.itemId = subitem.id;
+            }
+        });
 
-        // const 
     }
     catch (err) {
-
+        console.error('Init error:', err);
     }
+
+  try {
+    const context = await monday.get('context');
+    currentItemId = context?.data?.itemId;
+    currentBoardId = context?.data?.boardId;
+
+    if (!currentItemId || !currentBoardId) {
+      throw new Error('Please open this in a monday item view.');
+    }
+
+    const query = `query {
+      items(ids: [${currentItemId}]) {
+        column_values {
+          id
+          text
+          type
+        }
+      }
+    }`;
+
+    const res = await monday.api(query);
+    const item = res?.data?.items?.[0];
+
+    if (!item) {
+      throw new Error('Could not load item data.');
+    }
+
+    // Status check: change 'color_mm2xe9t' to your actual Status column ID if needed
+    const statusCol = item.column_values.find(c => c.id === 'color_mm2xe9t');
+    isLocked = statusCol?.text.includes('Ready');
+
+    document.querySelectorAll('[data-col]').forEach(field => {
+      const col = item.column_values.find(c => c.id === field.dataset.col);
+      field.value = col?.text || '0';
+
+      // Snapshot original value for dirty tracking
+      originalValues[field.dataset.col] = field.value;
+
+      if (isLocked) {
+        field.setAttribute('readonly', true);
+        field.classList.add('locked-field');
+      }
+    });
+
+    const saveBtn = document.getElementById('saveButton');
+    if (isLocked) {
+    } else {
+      saveBtn.style.display = 'block';
+      saveBtn.addEventListener('click', saveAllData);
+    }
+
+    calculateTotals();
+  } catch (err) {
+    console.error('Init error:', err);
+  }
 }
+
+init();
