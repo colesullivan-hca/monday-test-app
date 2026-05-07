@@ -120,7 +120,7 @@ async function init() {
               // Access labels from settings
               const labels = column.settings?.labels || {};
 
-              selectElement.innerHTML = '<option value="">Select a status...</option>';
+              selectElement.innerHTML = '<option value="">Select an option</option>';
 
               // In the new settings object: 
               // id is the key (e.g., "0", "1")
