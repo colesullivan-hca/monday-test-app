@@ -36,7 +36,7 @@ function calculateTotals() {
     const rowTotal = costInputs.reduce((sum, input) => {
       return sum + num(input.value);
     }, 0);
-    const totalField = itemRows.querySelector('itemTotal');
+    const totalField = row.querySelector('itemTotal');
     totalField.textContent = rowTotal.toFixed(2);
   }); 
 }
