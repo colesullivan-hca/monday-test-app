@@ -92,11 +92,11 @@ function calculateTotals() {
   }
 
   totalsTotal = ['mileageTotal', 'perdiemTotal', 'otherTotal']
-      .reduce((sum, id) => sum + num(document.querySelector(`#${id}`).value), 0);
+      .reduce((sum, id) => sum + num(document.getElementById(id).textContent), 0);
   const totalsTotalField = document.getElementById('totalsTotal');
   totalsTotalField.textContent = totalsTotal.toFixed(2);
 
-  advance = num(document.getElementById('advanceAmount'));
+  advance = num(document.getElementById('advanceAmount').value);
   finalTotal = totalsTotal + advance;
   document.getElementById('finalTotal').textContent = finalTotal;
 }
@@ -196,7 +196,6 @@ async function init() {
       document.querySelectorAll('[data-col]').forEach(field => {
         let item1;
         if(field.dataset.itemId) {
-          console.log('subitem');
           item1 = subitems?.find(s => s.id === field.dataset.itemId);
         }
         else item1 = item;
@@ -206,7 +205,6 @@ async function init() {
         } else {
           field.value = col?.text || '';
         }
-        console.log(item1.id + ' ' + col?.text);
         // Snapshot original value for dirty tracking
         // originalValues[field.dataset.col] = field.value;
 
