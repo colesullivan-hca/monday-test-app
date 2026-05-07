@@ -33,12 +33,13 @@ function calculateTotals() {
   //row totals
   const itemRows = document.querySelectorAll('.item-row');
   itemRows.forEach(row => {
-    const costInputs = Array.from(row.querySelectorAll('.cost'));
-    const rowTotal = costInputs.reduce((sum, input) => {
-      return sum + num(input.value);
-    }, 0);
-    const totalField = row.querySelector('.itemTotal');
-    totalField.textContent = rowTotal.toFixed(2);
+    let rowTotal = 0;
+      const costInputs = row.querySelectorAll('.cost');
+      for (const input of costInputs) {
+        rowTotal += num(input.value);
+      }
+      const totalField = row.querySelector('.itemTotal');
+      totalField.textContent = rowTotal.toFixed(2);
   }); 
 
   // miles total
