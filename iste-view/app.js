@@ -30,6 +30,7 @@ function addPDFInputs() {
 }
 
 function calculateTotals() {
+  //row totals
   const itemRows = document.querySelectorAll('.item-row');
   itemRows.forEach(row => {
     const costInputs = Array.from(row.querySelectorAll('.cost'));
@@ -39,6 +40,12 @@ function calculateTotals() {
     const totalField = row.querySelector('itemTotal');
     totalField.textContent = rowTotal.toFixed(2);
   }); 
+
+  // miles total
+  const miles = document.querySelectorAll('miles');
+  const milesTotal = Array.from(miles).reduce((sum, input) => sum + num(input.value), 0);
+  const totalMilesField = document.getElementById('mileTotal');
+  totalMilesField.textContent = milesTotal.toFixed(2);
 }
 
 document.querySelectorAll('.cost').forEach(input => {
