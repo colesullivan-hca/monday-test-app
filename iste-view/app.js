@@ -114,19 +114,21 @@ async function init() {
 
         if (boardColumns) {
           boardColumns.forEach(column => {
-            // Locate the select in HTML matching this specific column ID
             const selectElement = document.querySelector(`select[data-col="${column.id}"]`);
             
             if (selectElement) {
-              // 'settings' is already a JSON object, no parsing needed!
+              // Access labels from settings
               const labels = column.settings?.labels || {};
 
-              // Clear existing options to start fresh
               selectElement.innerHTML = '<option value="">Select a status...</option>';
 
-              // Generate the options from the labels object
-              const options = Object.entries(labels).map(([id, text]) => {
-                return new Option(text, id);
+              // In the new settings object: 
+              // id is the key (e.g., "0", "1")
+              // val is the object (e.g., { label: "Done", color: "done_green", ... })
+              const options = Object.entries(labels).map(([id, val]) => {
+                // Use val.label based on your mutation structure
+                const labelText = val.label || val.text || val; 
+                return new Option(labelText, id);
               });
 
               selectElement.append(...options);
