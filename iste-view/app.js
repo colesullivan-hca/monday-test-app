@@ -74,7 +74,7 @@ async function init() {
               const options = Object.entries(labels).map(([id, val]) => {
                 // Use val.label based on your mutation structure
                 const labelText = val.label || val.text || val; 
-                return new Option(labelText, id);
+                return new Option(labelText, labelText);
               });
 
               selectElement.append(...options);
