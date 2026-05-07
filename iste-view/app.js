@@ -28,7 +28,9 @@ async function generatePdf(data) {
     const pdfUrl = URL.createObjectURL(blob);
 
     // 6. Push to the iframe
-    document.getElementById('pdf-viewer').src = pdfUrl;
+    const iframe = document.getElementById('pdf-viewer');
+    iframe.src = pdfUrl;
+    iframe.style.display = "block";
 }
 
 document.getElementById('isteButton').addEventListener('click', generatePdf);

@@ -5,11 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>HCA Travel Request</title>
   <script src="https://cdn.jsdelivr.net/npm/monday-sdk-js/dist/main.js"></script>
+  <script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
   <script src="./mode.js"></script>
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-<iframe id="pdf-viewer"></iframe>
+<iframe id="pdf-viewer" style="display: none;"></iframe>
 <div class="save">
   <div class="inactive saveButton" id="saveButton">Save Changes</div>
   <button class="printButton" id="printButton" onclick="window.print();">Print</button>
