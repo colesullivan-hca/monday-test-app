@@ -78,8 +78,8 @@ async function init() {
         const elements = document.querySelectorAll('.item-row');
         subitems?.forEach((subitem, index) => {
             const tds = elements[index].children;
-            for (const field of tds) {
-                field.dataset.itemId = subitem.id;
+            for (const td of tds) {
+                td.firstElementChild.dataset.itemId = subitem.id;
             }
         });
 
