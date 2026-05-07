@@ -99,6 +99,55 @@ async function init() {
 
         });
 
+
+        const query2 = `query {
+          boards(ids: [${currentBoardId}]) {
+            columns(types: [status]) {
+              id
+              settings
+            }
+          }
+        }`;
+
+        const res2 = await monday.api(query2);
+        const boardColumns = res2?.data?.boards[0]?.columns;
+
+        if (boardColumns) {
+          boardColumns.forEach(column => {
+            // Locate the select in HTML matching this specific column ID
+            const selectElement = document.querySelector(`select[data-col="${column.id}"]`);
+            
+            if (selectElement) {
+              // 'settings' is already a JSON object, no parsing needed!
+              const labels = column.settings?.labels || {};
+
+              // Clear existing options to start fresh
+              selectElement.innerHTML = '<option value="">Select a status...</option>';
+
+              // Generate the options from the labels object
+              const options = Object.entries(labels).map(([id, text]) => {
+                return new Option(text, id);
+              });
+
+              selectElement.append(...options);
+            }
+          });
+        }
+
+
+        // const query2 = `query {
+        //   boards(ids: [${currentBoardId}]) {
+        //       columns(types: ['status']) {
+        //           id
+        //           settings
+        //       }
+        //   }
+        // }`;
+        // const labels = settings.labels;
+        // const res2 = await monday.api(query2);
+        // const statuses = res2?.data;
+        // const settings = JSON.parse(statuses.boards[0].columns[0].settings_str);
+        // const dropdowns = document.querySelectorAll('select');
     }
     catch (err) {
         console.error('Init error:', err);
