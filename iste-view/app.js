@@ -85,83 +85,23 @@ async function init() {
 
         
         document.querySelectorAll('[data-col]').forEach(field => {
-          let col;
           let item1;
           if(field.dataset.itemId) {
             item1 = subitems.find(s => s.id === field.dataset.itemId);
           }
           else item1 = item;
-          const col = item.column_values.find(c => c.id === field.dataset.col);
+          const col = item1.column_values.find(c => c.id === field.dataset.col);
           field.value = col?.text || '0';
 
           // Snapshot original value for dirty tracking
-          originalValues[field.dataset.col] = field.value;
+          // originalValues[field.dataset.col] = field.value;
 
-          if (isLocked) {
-            field.setAttribute('readonly', true);
-            field.classList.add('locked-field');
-          }
         });
 
     }
     catch (err) {
         console.error('Init error:', err);
     }
-
-  try {
-    const context = await monday.get('context');
-    currentItemId = context?.data?.itemId;
-    currentBoardId = context?.data?.boardId;
-
-    if (!currentItemId || !currentBoardId) {
-      throw new Error('Please open this in a monday item view.');
-    }
-
-    const query = `query {
-      items(ids: [${currentItemId}]) {
-        column_values {
-          id
-          text
-          type
-        }
-      }
-    }`;
-
-    const res = await monday.api(query);
-    const item = res?.data?.items?.[0];
-
-    if (!item) {
-      throw new Error('Could not load item data.');
-    }
-
-    // Status check: change 'color_mm2xe9t' to your actual Status column ID if needed
-    const statusCol = item.column_values.find(c => c.id === 'color_mm2xe9t');
-    isLocked = statusCol?.text.includes('Ready');
-
-    document.querySelectorAll('[data-col]').forEach(field => {
-      const col = item.column_values.find(c => c.id === field.dataset.col);
-      field.value = col?.text || '0';
-
-      // Snapshot original value for dirty tracking
-      originalValues[field.dataset.col] = field.value;
-
-      if (isLocked) {
-        field.setAttribute('readonly', true);
-        field.classList.add('locked-field');
-      }
-    });
-
-    const saveBtn = document.getElementById('saveButton');
-    if (isLocked) {
-    } else {
-      saveBtn.style.display = 'block';
-      saveBtn.addEventListener('click', saveAllData);
-    }
-
-    calculateTotals();
-  } catch (err) {
-    console.error('Init error:', err);
-  }
 }
 
 init();
