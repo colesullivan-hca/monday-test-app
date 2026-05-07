@@ -179,3 +179,5 @@ select {
   background-color: #cce5ff;
   pointer-events: none;
 }
+
+#pdf-viewer { width: 100%; height: 90vh; border: none; }

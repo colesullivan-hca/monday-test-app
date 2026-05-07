@@ -4,6 +4,35 @@ let currentItemId = null;
 let isLocked;
 const originalValues = {};
 
+async function generatePdf(data) {
+    const { PDFDocument } = PDFLib;
+
+    // 2. Fetch your static PDF template
+    const url = './ISTE.pdf';
+    const existingPdfBytes = await fetch(url).then(res => res.arrayBuffer());
+
+    // 3. Load the PDF and get the form fields
+    const pdfDoc = await PDFDocument.load(existingPdfBytes);
+    const form = pdfDoc.getForm();
+
+    // 4. Fill the fields by their names (set in Acrobat/LibreOffice)
+    document.querySelectorAll('[data-pdf]').forEach(field => {
+      const pdfId = field.dataset.pdf;
+      const text = field.value || field.textContent;
+      form.getTextField(pdfId).setText(text);
+    });
+
+    // 5. Save the PDF and create a local URL
+    const pdfBytes = await pdfDoc.save();
+    const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+    const pdfUrl = URL.createObjectURL(blob);
+
+    // 6. Push to the iframe
+    document.getElementById('pdf-viewer').src = pdfUrl;
+}
+
+document.getElementById('isteButton').addEventListener('click', generatePdf);
+
 // Helper to parse numbers
 function num(v) {
   return parseFloat(v) || 0;
