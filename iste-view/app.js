@@ -43,10 +43,22 @@ function calculateTotals() {
   }); 
 
   // miles total
-  const miles = document.querySelectorAll('miles');
+  const miles = document.querySelectorAll('.miles');
   const milesTotal = Array.from(miles).reduce((sum, input) => sum + num(input.value), 0);
-  const totalMilesField = document.getElementById('mileTotal');
+  const totalMilesField = document.getElementById('milesTotal');
   totalMilesField.textContent = milesTotal.toFixed(2);
+
+  // other totals
+  const totalIds = ['mileage', 'perdiem', 'other'];
+  for (const id of totalIds) {
+    costs = document.querySelectorAll(`.${id}`);
+    let total = 0;
+    for(const cost of costs) total += num(cost.value);
+    let totalField = document.getElementById(`${id}Total`);
+    let adjtotalField = document.getElementById(`${id}AdjTotal`);
+    totalField.textContent = total.toFixed(2);
+    adjtotalField.textContent = total.toFixed(2);
+  }
 }
 
 document.querySelectorAll('.cost').forEach(input => {
