@@ -125,7 +125,11 @@ async function init() {
           }
           else item1 = item;
           const col = item1.column_values.find(c => c.id === field.dataset.col);
-          field.value = col?.text || '';
+          if (field.type === 'checkbox') {
+            field.checked = col?.text === "v"; 
+          } else {
+            field.value = col?.text || '';
+          }
           console.log(item1.id + ' ' + col?.text);
           // Snapshot original value for dirty tracking
           // originalValues[field.dataset.col] = field.value;
