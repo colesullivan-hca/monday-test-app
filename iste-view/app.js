@@ -29,117 +29,133 @@ function addPDFInputs() {
     }
 }
 
+function calculateTotals() {
+  const itemRows = document.querySelectorAll('.item-row');
+  itemRows.forEach(row => {
+    const costInputs = Array.from(row.querySelectorAll('.cost'));
+    const rowTotal = costInputs.reduce((sum, input) => {
+      return sum + num(input.value);
+    }, 0);
+    const totalField = itemRows.querySelector('itemTotal');
+    totalField.textContent = rowTotal.toFixed(2);
+  }); 
+}
+
+document.querySelectorAll('.cost').forEach(input => {
+  input.addEventListener('input', calculateTotals);
+});
+
 async function init() {
-    try {
-        const itemRows = [];
-        const itemRow = document.querySelector(".item-row");
-        itemRows.push(itemRow);
-        for (let i = 0; i < 14; i++) {
-            const clone = itemRow.cloneNode(true);
-            itemRows.push(clone);
+  try {
+      const itemRows = [];
+      const itemRow = document.querySelector(".item-row");
+      itemRows.push(itemRow);
+      for (let i = 0; i < 14; i++) {
+          const clone = itemRow.cloneNode(true);
+          itemRows.push(clone);
+      }
+      itemRow.after(...itemRows);
+      addPDFInputs();
+
+      const context = await monday.get('context');
+      currentItemId = context?.data?.itemId;
+      currentBoardId = context?.data?.boardId;
+
+      if (!currentItemId || !currentBoardId) {
+      throw new Error('Please open this in a monday item view.');
+      }
+
+      const query2 = `query {
+        boards(ids: [${currentBoardId}]) {
+          columns(types: [status]) {
+            id
+            settings
+          }
         }
-        itemRow.after(...itemRows);
-        addPDFInputs();
+      }`;
 
-        const context = await monday.get('context');
-        currentItemId = context?.data?.itemId;
-        currentBoardId = context?.data?.boardId;
+      const res2 = await monday.api(query2);
+      const boardColumns = res2?.data?.boards[0]?.columns;
 
-        if (!currentItemId || !currentBoardId) {
-        throw new Error('Please open this in a monday item view.');
-        }
+      if (boardColumns) {
+        boardColumns.forEach(column => {
+          const selectElement = document.querySelector(`select[data-col="${column.id}"]`);
+          
+          if (selectElement) {
+            // Access labels from settings
+            const labels = column.settings?.labels || {};
 
-        const query2 = `query {
-          boards(ids: [${currentBoardId}]) {
-            columns(types: [status]) {
+            selectElement.innerHTML = '';
+
+            const options = Object.entries(labels).map(([id, val]) => {
+              // Use val.label based on your mutation structure
+              const labelText = val.label || val.text || val; 
+              return new Option(labelText, labelText);
+            });
+
+            selectElement.append(...options);
+          }
+        });
+      }
+
+      const query = `query {
+      items(ids: [${currentItemId}]) {
+          column_values {
               id
-              settings
-            }
+              text
+              type
           }
-        }`;
-
-        const res2 = await monday.api(query2);
-        const boardColumns = res2?.data?.boards[0]?.columns;
-
-        if (boardColumns) {
-          boardColumns.forEach(column => {
-            const selectElement = document.querySelector(`select[data-col="${column.id}"]`);
-            
-            if (selectElement) {
-              // Access labels from settings
-              const labels = column.settings?.labels || {};
-
-              selectElement.innerHTML = '';
-
-              const options = Object.entries(labels).map(([id, val]) => {
-                // Use val.label based on your mutation structure
-                const labelText = val.label || val.text || val; 
-                return new Option(labelText, labelText);
-              });
-
-              selectElement.append(...options);
-            }
-          });
-        }
-
-        const query = `query {
-        items(ids: [${currentItemId}]) {
-            column_values {
-                id
-                text
-                type
-            }
-            subitems {
-                id
-                column_values {
-                    id
-                    text
-                    type
-                }
-            }
-        }
-        }`;
-
-        const res = await monday.api(query);
-        const item = res?.data?.items?.[0];
-        const subitems = item?.subitems;
-
-        if (!item) {
-            throw new Error('Could not load item data.');
-        }
-
-        const elements = document.querySelectorAll('.item-row');
-        subitems?.forEach((subitem, index) => {
-            const tds = elements[index].children;
-            for (const td of tds) {
-                td.firstElementChild.dataset.itemId = subitem.id;
-            }
-        });
-
-        
-        document.querySelectorAll('[data-col]').forEach(field => {
-          let item1;
-          if(field.dataset.itemId) {
-            console.log('subitem');
-            item1 = subitems?.find(s => s.id === field.dataset.itemId);
+          subitems {
+              id
+              column_values {
+                  id
+                  text
+                  type
+              }
           }
-          else item1 = item;
-          const col = item1.column_values.find(c => c.id === field.dataset.col);
-          if (field.type === 'checkbox') {
-            field.checked = col?.text === "v"; 
-          } else {
-            field.value = col?.text || '';
+      }
+      }`;
+
+      const res = await monday.api(query);
+      const item = res?.data?.items?.[0];
+      const subitems = item?.subitems;
+
+      if (!item) {
+          throw new Error('Could not load item data.');
+      }
+
+      const elements = document.querySelectorAll('.item-row');
+      subitems?.forEach((subitem, index) => {
+          const tds = elements[index].children;
+          for (const td of tds) {
+              td.firstElementChild.dataset.itemId = subitem.id;
           }
-          console.log(item1.id + ' ' + col?.text);
-          // Snapshot original value for dirty tracking
-          // originalValues[field.dataset.col] = field.value;
+      });
 
-        });
+      
+      document.querySelectorAll('[data-col]').forEach(field => {
+        let item1;
+        if(field.dataset.itemId) {
+          console.log('subitem');
+          item1 = subitems?.find(s => s.id === field.dataset.itemId);
+        }
+        else item1 = item;
+        const col = item1.column_values.find(c => c.id === field.dataset.col);
+        if (field.type === 'checkbox') {
+          field.checked = col?.text === "v"; 
+        } else {
+          field.value = col?.text || '';
+        }
+        console.log(item1.id + ' ' + col?.text);
+        // Snapshot original value for dirty tracking
+        // originalValues[field.dataset.col] = field.value;
 
-    }
-    catch (err) {
-        console.error('Init error:', err);
-    }
+      });
+      calculateTotals();
+  }
+  catch (err) {
+      console.error('Init error:', err);
+  }
 }
 
 init();
