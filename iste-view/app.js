@@ -49,10 +49,10 @@ async function generatePdf(data) {
 
     // 1. Create a hidden anchor element
     const link = document.createElement('a');
-    const url = URL.createObjectURL(blob);
+    const pdfurl = URL.createObjectURL(blob);
 
     // 2. Set the download attribute and the URL
-    link.href = url;
+    link.href = pdfurl;
     link.download = 'ISTE_Report.pdf'; // You can name the file here
 
     // 3. Append to body, click it, and remove it
