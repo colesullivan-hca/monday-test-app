@@ -69,7 +69,8 @@ function addPDFInputs() {
             let num = int(input.at(-1));
             if(num === 0) num = i;
             else num = i+1;
-            const newInput = input.slice(0, -1) + num;
+            let newInput = input.slice(0, -1) + num;
+            if(input === "OTHERRow1.0") newInput = 'OTHERRow' + num + 1;
             child.firstElementChild.dataset.pdf = newInput;
         }
     }
