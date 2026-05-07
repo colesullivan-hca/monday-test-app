@@ -40,8 +40,8 @@ async function generatePdf(data) {
     form.flatten();
     const pdfBytes = await pdfDoc.save();
     const blob = new Blob([pdfBytes], { type: 'application/pdf' });
-    // const pdfUrl = URL.createObjectURL(blob);
-    const pdfBase64 = await pdfDoc.saveAsBase64({ dataUri: true });
+    const pdfUrl = URL.createObjectURL(blob);
+    // const pdfBase64 = await pdfDoc.saveAsBase64({ dataUri: true });
 
     const iframe = document.getElementById('pdf-viewer');
     iframe.src = pdfBase64;
