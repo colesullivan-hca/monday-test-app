@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HCA Travel Request</title>
+  <script src="https://cdn.jsdelivr.net/npm/monday-sdk-js/dist/main.js"></script>
+  <script src="./mode.js"></script>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+<div class="save">
+  <div class="inactive saveButton" id="saveButton">Save Changes</div>
+  <button class="printButton" id="printButton" onclick="window.print();">Print</button>
+  <div id="mode">
+    <button class="modeButton inactive" id="editorButton" onclick="switchMode('editor');">Editor</button>
+    <button class="modeButton" id="isteButton" onclick="switchMode('iste');">ISTE</button>
+  </div>
+</div>
+<div class="form-container">
+  <h1>STATE OF NM ITEMIZED SCHEDULE OF TRAVEL EXPENSES</h1>
+  <form id="travelForm">
+    <table id="hidden fields" style="display: none;">
+      <tr><td><input data-col="" data-pdf="PAGE" value="1"></td><td><input type="checkbox" data-pdf="Check Box8" checked></td></tr>
+    </table>
+
+    <table>
+      <tr><td class="label">AGENCY NAME:</td><td><input data-col="text_mm32f6m5" data-pdf="AGENCY NAME" readonly></td><td class="label">BUSINESS UNIT:</td><td><input data-col="text_mm32vzws" data-pdf="VOUCHER"></td><td class="label">VOUCHER NUMBER:</td><td><input data-col="text_mm33zev5" data-pdf="VOUCHER NUMBER"></td><td class="label"><input type="checkbox" data-col="boolean_mm32z5q7" data-pdf="Prepaid">PREPAID VOUCHER</td><td class="label"><input type="checkbox" data-col="boolean_mm32n5pq" data-pdf="Final Voucher">FINAL VOUCHER</td></tr>
+    </table>
+    
+    <table>
+        <tr><td class="label">SUPPLIER NAME:</td><td><input data-col="text_mm32xqxs" data-pdf="SUPPLIER NAME"></td><td class="label">SUPPLIER ID:</td><td><input data-col="text_mm32zdd2" data-pdf="SUPPLIER ID"></td><td class="label">POST OF DUTY:</td><td><input data-col="text_mm32ydbs" data-pdf="Post of Duty"></td><td class="label">RESIDENCE:</td><td><input data-col="text_mm32f377" data-pdf="Residence"></td></tr>
+        <tr></tr>
+        <tr><td class="label">VEHICLE LICENSE PLATE:</td><td><input data-col="text_mm328jte" data-pdf="Vehicle License Plate"></td><td class="label">VEHICLE MODEL & YEAR:</td><td><input data-col="text_mm32vtpv" data-pdf="Vehicle Model Year"></td><td class="label">VEHICLE TYPE:</td><td><select data-col="color_mm32b86r" data-pdf="Dropdown7"></select></td></tr>
+        <tr></tr>
+    </table>
+    
+    <table>
+        <tr><td class="label">BOARD/COMMISSION ATTENDANCE:</td><td><select data-col="color_mm322zrz" data-pdf="Dropdown5"></select></td><td class="label">LENGTH OF BOARD/COMMISION MEETING:</td><td><select data-col="color_mm32ddxm" data-pdf="Dropdown6"></select></td></tr>
+    </table>
+
+    <table class="itemized">
+      <colgroup><col><col style="width: 70px;"><col style="width: 70px;"><col style="width: 27%;"></colgroup>
+      <tr><td colspan="10" class="section-title center">ITEMIZED COSTS BY DAY</td></tr>
+      <tr><th></th><th colspan="2">Time: AM or PM</th><th>Nature of Expense</th><th colspan="2">Odometer Readings</th><th colspan="4">Amounts</th></tr>
+      <tr><th>DATE</th><th>DEPARTURE TIME</th><th>ARRIVAL TIME</th> <th>DESTINATION AND NATURE OF BUSINESS</th><th>ODOMETER START AND FINISH</th><th>NO OF MILES</th><th>MILEAGE</th><th>PER DIEM</th><th>OTHER</th><th>TOTALS</th></tr>
+      <tr class="item-row">
+        <td><input type="date" data-col="date0" data-pdf="DATE ITEMIZED COSTS BY DAYRow1.0"></td> <td><input data-col="text_mm33semp" data-pdf="DEPARTURERow1.0"></td> <td><input data-col="text_mm33g5ts" data-pdf="ARRIVALRow1.0"></td> <td><input data-col="text_mm33vyy2" data-pdf="ENTER DESTINATION AND NATURE OF OFFICIAL BUSINESSRow1.0"></td> <td><input data-col="text_mm33rqhh" data-pdf="START AND FINISHRow1.0"></td> <td><input type="number" data-col="numeric_mm33psy1" data-pdf="NO OF MILESRow_1"></td> <td><input type="number" data-col="numeric_mm33fqwj" data-pdf="MILEAGERow1"></td> <td><input type="number" data-col="numeric_mm334bhr" data-pdf="PER DIEMRow1"></td> <td><input type="number" data-col="numeric_mm33d33d" data-pdf="OTHERRow1.0"></td> <td class="right"><span id="itemTotal" data-pdf="Total 1">0.00</span></td>
+      </tr>
+      <tr>
+        <th colspan="5">TOTALS</th> <td class="right"><span id="milesTotal" data-pdf="Mile_Total">0.00</span></td> <td class="right"><span id="mileageTotal" data-pdf="MILEAGEROW_TOTAL">0.00</span></td> <td class="right"><span id="perdiemTotal" data-pdf="PER DIEMRow_Total">0.00</span></td> <td class="right"><span id="otherTotal" data-pdf="OTHERRow_Total">0.00</span></td> <td class="right"><span id="totalsTotal" data-pdf="ALL_Total">0.00</span></td>
+      </tr>
+      <tr>
+        <th colspan="5">ADVANCE AMOUNT @ 80%</th> <th colspan="4"></th> <td><input id="advanceAmount" data-col="numeric_mm34wpds" data-pdf="Advance_Amount"></td>
+      </tr>
+      <tr>
+        <th colspan="5">ADJUSTED REIMBURSEMENT</th> <th></th> <td class="right"><span id="mileageAdjTotal">0.00</span></td> <td class="right"><span id="perdiemAdjTotal">0.00</span></td> <td class="right"><span id="otherAdjTotal">0.00</span></td> <td class="right"><span id="finalTotal" data-pdf="Final_Total">0.00</span></td>
+      </tr>
+    </table>
+
+    <table>
+        <tr><td class="label">PER DIEM BASED ON:</td><td class="label"><input type="checkbox" data-col="boolean_mm3490fe">ACTUAL</td><td class="label"><input type="checkbox" data-col="boolean_mm345nt4">APPROVED RATES</td></tr>
+    </table>
+
+  </form>
+</div>
+<script src="app.js"></script>
+</body>
+</html>

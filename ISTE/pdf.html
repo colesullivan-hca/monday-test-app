@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Static PDF Filler</title>
+  <script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
+  <style>
+    #pdf-viewer { width: 100%; height: 90vh; border: none; }
+    .controls { padding: 10px; background: #f4f4f4; }
+  </style>
+</head>
+<body>
+
+  <div class="controls">
+    <button onclick="generatePdf()">Load PDF with Variables</button>
+  </div>
+  
+  <iframe id="pdf-viewer"></iframe>
+
+  <script>
+    async function generatePdf() {
+      const { PDFDocument } = PDFLib;
+
+      // 1. Define your variables
+      const userData = {
+        name: "Alex Smith",
+        date: new Date().toLocaleDateString(),
+        memberId: "12345-ABC"
+      };
+
+      // 2. Fetch your static PDF template
+      // Replace 'template.pdf' with the actual path to your file
+      const url = './ISTE.pdf';
+      const existingPdfBytes = await fetch(url).then(res => res.arrayBuffer());
+
+      // 3. Load the PDF and get the form fields
+      const pdfDoc = await PDFDocument.load(existingPdfBytes);
+      const form = pdfDoc.getForm();
+
+      // 4. Fill the fields by their names (set in Acrobat/LibreOffice)
+      // If the field name doesn't exist, this will throw an error, 
+      // so use try/catch or check if field exists.
+    //   form.getTextField('full_name').setText(userData.name);
+    //   form.getTextField('date_field').setText(userData.date);
+
+      // 5. Save the PDF and create a local URL
+      const pdfBytes = await pdfDoc.save();
+      const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+      const pdfUrl = URL.createObjectURL(blob);
+
+      // 6. Push to the iframe
+      document.getElementById('pdf-viewer').src = pdfUrl;
+    }
+
+    async function downloadFilledPdf() {
+        const { PDFDocument } = PDFLib;
+
+        // ... (Your code to load and fill the PDF form) ...
+        
+        // 1. Serialize the PDFDocument to bytes (a Uint8Array)
+        const pdfBytes = await pdfDoc.save();
+
+        // 2. Create a Blob from the PDF bytes
+        const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+
+        // 3. Create a download link
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = 'filled-form.pdf'; // The name the user will see
+
+        // 4. Append to body, click, and remove
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        // 5. Clean up the URL object to free memory
+        URL.revokeObjectURL(link.href);
+    }
+  </script>
+</body>
+</html>
