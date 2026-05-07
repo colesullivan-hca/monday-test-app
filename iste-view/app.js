@@ -25,7 +25,7 @@ async function generatePdf(data) {
             } 
             else if (field.tagName === 'SELECT') {
                 // selectOption handles dropdowns/combo boxes
-                pdfField.select(field.value);
+                if(field.value) pdfField.select(field.value);
             } 
             else {
                 // Default to text for inputs, textareas, etc.
