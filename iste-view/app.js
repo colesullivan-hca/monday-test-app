@@ -49,6 +49,40 @@ async function init() {
         throw new Error('Please open this in a monday item view.');
         }
 
+        const query2 = `query {
+          boards(ids: [${currentBoardId}]) {
+            columns(types: [status]) {
+              id
+              settings
+            }
+          }
+        }`;
+
+        const res2 = await monday.api(query2);
+        const boardColumns = res2?.data?.boards[0]?.columns;
+
+        if (boardColumns) {
+          boardColumns.forEach(column => {
+            const selectElement = document.querySelector(`select[data-col="${column.id}"]`);
+            
+            if (selectElement) {
+              // Access labels from settings
+              const labels = column.settings?.labels || {};
+
+              // In the new settings object: 
+              // id is the key (e.g., "0", "1")
+              // val is the object (e.g., { label: "Done", color: "done_green", ... })
+              const options = Object.entries(labels).map(([id, val]) => {
+                // Use val.label based on your mutation structure
+                const labelText = val.label || val.text || val; 
+                return new Option(labelText, id);
+              });
+
+              selectElement.append(...options);
+            }
+          });
+        }
+
         const query = `query {
         items(ids: [${currentItemId}]) {
             column_values {
@@ -99,55 +133,6 @@ async function init() {
 
         });
 
-
-        const query2 = `query {
-          boards(ids: [${currentBoardId}]) {
-            columns(types: [status]) {
-              id
-              settings
-            }
-          }
-        }`;
-
-        const res2 = await monday.api(query2);
-        const boardColumns = res2?.data?.boards[0]?.columns;
-
-        if (boardColumns) {
-          boardColumns.forEach(column => {
-            const selectElement = document.querySelector(`select[data-col="${column.id}"]`);
-            
-            if (selectElement) {
-              // Access labels from settings
-              const labels = column.settings?.labels || {};
-
-              // In the new settings object: 
-              // id is the key (e.g., "0", "1")
-              // val is the object (e.g., { label: "Done", color: "done_green", ... })
-              const options = Object.entries(labels).map(([id, val]) => {
-                // Use val.label based on your mutation structure
-                const labelText = val.label || val.text || val; 
-                return new Option(labelText, id);
-              });
-
-              selectElement.append(...options);
-            }
-          });
-        }
-
-
-        // const query2 = `query {
-        //   boards(ids: [${currentBoardId}]) {
-        //       columns(types: ['status']) {
-        //           id
-        //           settings
-        //       }
-        //   }
-        // }`;
-        // const labels = settings.labels;
-        // const res2 = await monday.api(query2);
-        // const statuses = res2?.data;
-        // const settings = JSON.parse(statuses.boards[0].columns[0].settings_str);
-        // const dropdowns = document.querySelectorAll('select');
     }
     catch (err) {
         console.error('Init error:', err);
