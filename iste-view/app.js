@@ -69,9 +69,8 @@ async function init() {
               // Access labels from settings
               const labels = column.settings?.labels || {};
 
-              // In the new settings object: 
-              // id is the key (e.g., "0", "1")
-              // val is the object (e.g., { label: "Done", color: "done_green", ... })
+              selectElement.innerHTML = '';
+
               const options = Object.entries(labels).map(([id, val]) => {
                 // Use val.label based on your mutation structure
                 const labelText = val.label || val.text || val; 
