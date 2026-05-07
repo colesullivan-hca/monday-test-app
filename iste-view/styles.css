@@ -147,13 +147,14 @@ select {
 
 .modeButton {
   display: block;
-  width: fit-content;
+  /* width: fit-content;
   border: 1px solid #c3c6d4;
   color: #323338;
-  background-color: white;
+  background-color: white; */
 }
 
 .modeButton.inactive {
+  border: 1px solid #c3c6d4;
   background-color: #f3f4f6;
   color: #a7a8ad;
   pointer-events: none;
