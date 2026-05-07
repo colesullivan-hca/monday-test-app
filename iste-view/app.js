@@ -76,7 +76,7 @@ async function init() {
         }
 
         const elements = document.querySelectorAll('.item-row');
-        subitems.array.forEach((subitem, index) => {
+        subitems?.forEach((subitem, index) => {
             const tds = elements[index].children;
             for (const field of tds) {
                 field.dataset.itemId = subitem.id;
@@ -87,7 +87,7 @@ async function init() {
         document.querySelectorAll('[data-col]').forEach(field => {
           let item1;
           if(field.dataset.itemId) {
-            item1 = subitems.find(s => s.id === field.dataset.itemId);
+            item1 = subitems?.find(s => s.id === field.dataset.itemId);
           }
           else item1 = item;
           const col = item1.column_values.find(c => c.id === field.dataset.col);
