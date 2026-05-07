@@ -59,9 +59,18 @@ function calculateTotals() {
     totalField.textContent = total.toFixed(2);
     adjtotalField.textContent = total.toFixed(2);
   }
+
+  totalsTotal = ['mileageTotal', 'perdiemTotal', 'otherTotal']
+      .reduce((sum, id) => sum + num(document.querySelector(`#${id}`).value), 0);
+  const totalsTotalField = document.getElementById('totalsTotal');
+  totalsTotalField.textContent = totalsTotal.toFixed(2);
+
+  advance = num(document.getElementById('advanceAmount'));
+  finalTotal = totalsTotal + advance;
+  document.getElementById('finalTotal').textContent = finalTotal;
 }
 
-document.querySelectorAll('.cost').forEach(input => {
+document.querySelectorAll('.cost, .summable').forEach(input => {
   input.addEventListener('input', calculateTotals);
 });
 
