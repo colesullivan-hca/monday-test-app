@@ -41,27 +41,27 @@ async function generatePdf(data) {
     const pdfBytes = await pdfDoc.save();
     const blob = new Blob([pdfBytes], { type: 'application/pdf' });
 
-    // const pdfUrl = URL.createObjectURL(blob);
+    const pdfUrl = URL.createObjectURL(blob);
 
-    // const iframe = document.getElementById('pdf-viewer');
-    // iframe.src = pdfUrl;
-    // iframe.style.display = "block";
+    const iframe = document.getElementById('pdf-viewer');
+    iframe.src = pdfUrl;
+    iframe.style.display = "block";
 
-    // 1. Create a hidden anchor element
-    const link = document.createElement('a');
-    const pdfurl = URL.createObjectURL(blob);
+    // // 1. Create a hidden anchor element
+    // const link = document.createElement('a');
+    // const pdfurl = URL.createObjectURL(blob);
 
-    // 2. Set the download attribute and the URL
-    link.href = pdfurl;
-    link.download = 'ISTE_Report.pdf'; // You can name the file here
+    // // 2. Set the download attribute and the URL
+    // link.href = pdfurl;
+    // link.download = 'ISTE_Report.pdf'; // You can name the file here
 
-    // 3. Append to body, click it, and remove it
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    // // 3. Append to body, click it, and remove it
+    // document.body.appendChild(link);
+    // link.click();
+    // document.body.removeChild(link);
 
-    // 4. Clean up the URL memory
-    URL.revokeObjectURL(url);
+    // // 4. Clean up the URL memory
+    // URL.revokeObjectURL(url);
 }
 
 document.getElementById('isteButton').addEventListener('click', generatePdf);
