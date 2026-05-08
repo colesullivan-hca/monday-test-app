@@ -333,7 +333,9 @@ async function init() {
       const res = await monday.api(query);
       const item = res?.data?.items?.[0];
       const subitems = item?.subitems;
+      console.log('subitems raw:', subitems);
       const subitemBoardId = subitems?.[0]?.board?.id;
+      console.log('subitemBoardId:', subitemBoardId);
 
       if (!item) {
           throw new Error('Could not load item data.');
