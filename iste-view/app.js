@@ -283,63 +283,29 @@ async function init() {
       throw new Error('Please open this in a monday item view.');
       }
 
-      const query2 = `query {
+      const query = `query {
         boards(ids: [${currentBoardId}]) {
           columns(types: [status]) {
             id
             settings
           }
         }
-      }`;
-
-      const res2 = await monday.api(query2);
-      const boardColumns = res2?.data?.boards[0]?.columns;
-
-      if (boardColumns) {
-        boardColumns.forEach(column => {
-          const selectElement = document.querySelector(`select[data-col="${column.id}"]`);
-          
-          if (selectElement) {
-            // Access labels from settings
-            const labels = column.settings?.labels || {};
-
-            selectElement.innerHTML = '';
-
-            const options = Object.entries(labels).map(([id, val]) => {
-              // Use val.label based on your mutation structure
-              const labelText = val.label || val.text || val; 
-              return new Option(labelText, labelText);
-            });
-
-            selectElement.append(...options);
-          }
-        });
-      }
-
-      const query = `query {
-      items(ids: [${currentItemId}]) {
-          column_values {
-              id
-              text
-              type
-          }
+        items(ids: [${currentItemId}]) {
+          column_values { id text type }
           subitems {
-              id
-              board { id }
-              column_values {
-                  id
-                  text
-                  type
-              }
+            id
+            board { id }
+            column_values { id text type }
           }
-      }
+        }
       }`;
-
       const res = await monday.api(query);
+      const boardColumns = res?.data?.boards[0]?.columns;
       const item = res?.data?.items?.[0];
       if (!item) {
           throw new Error('Could not load item data.');
       }
+
       const REQUIRED_SUBITEMS = 15;
       const subitems = item?.subitems || [];
       if (subitems.length > REQUIRED_SUBITEMS) {
@@ -359,7 +325,7 @@ async function init() {
           monday.api(createMutation, {
             variables: {
               itemId: String(currentItemId),
-              itemName: `Row ${subitems.length + i + 1}`,
+              itemName: 'Itemized Cost',
             }
           })
         );
