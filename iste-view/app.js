@@ -91,7 +91,6 @@ async function saveChanges() {
         }
       }));
     }
-    console.log('subitemBoardId at save time:', subitemBoardId);
     Object.entries(subitemMap).forEach(([itemId, fields]) => {
       requests.push(monday.api(mutation, {
         variables: {
@@ -108,6 +107,12 @@ async function saveChanges() {
       console.error('Save errors:', errors);
       alert('Some fields failed to save. Check the console for details.');
       return;
+    }
+    else {
+      monday.execute('notice', {
+        message: 'Changes saved successfully!',
+        type: 'success'
+      });
     }
 
     snapshotValues();
@@ -332,14 +337,35 @@ async function init() {
 
       const res = await monday.api(query);
       const item = res?.data?.items?.[0];
-      const subitems = item?.subitems;
-      console.log('subitems raw:', subitems);
-      subitemBoardId = subitems?.[0]?.board?.id;
-      console.log('subitemBoardId:', subitemBoardId);
-
       if (!item) {
           throw new Error('Could not load item data.');
       }
+      const REQUIRED_SUBITEMS = 15;
+      const subitems = item?.subitems || [];
+      if (subitems.length > REQUIRED_SUBITEMS) {
+        alert(`This item has ${subitems.length} subitems but only ${REQUIRED_SUBITEMS} are supported. Please remove the extras and reload.`);
+        return;
+      }
+      if (subitems.length < REQUIRED_SUBITEMS) {
+        const needed = REQUIRED_SUBITEMS - subitems.length;
+        const createMutation = `mutation ($itemId: ID!, $boardId: ID!) {
+          create_subitem(parent_item_id: $itemId) { 
+            id 
+            board { id }
+          }
+        }`;
+        for (let i = 0; i < needed; i++) {
+          const res = await monday.api(createMutation, {
+            variables: {
+              itemId: String(currentItemId),
+              boardId: String(currentBoardId),
+            }
+          });
+          const newSubitem = res?.data?.create_subitem;
+          subitems.push({ id: newSubitem.id, board: newSubitem.board, column_values: [] });
+        }
+      }
+      subitemBoardId = subitems[0]?.board?.id;
 
       const elements = document.querySelectorAll('.item-row');
       subitems?.forEach((subitem, index) => {
@@ -349,7 +375,6 @@ async function init() {
           }
       });
 
-      
       document.querySelectorAll('[data-col]').forEach(field => {
         let item1;
         if(field.dataset.itemId) {
