@@ -2,7 +2,124 @@ const monday = window.mondaySdk();
 let currentBoardId = null;
 let currentItemId = null;
 let isLocked;
-const originalValues = {};
+const originalValues = {};  // key: "<itemId|'main'>__<colId>" → value
+
+// Returns a unique key for a field element
+function fieldKey(field) {
+  const itemId = field.dataset.itemId || 'main';
+  return `${itemId}__${field.dataset.col}`;
+}
+
+// Returns the current "value" of a field in a comparable form
+function fieldValue(field) {
+  return field.type === 'checkbox' ? (field.checked ? 'v' : '') : field.value;
+}
+
+// Show/hide save button based on whether any field is dirty
+function checkDirty() {
+  const allFields = document.querySelectorAll('[data-col]');
+  const isDirty = Array.from(allFields).some(f => fieldValue(f) !== originalValues[fieldKey(f)]);
+  const saveBtn = document.getElementById('saveButton');
+  if (saveBtn) saveBtn.style.display = isDirty ? '' : 'none';
+}
+
+// Attach dirty-tracking listeners to all [data-col] fields
+function attachDirtyListeners() {
+  document.querySelectorAll('[data-col]').forEach(field => {
+    field.addEventListener('input', checkDirty);
+    field.addEventListener('change', checkDirty);
+  });
+}
+
+// Snapshot current values as the new baseline (call after load or after successful save)
+function snapshotValues() {
+  document.querySelectorAll('[data-col]').forEach(field => {
+    originalValues[fieldKey(field)] = fieldValue(field);
+  });
+}
+
+// Build a monday column_values JSON string for a set of changed fields
+function buildColumnValues(fields) {
+  const colValues = {};
+  fields.forEach(field => {
+    const colId = field.dataset.col;
+    if (field.type === 'checkbox') {
+      colValues[colId] = { checked: field.checked ? 'true' : 'false' };
+    } else if (field.tagName === 'SELECT') {
+      colValues[colId] = { label: field.value };
+    } else {
+      colValues[colId] = field.value;
+    }
+  });
+  return JSON.stringify(JSON.stringify(colValues)); // double-stringify for GraphQL inline
+}
+
+async function saveChanges() {
+  const saveBtn = document.getElementById('saveButton');
+  if (saveBtn) { saveBtn.disabled = true; saveBtn.textContent = 'Saving…'; }
+
+  try {
+    const allFields = Array.from(document.querySelectorAll('[data-col]'));
+    const dirtyFields = allFields.filter(f => fieldValue(f) !== originalValues[fieldKey(f)]);
+
+    // Split into main item vs subitems
+    const mainDirty = dirtyFields.filter(f => !f.dataset.itemId);
+    const subitemMap = {};
+    dirtyFields.filter(f => f.dataset.itemId).forEach(f => {
+      const id = f.dataset.itemId;
+      if (!subitemMap[id]) subitemMap[id] = [];
+      subitemMap[id].push(f);
+    });
+
+    const mutations = [];
+
+    if (mainDirty.length) {
+      mutations.push(`
+        updateMain: change_multiple_column_values(
+          board_id: ${currentBoardId},
+          item_id: ${currentItemId},
+          column_values: ${buildColumnValues(mainDirty)}
+        ) { id }
+      `);
+    }
+
+    Object.entries(subitemMap).forEach(([itemId, fields], i) => {
+      mutations.push(`
+        updateSub${i}: change_multiple_column_values(
+          board_id: ${currentBoardId},
+          item_id: ${itemId},
+          column_values: ${buildColumnValues(fields)}
+        ) { id }
+      `);
+    });
+
+    if (mutations.length) {
+      const mutation = `mutation { ${mutations.join('\n')} }`;
+      const res = await monday.api(mutation);
+      if (res?.errors?.length) {
+        console.error('Save errors:', res.errors);
+        alert('Some fields failed to save. Check the console for details.');
+        return;
+      }
+    }
+
+    // Commit the new baseline and hide the save button
+    snapshotValues();
+    checkDirty();
+  } catch (err) {
+    console.error('Save error:', err);
+    alert('Save failed. Check the console for details.');
+  } finally {
+    if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = 'Save'; }
+  }
+}
+
+// Wire up save button
+const _saveBtn = document.getElementById('saveButton');
+if (_saveBtn) {
+  _saveBtn.style.display = 'none';
+  _saveBtn.addEventListener('click', saveChanges);
+}
 
 async function generatePdf() {
     const { PDFDocument } = PDFLib;
@@ -235,11 +352,10 @@ async function init() {
         } else {
           field.value = col?.text || '';
         }
-        // Snapshot original value for dirty tracking
-        // originalValues[field.dataset.col] = field.value;
-
       });
       calculateTotals();
+      snapshotValues();
+      attachDirtyListeners();
   }
   catch (err) {
       console.error('Init error:', err);
