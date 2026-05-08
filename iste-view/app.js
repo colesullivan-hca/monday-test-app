@@ -20,7 +20,8 @@ function checkDirty() {
   const allFields = document.querySelectorAll('[data-col]');
   const isDirty = Array.from(allFields).some(f => fieldValue(f) !== originalValues[fieldKey(f)]);
   const saveBtn = document.getElementById('saveButton');
-  if (saveBtn) saveBtn.style.display = isDirty ? '' : 'none';
+  if(isDirty) saveBtn.classList.remove('inactive');
+  else saveBtn.classList.add('inactive');
 }
 
 // Attach dirty-tracking listeners to all [data-col] fields
@@ -117,7 +118,7 @@ async function saveChanges() {
 // Wire up save button
 const _saveBtn = document.getElementById('saveButton');
 if (_saveBtn) {
-  _saveBtn.style.display = 'none';
+  _saveBtn.style.display = 'block';
   _saveBtn.addEventListener('click', saveChanges);
 }
 
