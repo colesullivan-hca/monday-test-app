@@ -53,7 +53,7 @@ function buildColumnValues(fields) {
       colValues[colId] = field.value;
     }
   });
-  return JSON.stringify(JSON.stringify(colValues)); // double-stringify for GraphQL inline
+  return JSON.stringify(colValues);
 }
 
 async function saveChanges() {
@@ -64,7 +64,6 @@ async function saveChanges() {
     const allFields = Array.from(document.querySelectorAll('[data-col]'));
     const dirtyFields = allFields.filter(f => fieldValue(f) !== originalValues[fieldKey(f)]);
 
-    // Split into main item vs subitems
     const mainDirty = dirtyFields.filter(f => !f.dataset.itemId);
     const subitemMap = {};
     dirtyFields.filter(f => f.dataset.itemId).forEach(f => {
@@ -73,39 +72,44 @@ async function saveChanges() {
       subitemMap[id].push(f);
     });
 
-    const mutations = [];
+    const mutation = `mutation ($itemId: ID!, $boardId: ID!, $columnValues: JSON!) {
+      change_multiple_column_values(
+        item_id: $itemId,
+        board_id: $boardId,
+        column_values: $columnValues
+      ) { id }
+    }`;
+
+    const requests = [];
 
     if (mainDirty.length) {
-      mutations.push(`
-        updateMain: change_multiple_column_values(
-          board_id: ${currentBoardId},
-          item_id: ${currentItemId},
-          column_values: ${buildColumnValues(mainDirty)}
-        ) { id }
-      `);
+      requests.push(monday.api(mutation, {
+        variables: {
+          itemId: currentItemId,
+          boardId: currentBoardId,
+          columnValues: buildColumnValues(mainDirty),
+        }
+      }));
     }
 
-    Object.entries(subitemMap).forEach(([itemId, fields], i) => {
-      mutations.push(`
-        updateSub${i}: change_multiple_column_values(
-          board_id: ${subitemBoardId},   // ← was currentBoardId
-          item_id: ${itemId},
-          column_values: ${buildColumnValues(fields)}
-        ) { id }
-      `);
+    Object.entries(subitemMap).forEach(([itemId, fields]) => {
+      requests.push(monday.api(mutation, {
+        variables: {
+          itemId,
+          boardId: subitemBoardId,
+          columnValues: buildColumnValues(fields),
+        }
+      }));
     });
 
-    if (mutations.length) {
-      const mutation = `mutation { ${mutations.join('\n')} }`;
-      const res = await monday.api(mutation);
-      if (res?.errors?.length) {
-        console.error('Save errors:', res.errors);
-        alert('Some fields failed to save. Check the console for details.');
-        return;
-      }
+    const results = await Promise.all(requests);
+    const errors = results.flatMap(r => r?.errors || []);
+    if (errors.length) {
+      console.error('Save errors:', errors);
+      alert('Some fields failed to save. Check the console for details.');
+      return;
     }
 
-    // Commit the new baseline and hide the save button
     snapshotValues();
     checkDirty();
   } catch (err) {
