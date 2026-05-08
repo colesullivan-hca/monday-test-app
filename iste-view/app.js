@@ -348,8 +348,8 @@ async function init() {
       }
       if (subitems.length < REQUIRED_SUBITEMS) {
         const needed = REQUIRED_SUBITEMS - subitems.length;
-        const createMutation = `mutation ($itemId: ID!, $boardId: ID!) {
-          create_subitem(parent_item_id: $itemId) { 
+        const createMutation = `mutation ($itemId: ID!, $itemName: String!) {
+          create_subitem(parent_item_id: $itemId, item_name: $itemName) { 
             id 
             board { id }
           }
@@ -358,7 +358,7 @@ async function init() {
           const res = await monday.api(createMutation, {
             variables: {
               itemId: String(currentItemId),
-              boardId: String(currentBoardId),
+              itemName: 'Itemized Cost',
             }
           });
           const newSubitem = res?.data?.create_subitem;
