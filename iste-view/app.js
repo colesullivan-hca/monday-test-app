@@ -85,8 +85,8 @@ async function saveChanges() {
     if (mainDirty.length) {
       requests.push(monday.api(mutation, {
         variables: {
-          itemId: currentItemId,
-          boardId: currentBoardId,
+          itemId: String(currentItemId),
+          boardId: String(currentBoardId),
           columnValues: buildColumnValues(mainDirty),
         }
       }));
@@ -95,8 +95,8 @@ async function saveChanges() {
     Object.entries(subitemMap).forEach(([itemId, fields]) => {
       requests.push(monday.api(mutation, {
         variables: {
-          itemId,
-          boardId: subitemBoardId,
+          itemId: String(itemId),
+          boardId: String(subitemBoardId),
           columnValues: buildColumnValues(fields),
         }
       }));
