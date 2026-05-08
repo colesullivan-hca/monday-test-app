@@ -91,7 +91,7 @@ async function saveChanges() {
         }
       }));
     }
-
+    console.log('subitemBoardId at save time:', subitemBoardId);
     Object.entries(subitemMap).forEach(([itemId, fields]) => {
       requests.push(monday.api(mutation, {
         variables: {
