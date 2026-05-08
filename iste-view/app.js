@@ -354,16 +354,21 @@ async function init() {
             board { id }
           }
         }`;
-        for (let i = 0; i < needed; i++) {
-          const res = await monday.api(createMutation, {
+
+        const createRequests = Array.from({ length: needed }, (_, i) =>
+          monday.api(createMutation, {
             variables: {
               itemId: String(currentItemId),
-              itemName: 'Itemized Cost',
+              itemName: `Row ${subitems.length + i + 1}`,
             }
-          });
-          const newSubitem = res?.data?.create_subitem;
-          subitems.push({ id: newSubitem.id, board: newSubitem.board, column_values: [] });
-        }
+          })
+        );
+
+        await Promise.all(createRequests);
+
+        const reQuery = `query { items(ids: [${currentItemId}]) { subitems { id board { id } column_values { id text type } } } }`;
+        const reRes = await monday.api(reQuery);
+        subitems.splice(0, subitems.length, ...reRes.data.items[0].subitems);
       }
       subitemBoardId = subitems[0]?.board?.id;
 
