@@ -13,8 +13,8 @@
 <iframe id="pdf-viewer" style="display: none;"></iframe>
 <div class="save">
   <div class="inactive saveButton" id="saveButton">Save Changes</div>
-  <button class="printButton" id="printButton" onclick="window.print();">Print</button>
-  <div id="mode">
+  <button class="printButton" id="printButton" onclick="generatePdf();">Print ISTE PDF</button>
+  <div id="mode" style="display: none;">
     <button class="modeButton inactive" id="editorButton" onclick="switchMode('editor');">Editor</button>
     <button class="modeButton" id="isteButton" onclick="switchMode('iste');">ISTE</button>
   </div>

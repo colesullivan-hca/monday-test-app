@@ -4,7 +4,7 @@ let currentItemId = null;
 let isLocked;
 const originalValues = {};
 
-async function generatePdf(data) {
+async function generatePdf() {
     const { PDFDocument } = PDFLib;
 
     const url = './ISTE.pdf';
@@ -42,32 +42,21 @@ async function generatePdf(data) {
     const blob = new Blob([pdfBytes], { type: 'application/pdf' });
 
     const pdfUrl = URL.createObjectURL(blob);
+    // 1. Create a hidden anchor element
+    const link = document.createElement('a');
+    const pdfurl = URL.createObjectURL(blob);
 
-    const iframe = document.getElementById('pdf-viewer');
-    // 1. Clear the old src
-    iframe.src = ""; 
+    // 2. Set the download attribute and the URL
+    link.href = pdfurl;
+    link.download = 'ISTE_Report.pdf'; // You can name the file here
 
-    // 2. Set a timeout to let the DOM settle, then inject
-    setTimeout(() => {
-        iframe.src = pdfUrl;
-        iframe.style.display = "block";
-    }, 100);
+    // 3. Append to body, click it, and remove it
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
 
-    // // 1. Create a hidden anchor element
-    // const link = document.createElement('a');
-    // const pdfurl = URL.createObjectURL(blob);
-
-    // // 2. Set the download attribute and the URL
-    // link.href = pdfurl;
-    // link.download = 'ISTE_Report.pdf'; // You can name the file here
-
-    // // 3. Append to body, click it, and remove it
-    // document.body.appendChild(link);
-    // link.click();
-    // document.body.removeChild(link);
-
-    // // 4. Clean up the URL memory
-    // URL.revokeObjectURL(url);
+    // 4. Clean up the URL memory
+    URL.revokeObjectURL(url);
 }
 
 document.getElementById('isteButton').addEventListener('click', generatePdf);
