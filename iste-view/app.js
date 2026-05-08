@@ -305,9 +305,17 @@ async function init() {
       if (!item) {
           throw new Error('Could not load item data.');
       }
-      boardColumns.forEach(column => {
-        console.log(`Column ${column.id} settings:`, column.settings);
-      });
+      if (boardColumns) {
+        boardColumns.forEach(column => {
+          const selectElement = document.querySelector(`select[data-col="${column.id}"]`);
+          if (selectElement) {
+            const labels = column.settings?.labels || [];
+            selectElement.innerHTML = '';
+            const options = labels.map(label => new Option(label.label, label.label));
+            selectElement.append(...options);
+          }
+        });
+      }
 
       const REQUIRED_SUBITEMS = 15;
       const subitems = item?.subitems || [];
