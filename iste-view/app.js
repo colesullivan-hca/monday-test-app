@@ -334,7 +334,7 @@ async function init() {
       const item = res?.data?.items?.[0];
       const subitems = item?.subitems;
       console.log('subitems raw:', subitems);
-      const subitemBoardId = subitems?.[0]?.board?.id;
+      subitemBoardId = subitems?.[0]?.board?.id;
       console.log('subitemBoardId:', subitemBoardId);
 
       if (!item) {
