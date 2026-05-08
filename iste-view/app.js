@@ -1,6 +1,7 @@
 const monday = window.mondaySdk();
 let currentBoardId = null;
 let currentItemId = null;
+let subitemBoardId = null;
 let isLocked;
 const originalValues = {};  // key: "<itemId|'main'>__<colId>" → value
 
@@ -87,7 +88,7 @@ async function saveChanges() {
     Object.entries(subitemMap).forEach(([itemId, fields], i) => {
       mutations.push(`
         updateSub${i}: change_multiple_column_values(
-          board_id: ${currentBoardId},
+          board_id: ${subitemBoardId},   // ← was currentBoardId
           item_id: ${itemId},
           column_values: ${buildColumnValues(fields)}
         ) { id }
@@ -315,6 +316,7 @@ async function init() {
           }
           subitems {
               id
+              board { id }
               column_values {
                   id
                   text
@@ -327,6 +329,7 @@ async function init() {
       const res = await monday.api(query);
       const item = res?.data?.items?.[0];
       const subitems = item?.subitems;
+      const subitemBoardId = subitems?.[0]?.board?.id;
 
       if (!item) {
           throw new Error('Could not load item data.');
