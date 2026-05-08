@@ -1,4 +1,5 @@
 const monday = window.mondaySdk();
 
-const context = await monday.get('context');
-console.log(context.data);
+monday.get('context').then(res => {
+    console.log(res.data);
+});
