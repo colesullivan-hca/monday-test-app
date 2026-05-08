@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>HCA Travel Operations Dashboard</title>
+    <!-- Importing monday.com's core layout CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/monday-ui-react-core/dist/main.css">
+    <style>
+        :root {
+            --monday-blue: #0073ea;
+            --monday-bg: #f5f6f8;
+            --text-main: #323338;
+            --text-secondary: #676879;
+            --border-color: #d0d4e4;
+            --positive-green: #00ca72;
+        }
+
+        body {
+            font-family: "Figtree", "Roboto", sans-serif;
+            background-color: var(--monday-bg);
+            color: var(--text-main);
+            margin: 0;
+            padding: 24px;
+        }
+
+        .dashboard-container {
+            max-width: 1300px;
+            margin: 0 auto;
+        }
+
+        /* --- Header Section --- */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-bottom: 30px;
+        }
+
+        .agency-title h1 { margin: 0; font-size: 24px; font-weight: 700; }
+        .agency-title p { margin: 5px 0 0; color: var(--text-secondary); font-size: 14px; }
+
+        /* --- KPI Row --- */
+        .kpi-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .kpi-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .kpi-label { font-size: 13px; color: var(--text-secondary); font-weight: 500; }
+        .kpi-value { font-size: 26px; font-weight: 700; color: var(--monday-blue); margin: 8px 0; }
+        .kpi-footer { font-size: 12px; color: var(--positive-green); font-weight: 600; }
+
+        /* --- Main Layout --- */
+        .main-content {
+            display: grid;
+            grid-template-columns: 1.8fr 1.2fr;
+            gap: 24px;
+        }
+
+        .section-card {
+            background: white;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            padding: 20px;
+            margin-bottom: 24px;
+        }
+
+        h2 { font-size: 16px; margin-top: 0; margin-bottom: 20px; color: var(--text-main); }
+
+        /* --- Custom Tables --- */
+        table { width: 100%; border-collapse: collapse; }
+        th { text-align: left; font-size: 12px; color: var(--text-secondary); padding: 12px 8px; border-bottom: 2px solid var(--monday-bg); text-transform: uppercase; }
+        td { padding: 12px 8px; border-bottom: 1px solid var(--monday-bg); font-size: 14px; }
+
+        .category-pill {
+            background: #e5f3ff;
+            color: #0052b4;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        /* --- Workflow Progress Bars --- */
+        .workflow-item { margin-bottom: 20px; }
+        .workflow-labels { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 6px; }
+        .progress-bar-bg { background: #e1e1e1; height: 10px; border-radius: 5px; overflow: hidden; }
+        .progress-bar-fill { background: var(--monday-blue); height: 100%; border-radius: 5px; }
+
+        /* --- Status Indicators --- */
+        .status-dot { height: 8px; width: 8px; border-radius: 50%; display: inline-block; margin-right: 6px; }
+        .dot-green { background-color: var(--positive-green); }
+        .dot-orange { background-color: #ffcb00; }
+        .dot-red { background-color: #bb3354; }
+
+    </style>
+</head>
+<body>
+
+<div class="dashboard-container">
+    <header>
+        <div class="agency-title">
+            <h1>Travel Reimbursement Oversight</h1>
+            <p>HCA Internal Operations | Dashboard View</p>
+        </div>
+        <div style="font-size: 13px; color: var(--text-secondary);">Last Sync: Just now</div>
+    </header>
+
+    <!-- Top KPI Row -->
+    <div class="kpi-row">
+        <div class="kpi-card">
+            <div class="kpi-label">Active Travel Requests</div>
+            <div class="kpi-value">42</div>
+            <div class="kpi-footer">12 Pending Pre-Approval</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-label">Awaiting Reimbursement</div>
+            <div class="kpi-value">$18,450</div>
+            <div class="kpi-footer">Avg. Claim: $439.00</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-label">Compliance Pass Rate</div>
+            <div class="kpi-value">97.4%</div>
+            <div class="kpi-footer" style="color: var(--text-secondary);">Last 30 Days</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-label">Avg. Payout Speed</div>
+            <div class="kpi-value">3.2 Days</div>
+            <div class="kpi-footer">Target: Under 5 Days</div>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <!-- Left Section: Breakdown & Recent Items -->
+        <div class="left-col">
+            <div class="section-card">
+                <h2>Expense Breakdown by Category</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Category</th>
+                            <th>Spend (YTD)</th>
+                            <th>Volume</th>
+                            <th>Trend</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><span class="category-pill">Mileage</span></td>
+                            <td>$142,500.00</td>
+                            <td>840 Claims</td>
+                            <td style="color: var(--positive-green);">↗ 4%</td>
+                        </tr>
+                        <tr>
+                            <td><span class="category-pill">Lodging</span></td>
+                            <td>$98,200.00</td>
+                            <td>120 Nights</td>
+                            <td>--</td>
+                        </tr>
+                        <tr>
+                            <td><span class="category-pill">Per Diem/Meals</span></td>
+                            <td>$45,100.00</td>
+                            <td>1,150 Units</td>
+                            <td style="color: #bb3354;">↘ 2%</td>
+                        </tr>
+                        <tr>
+                            <td><span class="category-pill">Airfare</span></td>
+                            <td>$32,000.00</td>
+                            <td>45 Trips</td>
+                            <td style="color: var(--positive-green);">↗ 12%</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="section-card">
+                <h2>High-Priority Audit Queue</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Claimant</th>
+                            <th>Amount</th>
+                            <th>Exception Reason</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>S. Richards</strong></td>
+                            <td>$1,240.00</td>
+                            <td><span class="status-dot dot-red"></span>Over GSA Rate</td>
+                            <td style="color: var(--monday-blue); cursor: pointer; font-weight: 600;">View Item</td>
+                        </tr>
+                        <tr>
+                            <td><strong>J. Doe</strong></td>
+                            <td>$85.00</td>
+                            <td><span class="status-dot dot-orange"></span>Duplicate Entry?</td>
+                            <td style="color: var(--monday-blue); cursor: pointer; font-weight: 600;">View Item</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Right Section: Workflow & Aging -->
+        <div class="right-col">
+            <div class="section-card">
+                <h2>Step Completion Speed (Aging)</h2>
+                
+                <div class="workflow-item">
+                    <div class="workflow-labels">
+                        <span>Supervisor Approval</span>
+                        <strong>1.2 Days</strong>
+                    </div>
+                    <div class="progress-bar-bg">
+                        <div class="progress-bar-fill" style="width: 90%;"></div>
+                    </div>
+                </div>
+
+                <div class="workflow-item">
+                    <div class="workflow-labels">
+                        <span>Fiscal Compliance Review</span>
+                        <strong>2.4 Days</strong>
+                    </div>
+                    <div class="progress-bar-bg">
+                        <div class="progress-bar-fill" style="width: 65%; background: #ffcb00;"></div>
+                    </div>
+                </div>
+
+                <div class="workflow-item">
+                    <div class="workflow-labels">
+                        <span>Auditor Final Sign-off</span>
+                        <strong>0.8 Days</strong>
+                    </div>
+                    <div class="progress-bar-bg">
+                        <div class="progress-bar-fill" style="width: 95%;"></div>
+                    </div>
+                </div>
+
+                <div class="workflow-item">
+                    <div class="workflow-labels">
+                        <span>ACH Payment Processing</span>
+                        <strong>0.5 Days</strong>
+                    </div>
+                    <div class="progress-bar-bg">
+                        <div class="progress-bar-fill" style="width: 98%;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-card" style="background-color: #fafbfc;">
+                <h2 style="font-size: 14px;">Policy Reminders</h2>
+                <ul style="padding-left: 18px; font-size: 13px; line-height: 1.6; color: var(--text-secondary);">
+                    <li>Mileage rate for FY26 is <strong>$0.67/mile</strong>.</li>
+                    <li>Receipts are required for any expense over <strong>$50.00</strong>.</li>
+                    <li>Out-of-state travel requires <strong>Director-level</strong> pre-approval.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

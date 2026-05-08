@@ -121,7 +121,7 @@ async function saveChanges() {
     console.error('Save error:', err);
     alert('Save failed. Check the console for details.');
   } finally {
-    if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = 'Save'; }
+    if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = 'Save Changes'; }
   }
 }
 
@@ -305,11 +305,16 @@ async function init() {
       if (!item) {
           throw new Error('Could not load item data.');
       }
+      boardColumns.forEach(column => {
+        console.log(`Column ${column.id} settings:`, column.settings);
+      });
 
       const REQUIRED_SUBITEMS = 15;
       const subitems = item?.subitems || [];
       if (subitems.length > REQUIRED_SUBITEMS) {
         alert(`This item has ${subitems.length} subitems but only ${REQUIRED_SUBITEMS} are supported. Please remove the extras and reload.`);
+        const form = document.getElementById('travelForm');
+        form.style.display = "none";
         return;
       }
       if (subitems.length < REQUIRED_SUBITEMS) {
