@@ -127,7 +127,7 @@ function calculateTotals() {
   totalsTotalField.textContent = totalsTotal.toFixed(2);
 
   advance = num(document.getElementById('advanceAmount').value);
-  finalTotal = totalsTotal + advance;
+  finalTotal = totalsTotal - advance;
   document.getElementById('finalTotal').textContent = finalTotal;
 }
 
