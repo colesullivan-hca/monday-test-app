@@ -10,3 +10,10 @@ function switchMode(mode) {
         editorBtn.classList.add('inactive');
     }
 }
+
+// diable scrolling on numbers
+document.addEventListener("wheel", function (event) {
+    if (document.activeElement.type === "number") {
+        document.activeElement.blur();
+    }
+});

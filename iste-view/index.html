@@ -6,11 +6,10 @@
   <title>HCA Travel Request</title>
   <script src="https://cdn.jsdelivr.net/npm/monday-sdk-js/dist/main.js"></script>
   <script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
-  <script src="./mode.js"></script>
+  <script src="./helper.js"></script>
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-<iframe id="pdf-viewer" style="display: none;"></iframe>
 <div class="save">
   <div class="inactive saveButton" id="saveButton">Save Changes</div>
   <button class="printButton" id="printButton" onclick="generatePdf();">Print ISTE PDF</button>
@@ -53,7 +52,7 @@
         <th colspan="5">TOTALS</th> <td class="right"><span id="milesTotal" data-pdf="Mile_Total">0.00</span></td> <td class="right"><span id="mileageTotal" data-pdf="MILEAGEROW_TOTAL">0.00</span></td> <td class="right"><span id="perdiemTotal" data-pdf="PER DIEMRow_Total">0.00</span></td> <td class="right"><span id="otherTotal" data-pdf="OTHERRow_Total">0.00</span></td> <td class="right"><span id="totalsTotal" data-pdf="ALL_Total">0.00</span></td>
       </tr>
       <tr>
-        <th colspan="5">ADVANCE AMOUNT @ 80%</th> <th colspan="4"></th> <td class="right"><input class="summable" id="advanceAmount" data-col="numeric_mm34wpds" data-pdf="Advance_Amount"></td>
+        <th colspan="5">ADVANCE AMOUNT @ 80%</th> <th colspan="4"></th> <td><input class="summable right" id="advanceAmount" data-col="numeric_mm34wpds" data-pdf="Advance_Amount"></td>
       </tr>
       <tr>
         <th colspan="5">ADJUSTED REIMBURSEMENT</th> <th></th> <td class="right"><span id="mileageAdjTotal">0.00</span></td> <td class="right"><span id="perdiemAdjTotal">0.00</span></td> <td class="right"><span id="otherAdjTotal">0.00</span></td> <td class="right"><span id="finalTotal" data-pdf="Final_Total">0.00</span></td>
