@@ -44,8 +44,14 @@ async function generatePdf(data) {
     const pdfUrl = URL.createObjectURL(blob);
 
     const iframe = document.getElementById('pdf-viewer');
-    iframe.src = pdfUrl;
-    iframe.style.display = "block";
+    // 1. Clear the old src
+    iframe.src = ""; 
+
+    // 2. Set a timeout to let the DOM settle, then inject
+    setTimeout(() => {
+        iframe.src = pdfUrl;
+        iframe.style.display = "block";
+    }, 100);
 
     // // 1. Create a hidden anchor element
     // const link = document.createElement('a');
