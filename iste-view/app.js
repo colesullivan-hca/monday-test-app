@@ -128,7 +128,7 @@ function calculateTotals() {
 
   advance = num(document.getElementById('advanceAmount').value);
   finalTotal = totalsTotal - advance;
-  document.getElementById('finalTotal').textContent = finalTotal;
+  document.getElementById('finalTotal').textContent = finalTotal.toFixed(2);
 }
 
 document.querySelectorAll('.cost, .summable').forEach(input => {
