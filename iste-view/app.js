@@ -57,7 +57,7 @@ function buildColumnValues(fields) {
 }
 
 function validate() {
-  const times = '[data-col="text_mm33semp"], [data-col="text_mm33g5ts"]';
+  const selectors = '[data-col="text_mm33semp"], [data-col="text_mm33g5ts"]';
 
   document.querySelectorAll(selectors).forEach(field => {
     const val = field.value.toLowerCase().trim();
