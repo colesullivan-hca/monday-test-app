@@ -347,6 +347,12 @@ async function init() {
         return;
       }
       if (subitems.length < REQUIRED_SUBITEMS) {
+        monday.execute('notice', {
+          message: 'Loading Itemized Costs rows',
+          type: 'info'
+        });
+        document.querySelector('body').classList.add('readonly');
+
         const needed = REQUIRED_SUBITEMS - subitems.length;
         const createMutation = `mutation ($itemId: ID!, $itemName: String!) {
           create_subitem(parent_item_id: $itemId, item_name: $itemName) { 
@@ -369,6 +375,12 @@ async function init() {
         const reQuery = `query { items(ids: [${currentItemId}]) { subitems { id board { id } column_values { id text type } } } }`;
         const reRes = await monday.api(reQuery);
         subitems.splice(0, subitems.length, ...reRes.data.items[0].subitems);
+
+        monday.execute('notice', {
+          message: 'All ready!',
+          type: 'success'
+        });
+        document.querySelector('body').classList.remove('readonly');
       }
       subitemBoardId = subitems[0]?.board?.id;
 

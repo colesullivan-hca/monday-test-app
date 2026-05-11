@@ -211,3 +211,8 @@ input[type=number] {
 span {
   font-weight: bold;
 }
+
+.readonly {
+  pointer-events: none;
+  color: rgb(170, 170, 170);
+}
