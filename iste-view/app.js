@@ -56,7 +56,28 @@ function buildColumnValues(fields) {
   return JSON.stringify(colValues);
 }
 
+function validate() {
+  const times = '[data-col="text_mm33semp"], [data-col="text_mm33g5ts"]';
+
+  document.querySelectorAll(selectors).forEach(field => {
+    const val = field.value.toLowerCase().trim();
+
+    if (val) {
+      const keywords = ['am', 'a.m.', 'pm', 'p.m.'];
+      const hasTimeMarker = keywords.some(marker => val.includes(marker));
+      if (!hasTimeMarker) {
+        alert('Time must contain AM or PM');
+        return false; 
+      }
+    }
+  });
+
+  return true;
+}
+
 async function saveChanges() {
+  if(!validate()) return;
+
   const saveBtn = document.getElementById('saveButton');
   if (saveBtn) { saveBtn.disabled = true; saveBtn.textContent = 'Saving…'; }
 
