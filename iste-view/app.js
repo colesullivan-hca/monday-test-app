@@ -57,20 +57,34 @@ function buildColumnValues(fields) {
 }
 
 function validate() {
+  // Times
   const selectors = '[data-col="text_mm33semp"], [data-col="text_mm33g5ts"]';
-
-  document.querySelectorAll(selectors).forEach(field => {
+  const fields = document.querySelectorAll(selectors);
+  for (const field of fields) {
     const val = field.value.toLowerCase().trim();
 
     if (val) {
       const keywords = ['am', 'a.m.', 'pm', 'p.m.'];
       const hasTimeMarker = keywords.some(marker => val.includes(marker));
+      
       if (!hasTimeMarker) {
         alert('Time must contain AM or PM');
         return false; 
       }
     }
-  });
+  }
+
+  // Rates
+  const actualCheck = document.querySelector('[data-col="boolean_mm3490fe"]');
+  const approvedCheck = document.querySelector('[data-col="boolean_mm345nt4"]');
+  if (actualCheck.checked === approvedCheck.checked) {
+    const message = actualCheck.checked 
+      ? 'Check only one of: Actual, Approved Rates' 
+      : 'Check one of: Actual, Approved Rates';
+    
+    alert(message);
+    return false;
+  }
 
   return true;
 }
