@@ -16,3 +16,5 @@ async function init() {
     console.error('Init error:', err);
   }
 }
+
+init();
