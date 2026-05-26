@@ -5,18 +5,18 @@ function fillTrips(data) {
     
 }
 
-const COLUMN_MAP = {
-    requestApproval,
-    travelPacketDone,
-    divisionApproval,
-    ASDAproval,
-    OOSApproval,
-    rentalApproval,
-    roomRatesApproval,
-    ISTEDone,
-    ISTEApproved,
-    done
-}
+// const COLUMN_MAP = {
+//     requestApproval,
+//     travelPacketDone,
+//     divisionApproval,
+//     ASDAproval,
+//     OOSApproval,
+//     rentalApproval,
+//     roomRatesApproval,
+//     ISTEDone,
+//     ISTEApproved,
+//     done
+// }
 
 const BOARD_MAP = {
     travelForm: 1234567890,
