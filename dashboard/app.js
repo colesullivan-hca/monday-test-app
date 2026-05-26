@@ -1,10 +1,6 @@
 const monday = window.mondaySdk();
 let trips;
 
-function fillTrips(data) {
-    
-}
-
 // const COLUMN_MAP = {
 //     requestApproval,
 //     travelPacketDone,
@@ -24,7 +20,7 @@ const BOARD_MAP = {
 }
 
 async function fetchItemsFromBoards(boardIds) {
-    const initialQuery = `
+    const INITIAL_QUERY = `
         query ($boardId: ID!, $limit: Int!) {
             boards(ids: [$boardId]) {
             items_page(limit: $limit) {
