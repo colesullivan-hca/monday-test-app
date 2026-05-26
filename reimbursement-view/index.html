@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HCA Travel Request</title>
+  <script src="https://cdn.jsdelivr.net/npm/monday-sdk-js/dist/main.js"></script>
+  <script src="modal.js" defer></script>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="save">
+    <div class="inactive saveButton" id="saveButton">Save Changes</div>
+    <button class="printButton" id="printButton" onclick="window.print();">Print</button>
+  </div>
+  <div class="form-container">
+    <h1>TRAVELER REIMBURSEMENT REQUEST SUBMISSION</h1>
+    <form id="travelForm">
+      <table>
+        <tr>
+          <td id="trip-title" class="label">TRIP TITLE: <span class="value" data-col=""></span></td>
+          <td class="label">DIVISION: <span class="value" data-col=""></span></td>
+          <td class="label">DATE: <span class="value" data-col=""></span></td>
+        </tr>
+      </table>
+
+      <table>
+        <tr><td colspan="4" class="section-title">TRAVELER INFORMATION</td></tr>
+        <tr>
+          <td class="label">TRAVELER: <span class="value" data-col=""></span></td>
+          <td class="label">SHARE ID: <span class="value" data-col=""></span></td>
+          <td class="label">POST OF DUTY: <span class="value" data-col=""></span></td>
+          <td class="label">RESIDENCE: <span class="value" data-col=""></span></td>
+        </tr>
+      </table>
+
+      <table>
+        <tr><td colspan="2" class="section-title">TRAVEL INFORMATION</td></tr>
+        <tr><th>ACTUAL DEPARTURE FROM HOME</th><th>ACTUAL ARRIVAL TO HOME</th></tr>
+        <tr>
+          <td class="label">DATE: <span class="value" data-col=""></span></td>
+          <td class="label">DATE: <span class="value" data-col=""></span></td>
+        </tr>
+        <tr>
+          <td class="label">TIME: <span class="value" data-col=""></span></td>
+          <td class="label">TIME: <span class="value" data-col=""></span></td>
+        </tr>
+      </table>
+
+      <table>
+        <tr><td colspan="3" class="section-title">VEHICLE INFORMATION</td></tr>
+        <tr>
+          <td class="label">LICENSE PLATE: <span class="value" data-col=""></span></td>
+          <td class="label">MODEL/YEAR: <span class="value" data-col=""></span></td>
+          <td class="label">TYPE: <span class="value" data-col=""></span></td>
+        </tr>
+      </table>
+
+      <table>
+        <tr><td colspan="5" class="section-title">TRANSPORTATION/FARES</td></tr>
+        <tr>
+          <td colspan="5" class="label" style="color:rgb(121, 0, 0);display: none;">
+            NO TRANSPORTATION LISTED BY TRAVELER <span class="value" data-col=""></span>
+          </td>
+        </tr>
+      </table>
+      
+      <table>
+        <tr class="transport">
+          <td class="label">TYPE: <span class="value" data-col=""></span></td>
+          <td class="label">DATE: <span class="value" data-col=""></span></td>
+          <td class="label">AMOUNT: <span class="value" data-col=""></span></td>
+          <td class="label">TIP: <span class="value" data-col=""></span></td>
+          <td class="label">
+            <div class="receipt-box">
+              <span>RECEIPT:</span> <span class="value" data-col=""></span>
+              <button class="open-modal" type="button">
+                <img src="" alt="View Receipt">
+              </button> 
+              <dialog class="preview-modal">
+                <iframe class="modal-content" src="i.png" frameborder="0"></iframe>
+              </dialog>
+            </div>
+          </td>
+        </tr>
+      </table>
+    </form>
+  </div>
+  <script src="app.js"></script>
+</body>
+</html>

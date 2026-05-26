@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Travel Reimbursement Dashboard</title>
+    <style>
+        :root {
+            --primary: #0056b3;
+            --success: #28a745;
+            --warning: #ffc107;
+            --gray-light: #f8f9fa;
+            --gray-border: #e9ecef;
+            --text-main: #333333;
+            --text-muted: #6c757d;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f0f2f5;
+            color: var(--text-main);
+            padding: 2rem;
+            margin: 0;
+        }
+
+        /* Dashboard Card Container */
+        .travel-card {
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            max-width: 850px;
+            margin: 0 auto;
+            overflow: hidden;
+            border: 1px solid var(--gray-border);
+        }
+
+        /* Card Header */
+        .card-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--gray-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #fff;
+        }
+
+        .trip-details h2 {
+            margin: 0 0 0.5rem 0;
+            font-size: 1.4rem;
+            color: var(--primary);
+        }
+
+        .trip-details p {
+            margin: 0;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        .status-badge {
+            background-color: #e3f2fd;
+            color: #0d47a1;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Quick Indicators Progress Bar */
+        .card-body-quick {
+            padding: 2rem 1.5rem;
+            background-color: var(--gray-light);
+        }
+
+        .progress-tracker {
+            display: flex;
+            justify-content: space-between;
+            position: relative;
+            margin-bottom: 1rem;
+        }
+
+        /* Line connecting the steps */
+        .progress-tracker::before {
+            content: "";
+            position: absolute;
+            top: 15px;
+            left: 0;
+            height: 4px;
+            width: 100%;
+            background-color: #dee2e6;
+            z-index: 1;
+        }
+
+        /* Fill line for completed steps (Simulated up to step 3) */
+        .progress-tracker-fill {
+            position: absolute;
+            top: 15px;
+            left: 0;
+            height: 4px;
+            width: 66%; /* Adjust this width based on overall progress */
+            background-color: var(--success);
+            z-index: 1;
+        }
+
+        .progress-step {
+            text-align: center;
+            position: relative;
+            z-index: 2;
+            flex: 1;
+        }
+
+        .step-dot {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background-color: #fff;
+            border: 3px solid #dee2e6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 0.5rem auto;
+            font-weight: bold;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            transition: all 0.3s ease;
+        }
+
+        .step-label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        /* Status states for Quick Indicators */
+        .progress-step.completed .step-dot {
+            background-color: var(--success);
+            border-color: var(--success);
+            color: white;
+        }
+        .progress-step.completed .step-label {
+            color: var(--success);
+        }
+
+        .progress-step.active .step-dot {
+            background-color: white;
+            border-color: var(--primary);
+            color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(0, 86, 179, 0.15);
+        }
+        .progress-step.active .step-label {
+            color: var(--primary);
+            font-weight: bold;
+        }
+
+        /* Expandable Details Accordion Toggle */
+        .details-toggle {
+            width: 100%;
+            padding: 1rem 1.5rem;
+            background: #fff;
+            border: none;
+            border-top: 1px solid var(--gray-border);
+            text-align: left;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--primary);
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            outline: none;
+        }
+
+        .details-toggle:hover {
+            background-color: #f1f7ff;
+        }
+
+        .details-toggle::after {
+            content: "▼";
+            font-size: 0.75rem;
+            transition: transform 0.2s;
+        }
+
+        /* Hide details by default using details HTML tag functionality */
+        details[open] .details-toggle::after {
+            transform: rotate(180deg);
+        }
+
+        .details-content {
+            padding: 1.5rem;
+            border-top: 1px solid var(--gray-border);
+            background: #fff;
+        }
+
+        /* Detailed Timeline Rules */
+        .timeline-section {
+            margin-bottom: 1.5rem;
+        }
+
+        .timeline-section h3 {
+            font-size: 1.05rem;
+            color: #495057;
+            margin: 0 0 1rem 0;
+            padding-bottom: 0.25rem;
+            border-bottom: 2px solid var(--gray-border);
+        }
+
+        .detail-item {
+            display: flex;
+            margin-bottom: 1rem;
+            position: relative;
+            padding-left: 1.5rem;
+        }
+
+        /* Vertical timeline connector lines */
+        .detail-item::before {
+            content: "";
+            position: absolute;
+            left: 4px;
+            top: 18px;
+            bottom: -15px;
+            width: 2px;
+            background-color: var(--gray-border);
+        }
+
+        .detail-item:last-child::before {
+            display: none;
+        }
+
+        .detail-status-dot {
+            position: absolute;
+            left: 0;
+            top: 4px;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: #dee2e6;
+        }
+
+        /* Detailed states colors */
+        .detail-item.done .detail-status-dot { background-color: var(--success); }
+        .detail-item.current .detail-status-dot { background-color: var(--primary); }
+        
+        .detail-info {
+            flex: 1;
+        }
+
+        .detail-title {
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 0.2rem;
+        }
+        
+        .detail-item.done .detail-title { color: #2b2b2b; }
+        .detail-item.current .detail-title { color: var(--primary); }
+        .detail-item.pending .detail-title { color: var(--text-muted); }
+
+        .detail-meta {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .party-tag {
+            display: inline-block;
+            background: #e9ecef;
+            color: #495057;
+            padding: 0.1rem 0.4rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            margin-left: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+
+<div class="travel-card">
+    <!-- Card Header -->
+    <div class="card-header">
+        <div class="trip-details">
+            <h2>Out-of-State Tech Conference 2026</h2>
+            <p><strong>Destination:</strong> Austin, TX | <strong>Travel Dates:</strong> Oct 12 - Oct 16</p>
+        </div>
+        <div class="status-badge">Processing Post-Travel</div>
+    </div>
+
+    <!-- Quick Indicators Progress Bar -->
+    <div class="card-body-quick">
+        <div class="progress-tracker">
+            <div class="progress-tracker-fill"></div>
+            
+            <div class="progress-step completed">
+                <div class="step-dot">✓</div>
+                <div class="step-label">1. Request Form</div>
+            </div>
+            <div class="progress-step completed">
+                <div class="step-dot">✓</div>
+                <div class="step-label">2. HCA Approvals</div>
+            </div>
+            <div class="progress-step active">
+                <div class="step-dot">3</div>
+                <div class="step-label">3. ISTE & Receipts</div>
+            </div>
+            <div class="progress-step">
+                <div class="step-dot">4</div>
+                <div class="step-label">4. AP Reimbursement</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Expandable Detailed Steps Container -->
+    <details>
+        <summary class="details-toggle">View Detailed Step-by-Step Status</summary>
+        <div class="details-content">
+            
+            <!-- Pre-Travel Section -->
+            <div class="timeline-section">
+                <h3>Pre-Travel Process (Completed)</h3>
+                
+                <div class="detail-item done">
+                    <span class="detail-status-dot"></span>
+                    <div class="detail-info">
+                        <div class="detail-title">ITD Out-of-State Travel Request Submitted <span class="party-tag">Traveler</span></div>
+                        <div class="detail-meta">Basic details, vendor status check, estimates, & initial supervisor approval clear.</div>
+                    </div>
+                </div>
+
+                <div class="detail-item done">
+                    <span class="detail-status-dot"></span>
+                    <div class="detail-info">
+                        <div class="detail-title">HCA Request Packet & Pre-Booking Completed <span class="party-tag">Travel Team</span></div>
+                        <div class="detail-meta">Quotes pulled via Aquila Travel Agency, hotel/conference fees pre-allocated to agency/P-Card.</div>
+                    </div>
+                </div>
+
+                <div class="detail-item done">
+                    <span class="detail-status-dot"></span>
+                    <div class="detail-info">
+                        <div class="detail-title">Chain Approvals Secured <span class="party-tag">Management</span></div>
+                        <div class="detail-meta">Approved sequentially by: Supervisor ➜ ITD Division ➜ ASD Budget ➜ Office of the Secretary (OOS).</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Post-Travel Section -->
+            <div class="timeline-section">
+                <h3>Post-Travel Process (In-Progress)</h3>
+                
+                <div class="detail-item done">
+                    <span class="detail-status-dot"></span>
+                    <div class="detail-info">
+                        <div class="detail-title">ITD Reimbursement Form Submitted <span class="party-tag">Traveler</span></div>
+                        <div class="detail-meta">Actual times, vehicle metrics, and receipts uploaded safely.</div>
+                    </div>
+                </div>
+
+                <div class="detail-item current">
+                    <span class="detail-status-dot"></span>
+                    <div class="detail-info">
+                        <div class="detail-title">HCA ISTE Form Routing & Signatures <span class="party-tag">Travel Team / Supervisor</span></div>
+                        <div class="detail-meta"><strong>Current Action:</strong> Travel Team has formatted the ISTE packet. Currently routing signatures between the traveler and their direct supervisor.</div>
+                    </div>
+                </div>
+
+                <div class="detail-item pending">
+                    <span class="detail-status-dot"></span>
+                    <div class="detail-info">
+                        <div class="detail-title">Accounts Payable Verification <span class="party-tag">Accounts Payable</span></div>
+                        <div class="detail-meta">Pending. AP will verify calculations against submitted SHARE documentation for compliance.</div>
+                    </div>
+                </div>
+
+                <div class="detail-item pending">
+                    <span class="detail-status-dot"></span>
+                    <div class="detail-info">
+                        <div class="detail-title">Final Reimbursement & PO Closure <span class="party-tag">Accounts Payable</span></div>
+                        <div class="detail-meta">Pending. Funds distributed via ACH/Check based on your profile, and the SHARE PO is formally closed.</div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </details>
+</div>
+
+</body>
+</html>
