@@ -23,7 +23,7 @@ const BOARD_MAP = {
     ISTEForm: 18412077425
 }
 
-async function fetchItemsFromBoards(boards) {
+async function fetchItemsFromBoards(boardIds) {
     const initialQuery = `
         query ($boardId: ID!, $limit: Int!) {
             boards(ids: [$boardId]) {
