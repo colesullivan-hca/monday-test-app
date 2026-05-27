@@ -1,22 +1,63 @@
+import * as render from "./render";
+import TRAVEL_STATUS from "./enum";
+
 const monday = window.mondaySdk();
+let tripData;
 let trips;
 
-// const COLUMN_MAP = {
-//     requestApproval,
-//     travelPacketDone,
-//     divisionApproval,
-//     ASDAproval,
-//     OOSApproval,
-//     rentalApproval,
-//     roomRatesApproval,
-//     ISTEDone,
-//     ISTEApproved,
-//     done
-// }
+const TRAVEL_FORM_COLUMNS = {
+    tripID: '',
+    title: '',
+    location: '',
+    dates: '',
+    travelPacketDone: 'color_mm2xe9t',
+    supervisorApproval: 'color_mm2x5q1s',
+    divisionApproval: 'color_mm2xnfbh',
+    ASDAproval: 'color_mm2x8nh2',
+    OOSApproval: 'color_mm2xerea',
+    rentalApproval: '',
+    roomRatesApproval: '', 
+}
+
+const ISTE_COLUMNS = {
+    ISTEDone: '',
+    ISTEApproved: '',
+}
 
 const BOARD_MAP = {
     travelForm: 18412077420,
     ISTEForm: 18412077425
+}
+
+function fillTripObjects(tripData) {
+    const trips = {};
+    const travelItems = tripData[BOARD_MAP.travelForm] || [];
+
+    travelItems.forEach(item => {
+        const cols = item.column_values || [];
+        
+        // 1. Create a fast lookup map: { "color_mm2xe9t": { id: "...", text: "..." } }
+        const colMap = Object.fromEntries(cols.map(c => [c.id, c]));
+
+        const tripID = colMap[TRAVEL_FORM_COLUMNS.tripID]?.text || crypto.randomUUID();
+        
+        if (!trips[tripID]) {
+            trips[tripID] = {};
+        }
+
+        Object.keys(TRAVEL_FORM_COLUMNS).forEach(key => {
+            if (key === 'tripID') {
+                trips[tripID][key] = tripID;
+                return;
+            }
+
+            const columnId = TRAVEL_FORM_COLUMNS[key];
+
+            trips[tripID][key] = colMap[columnId]?.text;
+        });
+    });
+
+    return trips;
 }
 
 async function fetchItemsFromBoards(boardIds) {
@@ -94,7 +135,10 @@ async function init() {
       throw new Error('Please open this in a monday object.');
     }
 
-    trips = await fetchItemsFromBoards([BOARD_MAP.travelForm, BOARD_MAP.ISTEForm]);
+    tripData = await fetchItemsFromBoards([BOARD_MAP.travelForm, BOARD_MAP.ISTEForm]);
+    console.log(tripData);
+
+    trips = fillTripObjects(tripData);
     console.log(trips);
 
   } catch (err) {
