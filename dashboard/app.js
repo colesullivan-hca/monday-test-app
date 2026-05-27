@@ -127,7 +127,7 @@ async function fetchItemsFromBoards(boardIds) {
 async function init() {
   try {
     const context = await monday.get('context');
-    currentBoardId = context?.data?.boardId;
+    const currentBoardId = context?.data?.boardId;
 
     console.log(context.data);
 
