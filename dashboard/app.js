@@ -1,5 +1,5 @@
 import * as render from "./render.js";
-import TRAVEL_STATUS from "./enum.js";
+import {TRAVEL_STATUS} from "./enum.js";
 
 const monday = window.mondaySdk();
 let tripData;
