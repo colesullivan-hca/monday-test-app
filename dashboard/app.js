@@ -48,6 +48,12 @@ function fillTripSteps(trip) {
     preTravelSteps.push({text: 'Division Review & Sign-off', state: trip.divisionApproval === 'Approved'? 'done' : trip.divisionApproval === 'Denied'? 'denied' : '', actor: 'ITD Division'});
     preTravelSteps.push({text: 'ASD Review & Sign-off', state: trip.ASDApproval === 'Approved'? 'done' : trip.ASDApproval === 'Denied'? 'denied' : '', actor: 'ASD Budget'});
     preTravelSteps.push({text: 'Final Executive Authorization', state: trip.OOSApproval === 'Approved'? 'done' : trip.OOSApproval === 'Denied'? 'denied' : '', actor: 'OOS (Deputy Sec)'});
+    if (trip.rentalApproval != 'Not Applicable') {
+        preTravelSteps.push({text: 'Rental Car Authorization', state: trip.rentalApproval === 'Approved'? 'done' : trip.rentalApproval === 'Denied'? 'denied' : '', actor: 'CFO'});
+    }
+    if (trip.roomRatesApproval != 'Not Applicable') {
+        preTravelSteps.push({text: 'Room Rates Authorization', state: trip.roomRatesApproval === 'Approved'? 'done' : trip.roomRatesApproval === 'Denied'? 'denied' : '', actor: 'CFO'});
+    }
     preTravelSteps.push({text: 'SHARE PO Generation & Sourcing', state: '', actor: 'Travel Team'});
 
     const deniedStep = preTravelSteps.find(step => step.state === 'denied'); // Fixed typo here
