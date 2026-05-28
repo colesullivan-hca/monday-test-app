@@ -168,8 +168,16 @@ async function init() {
     const container = document.querySelector('.pre-travel.stack');
     container.innerHTML = render.renderDashboard(trips);
 
+    const loadingScreen = document.getElementById("loading-screen");
+    if (loadingScreen) {
+      loadingScreen.classList.add('hidden');
+    }
+
   } catch (err) {
     console.error('Init error:', err);
+    if (loadingScreen) {
+      loadingScreen.innerHTML = `<p style="color: red;">Failed to load data. Please refresh.</p>`;
+    }
   }
 }
 init();
