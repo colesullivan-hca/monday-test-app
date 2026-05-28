@@ -8,7 +8,7 @@ let trips;
 const TRAVEL_FORM_COLUMNS = {
     tripID: '',
     title: '',
-    location: '',
+    location: 'text_mm2vk860',
     dates: '',
     packetStatus: 'color_mm2xe9t',
     supervisorApproval: 'color_mm2x5q1s',
@@ -73,6 +73,7 @@ function fillTripObjects(tripData) {
             const columnId = TRAVEL_FORM_COLUMNS[key];
 
             trips[tripID][key] = colMap[columnId]?.text || '';
+            trips[tripID].name = tripData?.name || '';
         });
 
         fillTripSteps(trips[tripID]);
@@ -89,6 +90,7 @@ async function fetchItemsFromBoards(boardIds) {
                 cursor
                 items {
                 id
+                name
                 column_values { id type text }
                 }
             }
@@ -101,6 +103,7 @@ async function fetchItemsFromBoards(boardIds) {
             cursor
             items {
                 id
+                name
                 column_values { id type text }
             }
             }
