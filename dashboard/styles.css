@@ -25,7 +25,6 @@ body {
     display: flex;
     flex-direction: column;
     gap: 12px;
-    /* Comfortable spacing for stacked cards */
 }
 
 .travel-card {
