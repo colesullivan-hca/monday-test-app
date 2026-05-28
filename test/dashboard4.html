@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HCA Travel Program: Executive Spend & SLA Performance</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Figtree:wght@300;400;500;600;700&display=swap');
+
+        :root {
+            /* Monday Subtle Design Language Tones */
+            --md-primary: #0073ea;
+            --md-text: #323338;
+            --md-muted: #676879;
+            --md-bg-main: #f5f6f8;
+            --md-border: #d0d4dc;
+            --md-border-light: #e6e9ef;
+            --md-hover: #f8f9fa;
+
+            /* Strict SLA Evaluation Blocks */
+            --st-green-bg: #e1f7ec;
+            --st-green-txt: #00854d;
+            --st-orange-bg: #fff1dc;
+            --st-orange-txt: #a86500;
+            --st-red-bg: #ffe7eb;
+            --st-red-txt: #b81d33;
+            --st-blue-bg: #e5f3ff;
+            --st-blue-txt: #0059b3;
+        }
+
+        * { box-sizing: border-box; }
+        body {
+            font-family: 'Figtree', sans-serif;
+            background-color: var(--md-bg-main);
+            color: var(--md-text);
+            margin: 0;
+            padding: 24px;
+            font-size: 14px;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .board-container {
+            max-width: 1600px;
+            margin: 0 auto;
+            background: #ffffff;
+            border: 1px solid var(--md-border);
+            border-radius: 8px;
+            padding: 24px;
+        }
+
+        /* Portfolio Executive Header */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 24px;
+            border-bottom: 1px solid var(--md-border-light);
+            padding-bottom: 16px;
+        }
+        .title-area h1 {
+            font-size: 22px;
+            font-weight: 600;
+            margin: 0 0 4px 0;
+            letter-spacing: -0.3px;
+        }
+        .subtitle {
+            font-size: 13px;
+            color: var(--md-muted);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-group { display: flex; gap: 8px; }
+        .btn {
+            font-family: 'Figtree', sans-serif;
+            font-size: 13px;
+            font-weight: 500;
+            padding: 8px 14px;
+            border-radius: 4px;
+            border: 1px solid var(--md-border);
+            background: #ffffff;
+            color: var(--md-text);
+            cursor: pointer;
+        }
+
+        /* High-Impact Stat Micro-Cards */
+        .kpi-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+        .kpi-card {
+            background: #ffffff;
+            border: 1px solid var(--md-border);
+            border-radius: 6px;
+            padding: 20px;
+        }
+        .kpi-title { font-size: 11px; color: var(--md-muted); font-weight: 600; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;}
+        .kpi-value { font-size: 28px; font-weight: 700; color: var(--md-text); }
+        .kpi-desc { font-size: 12px; color: var(--md-muted); margin-top: 6px; display: flex; justify-content: space-between;}
+
+        /* Split Workspace Content Architecture */
+        .board-body {
+            display: grid;
+            grid-template-columns: 2.2fr 1fr;
+            gap: 24px;
+        }
+        @media (max-width: 1300px) {
+            .board-body { grid-template-columns: 1fr; }
+        }
+
+        .board-section { margin-bottom: 32px; }
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+        .section-header h2 { font-size: 15px; font-weight: 600; margin: 0; color: var(--md-text); }
+
+        /* Scannable Grid Systems */
+        .table-wrapper {
+            border: 1px solid var(--md-border);
+            border-radius: 6px;
+            overflow: hidden;
+            background: #ffffff;
+        }
+        .monday-table { width: 100%; border-collapse: collapse; text-align: left; }
+        .monday-table th {
+            background: #fafbfc;
+            color: var(--md-muted);
+            font-weight: 500;
+            font-size: 13px;
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--md-border);
+            border-right: 1px solid var(--md-border-light);
+        }
+        .monday-table td {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--md-border-light);
+            border-right: 1px solid var(--md-border-light);
+            font-size: 13px;
+        }
+        .monday-table tr:last-child td { border-bottom: none; }
+        .monday-table tr:hover td { background-color: var(--md-hover); }
+        .monday-table th:last-child, .monday-table td:last-child { border-right: none; }
+
+        /* Crisp Target Indicators */
+        .status-container { padding: 6px !important; width: 140px; text-align: center; }
+        .status-block {
+            display: flex; align-items: center; justify-content: center;
+            height: 28px; width: 100%; border-radius: 4px;
+            font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.3px;
+        }
+        .bg-success { background: var(--st-green-bg); color: var(--st-green-txt); }
+        .bg-warning { background: var(--st-orange-bg); color: var(--st-orange-txt); }
+        .bg-danger { background: var(--st-red-bg); color: var(--st-red-txt); }
+        .bg-neutral { background: var(--st-blue-bg); color: var(--st-blue-txt); }
+
+        /* Side Info-Modules */
+        .panel-box {
+            background: #ffffff;
+            border: 1px solid var(--md-border);
+            border-radius: 6px;
+            padding: 20px;
+            margin-bottom: 24px;
+        }
+        .panel-box h3 { font-size: 14px; font-weight: 600; margin: 0 0 16px 0; border-bottom: 1px solid var(--md-border-light); padding-bottom: 10px; }
+
+        /* Percent Visual Distribution Rails */
+        .dist-list { list-style: none; padding: 0; margin: 0; }
+        .dist-item { margin-bottom: 16px; }
+        .dist-item:last-child { margin-bottom: 0; }
+        .dist-info { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 6px; }
+        .dist-label { font-weight: 500; }
+        .dist-val { color: var(--md-text); font-weight: 600; }
+        .dist-track { height: 6px; background: #e6e9ef; border-radius: 3px; overflow: hidden; }
+        .dist-fill { height: 100%; background: var(--md-primary); border-radius: 3px; }
+
+        /* Quick-Ref Context Cards */
+        .quick-card {
+            background: #fafbfc;
+            border: 1px solid var(--md-border-light);
+            border-radius: 4px;
+            padding: 12px;
+            margin-bottom: 12px;
+            font-size: 13px;
+        }
+        .quick-card:last-child { margin-bottom: 0; }
+        .quick-title { font-weight: 600; margin-bottom: 4px; display: flex; justify-content: space-between;}
+        .quick-desc { color: var(--md-muted); font-size: 12px; line-height: 1.4; }
+    </style>
+</head>
+<body>
+
+<div class="board-container">
+    
+    <!-- Header Area -->
+    <header>
+        <div class="title-area">
+            <h1>HCA Travel Program: Executive Spend & SLA Performance</h1>
+            <div class="subtitle">
+                <span>Agency-Wide Portfolio | Fiscal Year 2026 Audit View</span>
+                <span style="color: var(--md-border)">|</span>
+                <span>Tracking Policy Alignment, Dynamic Budget Distributions & Processing Thresholds</span>
+            </div>
+        </div>
+        <div class="btn-group">
+            <button class="btn">View Contact Directory</button>
+            <button class="btn" style="background-color: var(--md-primary); color: white; border-color: var(--md-primary);">Export Board Data</button>
+        </div>
+    </header>
+
+    <!-- Macro Spending and Mandate KPIs -->
+    <div class="kpi-row">
+        <div class="kpi-card">
+            <div class="kpi-title">Gross Travel Expenditures</div>
+            <div class="kpi-value">$784,520</div>
+            <div class="kpi-desc">
+                <span>General, Federal & Sponsored Funds</span>
+                <span style="color: var(--st-green-txt); font-weight:600;">Active Pipeline</span>
+            </div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-title">30-Day Pre-Travel Approval SLA</div>
+            <div class="kpi-value">92.4%</div>
+            <div class="kpi-desc">
+                <span>Signatures secured ≥ 30 days out</span>
+                <span style="color: var(--st-green-txt); font-weight:600;">Target: 90% ✓</span>
+            </div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-title">3-Day Document Return SLA</div>
+            <div class="kpi-value">2.8 Days</div>
+            <div class="kpi-desc">
+                <span>Receipt delivery to Travel Admin</span>
+                <span style="color: var(--st-green-txt); font-weight:600;">Limit: 3 Days</span>
+            </div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-title">14-Day DFA Memo Delinquencies</div>
+            <div class="kpi-value">4 Claims</div>
+            <div class="kpi-desc">
+                <span>Exceeded 14-day submission cap</span>
+                <span style="color: var(--st-red-txt); font-weight:600;">Requires Memo</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Layout Configurations Splits -->
+    <div class="board-body">
+        
+        <!-- Left Column Dashboard Data Tables -->
+        <main>
+            <!-- SECTION 1: HCA DIVISIONAL COMPARATIVE GRID -->
+            <section class="board-section">
+                <div class="section-header">
+                    <h2>Expenditure Allocations & SLA Metrics by HCA Division</h2>
+                </div>
+                
+                <div class="table-wrapper">
+                    <table class="monday-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 32%;">HCA Division Portfolio</th>
+                                <th>Gross Year-to-Date Spend</th>
+                                <th>Total Trips Filed</th>
+                                <th>Pre-Travel Window Compliance</th>
+                                <th style="text-align: center; width: 150px;">SLA Status Evaluation</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Medical Assistance Division (MAD)</strong></td>
+                                <td>$314,800</td>
+                                <td>62 Active / Completed</td>
+                                <td style="color: var(--st-green-txt); font-weight: 600;">94.2% within Window</td>
+                                <td class="status-container"><div class="status-block bg-success">Optimal</div></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Income Support Division (ISD)</strong></td>
+                                <td>$198,200</td>
+                                <td>41 Active / Completed</td>
+                                <td style="color: var(--st-green-txt); font-weight: 600;">91.0% within Window</td>
+                                <td class="status-container"><div class="status-block bg-success">Optimal</div></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Information Technology Division (ITD)</strong></td>
+                                <td>$124,550</td>
+                                <td>28 Active / Completed</td>
+                                <td style="color: var(--st-red-txt); font-weight: 600;">78.5% within Window</td>
+                                <td class="status-container"><div class="status-block bg-danger">Critical Latency</div></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Behavioral Health Services (BHSD)</strong></td>
+                                <td>$89,170</td>
+                                <td>18 Active / Completed</td>
+                                <td style="color: var(--st-orange-txt); font-weight: 600;">86.3% within Window</td>
+                                <td class="status-container"><div class="status-block bg-warning">Under Review</div></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Child Support Services (CSSD)</strong></td>
+                                <td>$57,800</td>
+                                <td>11 Active / Completed</td>
+                                <td style="color: var(--st-green-txt); font-weight: 600;">90.9% within Window</td>
+                                <td class="status-container"><div class="status-block bg-success">Optimal</div></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- SECTION 2: PROCESS STEP CYCLE TIME SPEEDS -->
+            <section class="board-section">
+                <div class="section-header">
+                    <h2>Internal Travel Workflow Execution Latency</h2>
+                </div>
+                
+                <div class="table-wrapper">
+                    <table class="monday-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 38%;">System Processing Block</th>
+                                <th>Current Avg Duration</th>
+                                <th>Policy Benchmarks Cap</th>
+                                <th>Active Work Items</th>
+                                <th style="text-align: center; width: 150px;">Processing Health</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Pre-Travel Form Routing</strong> <small style="color: var(--md-muted);">(Supervisor &rarr; Director &rarr; Sec &rarr; ASD)</small></td>
+                                <td>4.2 Days</td>
+                                <td>7.0 Days</td>
+                                <td>14 Bundles</td>
+                                <td class="status-container"><div class="status-block bg-success">Compliant</div></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Aquila Travel Flight PO Dispatch</strong> <small style="color: var(--md-muted);">(SHARE Requisition Pipeline)</small></td>
+                                <td>1.8 Days</td>
+                                <td>3.0 Days</td>
+                                <td>5 Requisitions</td>
+                                <td class="status-container"><div class="status-block bg-success">Compliant</div></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Hotel IPR & P-Card Approvals</strong> <small style="color: var(--md-muted);">(Rates &le; $350/Night Thresholds)</small></td>
+                                <td>2.1 Days</td>
+                                <td>2.0 Days</td>
+                                <td>8 Authorizations</td>
+                                <td class="status-container"><div class="status-block bg-warning">Warning Threshold</div></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Accounts Payable Voucher Review</strong> <small style="color: var(--md-muted);">(Submission to HCA.APDOCUMENTS)</small></td>
+                                <td>4.9 Days</td>
+                                <td>5.0 Days</td>
+                                <td>11 PDF Packets</td>
+                                <td class="status-container"><div class="status-block bg-success">Compliant</div></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+
+        <!-- Right Side Configuration Summary Panels -->
+        <aside>
+            <!-- FUNDING TYPE ALLOCATIONS MATRIX -->
+            <div class="panel-box">
+                <h3>Financial Resource Breakdown</h3>
+                <div class="dist-list">
+                    <div class="dist-item">
+                        <div class="dist-info">
+                            <span class="dist-label">Federal Grant Allocations</span>
+                            <span class="dist-val">$415,800</span>
+                        </div>
+                        <div class="dist-track"><div class="dist-fill" style="width: 53%;"></div></div>
+                    </div>
+                    <div class="dist-item">
+                        <div class="dist-info">
+                            <span class="dist-label">State General Funds</span>
+                            <span class="dist-val">$290,220</span>
+                        </div>
+                        <div class="dist-track"><div class="dist-fill" style="width: 37%; background: #00c875;"></div></div>
+                    </div>
+                    <div class="dist-item">
+                        <div class="dist-info">
+                            <span class="dist-label">External Sponsorships</span>
+                            <span class="dist-val">$78,500</span>
+                        </div>
+                        <div class="dist-track"><div class="dist-fill" style="width: 10%; background: #a25ddc;"></div></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MANDATE QUICK CRITERIA CARD CHECKS -->
+            <div class="panel-box">
+                <h3>Core Statutory Parameters</h3>
+                
+                <div class="quick-card" style="border-left: 4px solid var(--st-red-txt);">
+                    <div class="quick-title">
+                        <span>Lodging Cap Check ($350)</span>
+                        <span style="color: var(--st-red-txt)">Memo Req</span>
+                    </div>
+                    <div class="quick-desc">Any night exceeding $350 (including tax) requires a signed pre-approval exception memo routed to Carolee Graham and Jeanette Lujan-Thornburg.</div>
+                </div>
+
+                <div class="quick-card" style="border-left: 4px solid var(--st-orange-txt);">
+                    <div class="quick-title">
+                        <span>Same-Day Travel Matrix</span>
+                        <span>&ge; 11 Hours</span>
+                    </div>
+                    <div class="quick-desc">Reimbursements are valid for same-day travel only if total time elapsed between departure and arrival expands past 11 hours.</div>
+                </div>
+
+                <div class="quick-card" style="border-left: 4px solid var(--st-blue-txt);">
+                    <div class="quick-title">
+                        <span>Transportation Escalation</span>
+                        <span style="color: var(--st-blue-txt)">Ride-Share First</span>
+                    </div>
+                    <div class="quick-desc">Ride services are the default primary method. Rental vehicles require alternative memo justifications and explicit CFO sign-off.</div>
+                </div>
+
+                <div class="quick-card" style="border-left: 4px solid var(--md-text);">
+                    <div class="quick-title">
+                        <span>SHARE System Controls</span>
+                        <span style="color: var(--md-muted)">Pre-Verify</span>
+                    </div>
+                    <div class="quick-desc">Travelers must be verified as active suppliers with valid IDs in SHARE prior to booking, or a W-9 must be instantly dispatched.</div>
+                </div>
+            </div>
+        </aside>
+
+    </div>
+</div>
+
+</body>
+</html>

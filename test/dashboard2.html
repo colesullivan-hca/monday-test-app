@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agency Travel Reimbursement Board</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Figtree:wght@300;400;500;600;700&display=swap');
+
+        :root {
+            /* Muted Core Palette */
+            --md-primary-color: #0073ea;
+            --md-text-color: #323338;
+            --md-text-muted: #676879;
+            --md-bg-main: #f5f6f8;
+            --md-bg-card: #ffffff;
+            --md-border-color: #d0d4dc;
+            --md-border-light: #e6e9ef;
+            --md-hover-color: #f8f9fa;
+
+            /* Subtle Monday.com Palette (Dark text on pastel backgrounds) */
+            --status-green-bg: #e1f7ec;
+            --status-green-text: #00854d;
+            
+            --status-orange-bg: #fff1dc;
+            --status-orange-text: #a86500;
+            
+            --status-red-bg: #ffe7eb;
+            --status-red-text: #b81d33;
+            
+            --md-neutral-track: #0073ea;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Figtree', sans-serif;
+            background-color: var(--md-bg-main);
+            color: var(--md-text-color);
+            margin: 0;
+            padding: 24px;
+            font-size: 14px;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .board-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: var(--md-bg-card);
+            border: 1px solid var(--md-border-color);
+            border-radius: 8px;
+            padding: 24px;
+        }
+
+        /* Header Layout */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 24px;
+        }
+
+        .title-area h1 {
+            font-size: 22px;
+            font-weight: 600;
+            margin: 0 0 4px 0;
+            color: var(--md-text-color);
+            letter-spacing: -0.3px;
+        }
+
+        .subtitle {
+            font-size: 13px;
+            color: var(--md-text-muted);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .action-bar {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn {
+            font-family: 'Figtree', sans-serif;
+            font-size: 13px;
+            font-weight: 500;
+            padding: 8px 14px;
+            border-radius: 4px;
+            border: 1px solid var(--md-border-color);
+            background: white;
+            color: var(--md-text-color);
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn:hover {
+            background: var(--md-hover-color);
+        }
+
+        .btn-primary {
+            background: var(--md-primary-color);
+            color: white;
+            border-color: var(--md-primary-color);
+        }
+
+        .btn-primary:hover {
+            background: #0060c5;
+            border-color: #0060c5;
+        }
+
+        /* KPI Row (Cleaned up accent lines) */
+        .widgets-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+
+        .widget-card {
+            background: white;
+            border: 1px solid var(--md-border-color);
+            border-radius: 6px;
+            padding: 16px;
+        }
+
+        .widget-title {
+            font-size: 13px;
+            color: var(--md-text-muted);
+            font-weight: 500;
+            margin-bottom: 6px;
+        }
+
+        .widget-value {
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--md-text-color);
+            margin-bottom: 4px;
+        }
+
+        .widget-footer {
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--md-text-muted);
+        }
+
+        /* Layout Architecture */
+        .board-body {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 24px;
+        }
+
+        @media (max-width: 1024px) {
+            .board-body { grid-template-columns: 1fr; }
+        }
+
+        .board-section {
+            margin-bottom: 32px;
+        }
+
+        .section-title {
+            font-size: 15px;
+            font-weight: 600;
+            margin: 0 0 12px 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--md-text-color);
+        }
+
+        /* Cleaned Up Table Structure */
+        .monday-table-wrapper {
+            border: 1px solid var(--md-border-color);
+            border-radius: 6px;
+            overflow: hidden;
+            background: white;
+        }
+
+        .monday-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        .monday-table th {
+            background: #fafbfc;
+            color: var(--md-text-muted);
+            font-weight: 500;
+            font-size: 13px;
+            padding: 10px 16px;
+            border-bottom: 1px solid var(--md-border-color);
+            border-right: 1px solid var(--md-border-light);
+        }
+
+        .monday-table th:last-child, .monday-table td:last-child {
+            border-right: none;
+        }
+
+        .monday-table td {
+            padding: 8px 16px;
+            border-bottom: 1px solid var(--md-border-light);
+            border-right: 1px solid var(--md-border-light);
+            font-size: 13px;
+            height: 38px;
+        }
+
+        .monday-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .monday-table tr:hover td {
+            background-color: var(--md-hover-color);
+        }
+
+        /* Subtle Status Blocks (Pastel backgrounds with text matching) */
+        .status-cell {
+            padding: 6px 12px !important;
+            width: 140px;
+        }
+
+        .status-block {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            width: 100%;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 12px;
+            padding: 4px 8px;
+            text-align: center;
+        }
+
+        .status-block.bg-success { background: var(--status-green-bg); color: var(--status-green-text); }
+        .status-block.bg-warning { background: var(--status-orange-bg); color: var(--status-orange-text); }
+        .status-block.bg-danger { background: var(--status-red-bg); color: var(--status-red-text); }
+
+        /* Micro-indicators */
+        .id-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .avatar-circle {
+            width: 22px;
+            height: 22px;
+            background: #eaecef;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            color: var(--md-text-muted);
+            font-weight: 600;
+        }
+
+        /* Side Panel Styling */
+        .panel-box {
+            background: white;
+            border: 1px solid var(--md-border-color);
+            border-radius: 6px;
+            padding: 16px;
+            margin-bottom: 20px;
+        }
+
+        .panel-box h3 {
+            font-size: 14px;
+            font-weight: 600;
+            margin: 0 0 14px 0;
+            color: var(--md-text-color);
+        }
+
+        /* Uniform blue tracks for progress meters */
+        .progress-item {
+            margin-bottom: 14px;
+        }
+
+        .progress-info {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            margin-bottom: 4px;
+        }
+
+        .progress-label { font-weight: 500; color: var(--md-text-color); }
+        .progress-metrics { color: var(--md-text-muted); }
+
+        .progress-track-bg {
+            background: #e6e9ef;
+            border-radius: 4px;
+            height: 6px;
+            width: 100%;
+        }
+
+        .progress-track-fill {
+            height: 100%;
+            border-radius: 4px;
+            background: var(--md-neutral-track);
+        }
+
+        .ranking-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .ranking-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--md-border-light);
+        }
+
+        .ranking-item:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .ranking-name {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .ranking-rank {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--md-text-muted);
+            width: 14px;
+        }
+
+        .ranking-value {
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+
+<div class="board-container">
+    <!-- Header Area -->
+    <header>
+        <div class="title-area">
+            <h1>State Agency Travel Reimbursement</h1>
+            <div class="subtitle">
+                <span>Fiscal Year 2026</span>
+                <span style="color: var(--md-border-color)">|</span>
+                <span>Data as of May 8, 2026</span>
+            </div>
+        </div>
+        <div class="action-bar">
+            <button class="btn">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                Search
+            </button>
+            <button class="btn btn-primary">Export Report</button>
+        </div>
+    </header>
+
+    <!-- KPI Matrix Row -->
+    <div class="widgets-grid">
+        <div class="widget-card">
+            <div class="widget-title">Total Paid YTD</div>
+            <div class="widget-value">$1,240,500</div>
+            <div class="widget-footer">▲ 12% vs last year</div>
+        </div>
+        <div class="widget-card">
+            <div class="widget-title">Avg. Processing Time</div>
+            <div class="widget-value">4.2 Days</div>
+            <div class="widget-footer">0.8 Days faster</div>
+        </div>
+        <div class="widget-card">
+            <div class="widget-title">Pending Approvals</div>
+            <div class="widget-value">84</div>
+            <div class="widget-footer">Totaling $42.3k</div>
+        </div>
+        <div class="widget-card">
+            <div class="widget-title">Compliance Rate</div>
+            <div class="widget-value">98.2%</div>
+            <div class="widget-footer">▲ 1.5% improvement</div>
+        </div>
+    </div>
+
+    <!-- Main Workspace Column Splits -->
+    <div class="board-body">
+        
+        <!-- Main Data Content Table Column -->
+        <main>
+            <!-- Table Module 1 -->
+            <section class="board-section">
+                <h2 class="section-title">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--md-primary-color)" stroke-width="3"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="3" x2="9" y2="21"></line></svg>
+                    Expense Breakdown by Category
+                </h2>
+                <div class="monday-table-wrapper">
+                    <table class="monday-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 40%;">Category</th>
+                                <th>Amount</th>
+                                <th>Volume</th>
+                                <th style="text-align: center; width: 150px;">Policy Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Mileage (Personal Vehicle)</strong></td>
+                                <td>$450,200</td>
+                                <td>1,240 claims</td>
+                                <td class="status-cell">
+                                    <div class="status-block bg-success">In Policy</div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong>Lodging</strong></td>
+                                <td>$385,000</td>
+                                <td>410 claims</td>
+                                <td class="status-cell">
+                                    <div class="status-block bg-warning">Check Per-Diem</div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong>Airfare</strong></td>
+                                <td>$210,800</td>
+                                <td>85 claims</td>
+                                <td class="status-cell">
+                                    <div class="status-block bg-success">In Policy</div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong>Meals & Incidentals</strong></td>
+                                <td>$154,500</td>
+                                <td>2,100 claims</td>
+                                <td class="status-cell">
+                                    <div class="status-block bg-success">In Policy</div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Table Module 2 -->
+            <section class="board-section">
+                <h2 class="section-title">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--md-text-muted)" stroke-width="2.5"><polygon points="7.86 2 16.14 2 22 7.86 22 16.14 16.14 22 7.86 22 2 16.14 2 7.86 7.86 2"></polygon><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                    Recent Flagged Transactions (Audit Required)
+                </h2>
+                <div class="monday-table-wrapper">
+                    <table class="monday-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 30%;">Employee ID</th>
+                                <th>Date</th>
+                                <th>Amount</th>
+                                <th>Issue</th>
+                                <th style="text-align: center; width: 150px;">Action Required</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <div class="id-badge">
+                                        <div class="avatar-circle">DQ</div>
+                                        <strong>#DEQ-9921</strong>
+                                    </div>
+                                </td>
+                                <td>05/04/2026</td>
+                                <td>$450.00</td>
+                                <td>Missing Receipt (Hotel)</td>
+                                <td class="status-cell"><div class="status-block bg-danger">Fix Missing</div></td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="id-badge">
+                                        <div class="avatar-circle">DT</div>
+                                        <strong>#DOT-1102</strong>
+                                    </div>
+                                </td>
+                                <td>05/02/2026</td>
+                                <td>$85.20</td>
+                                <td>Exceeds Per-Diem (Meal)</td>
+                                <td class="status-cell"><div class="status-block bg-warning">Review Cap</div></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+
+        <!-- Right Side Analytical Panel Column -->
+        <aside>
+            <!-- Linear Workflow Monitor Component -->
+            <div class="panel-box">
+                <h3>Workflow Bottlenecks</h3>
+                
+                <div class="progress-item">
+                    <div class="progress-info">
+                        <span class="progress-label">Manager Approval</span>
+                        <span class="progress-metrics">1.5 Days</span>
+                    </div>
+                    <div class="progress-track-bg">
+                        <div class="progress-track-fill" style="width: 85%;"></div>
+                    </div>
+                </div>
+
+                <div class="progress-item">
+                    <div class="progress-info">
+                        <span class="progress-label">Fiscal Compliance Review</span>
+                        <span class="progress-metrics">2.0 Days</span>
+                    </div>
+                    <div class="progress-track-bg">
+                        <div class="progress-track-fill" style="width: 60%;"></div>
+                    </div>
+                </div>
+
+                <div class="progress-item">
+                    <div class="progress-info">
+                        <span class="progress-label">ACH Disbursement</span>
+                        <span class="progress-metrics">0.7 Days</span>
+                    </div>
+                    <div class="progress-track-bg">
+                        <div class="progress-track-fill" style="width: 25%;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Department Listings Module -->
+            <div class="panel-box">
+                <h3>Top Travel Departments</h3>
+                <ul class="ranking-list">
+                    <li class="ranking-item">
+                        <div class="ranking-name">
+                            <span class="ranking-rank">1</span>
+                            <span>Environ. Quality</span>
+                        </div>
+                        <span class="ranking-value"><strong>$320,000</strong></span>
+                    </li>
+                    <li class="ranking-item">
+                        <div class="ranking-name">
+                            <span class="ranking-rank">2</span>
+                            <span>Health & Human Svc</span>
+                        </div>
+                        <span class="ranking-value"><strong>$285,500</strong></span>
+                    </li>
+                    <li class="ranking-item">
+                        <div class="ranking-name">
+                            <span class="ranking-rank">3</span>
+                            <span>Transportation</span>
+                        </div>
+                        <span class="ranking-value"><strong>$190,200</strong></span>
+                    </li>
+                </ul>
+            </div>
+        </aside>
+
+    </div>
+</div>
+
+</body>
+</html>

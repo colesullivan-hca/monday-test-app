@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ITD Out-of-State Travel Authorization & Reimbursement Tracker</title>
+    <style>
+        :root {
+            --primary: #0056b3;
+            --success: #28a745;
+            --warning: #ffc107;
+            --danger: #dc3545; /* Strict compliance red for denials/returns */
+            --text-main: #333333;
+            --text-muted: #6c757d;
+            --gray-light: #f8f9fa;
+            --gray-border: #dee2e6;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: #f0f2f5;
+            color: var(--text-main);
+            padding: 1.5rem;
+            margin: 0;
+        }
+
+        /* Stack Container */
+        .dashboard-stack {
+            max-width: 1000px; 
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 12px; /* Comfortable spacing for stacked cards */
+        }
+
+        /* Wrapper to place links side-by-side with the card */
+        .card-wrapper {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            width: 100%;
+        }
+
+        .travel-card {
+            background: #ffffff;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+            overflow: hidden;
+            flex: 1; /* Allows the card to take up the remaining space */
+        }
+
+        /* Side Action Links Container (Left-aligned) */
+        .card-actions-sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            flex-shrink: 0;
+            width: 80px; /* Narrower width tailored for shorter text labels */
+            padding-top: 8px;
+        }
+
+        /* Subtle Side Action Link Styling */
+        .sidebar-link {
+            display: inline-flex;
+            align-items: center;
+            justify-content: flex-start; /* Aligns content to the start */
+            gap: 4px; /* Pulls the icon tight next to the text */
+            background-color: transparent;
+            color: var(--text-muted);
+            border: 1px solid transparent;
+            padding: 0.3rem 0.5rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            text-decoration: none;
+            transition: all 0.2s ease;
+        }
+
+        .sidebar-link:hover {
+            background-color: rgba(0, 0, 0, 0.04);
+            color: var(--primary);
+            border-color: var(--gray-border);
+        }
+
+        /* Muted new tab icon */
+        .new-tab-icon {
+            width: 11px;
+            height: 11px;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            opacity: 0.6;
+            flex-shrink: 0;
+            transition: opacity 0.2s ease;
+        }
+
+        .sidebar-link:hover .new-tab-icon {
+            opacity: 1;
+        }
+
+        /* Main Row Layout */
+        .card-summary-row {
+            display: flex;
+            align-items: center;
+            padding: 1rem 1.25rem;
+            gap: 2rem;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .trip-identity {
+            flex: 0 0 240px;
+        }
+
+        .trip-title {
+            margin: 0 0 0.25rem 0;
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        /* Override title color if the entire record is in a denied/halted state */
+        .travel-card.is-denied .trip-title {
+            color: var(--danger);
+        }
+
+        .trip-meta {
+            margin: 0;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        /* Progress Bar Segment */
+        .progress-block {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .bar-bg {
+            height: 8px;
+            background-color: #e9ecef;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .bar-fill {
+            height: 100%;
+            background-color: var(--success);
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+
+        /* Turns the progress indicator red to flag a system bottleneck or denial */
+        .bar-fill.denied {
+            background-color: var(--danger);
+        }
+
+        .progress-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: var(--text-muted);
+        }
+
+        /* Badges & Actions */
+        .status-badge {
+            flex: 0 0 140px;
+            text-align: center;
+            background-color: #e3f2fd;
+            color: #0d47a1;
+            padding: 0.35rem 0.6rem;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .toggle-arrow {
+            color: var(--text-muted);
+            font-size: 0.75rem;
+            transition: transform 0.2s;
+        }
+
+        /* Native Details Element Reset */
+        details summary {
+            list-style: none;
+            outline: none;
+        }
+        details summary::-webkit-details-marker {
+            display: none;
+        }
+        details[open] .toggle-arrow {
+            transform: rotate(180deg);
+        }
+        details[open] .card-summary-row {
+            border-bottom: 1px solid var(--gray-border);
+        }
+
+        /* Dropdown Detail Panel */
+        .details-panel {
+            padding: 1.25rem;
+            background-color: var(--gray-light);
+            display: grid;
+            grid-template-columns: 1fr 1fr; /* Split view for Pre-Travel vs Post-Travel */
+            gap: 2rem;
+        }
+
+        .phase-column h4 {
+            margin: 0 0 0.85rem 0;
+            font-size: 0.85rem;
+            color: #495057;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 2px solid var(--gray-border);
+            padding-bottom: 4px;
+        }
+
+        /* Step List Styling */
+        .step-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.65rem;
+        }
+
+        .step-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            font-size: 0.8rem;
+            line-height: 1.4;
+        }
+
+        .step-marker {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            border: 2px solid #ced4da;
+            background-color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.55rem;
+            font-weight: bold;
+            color: transparent;
+            margin-top: 2px;
+            flex-shrink: 0;
+        }
+
+        /* Step States */
+        .step-item.done { color: #333; }
+        .step-item.done .step-marker {
+            background-color: var(--success);
+            border-color: var(--success);
+            color: #fff;
+        }
+
+        .step-item.current { color: var(--primary); font-weight: 600; }
+        .step-item.current .step-marker {
+            border-color: var(--primary);
+            background-color: #fff;
+            color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(0, 86, 179, 0.15);
+        }
+
+        /* Denied / Action Required State styling */
+        .step-item.denied { 
+            color: var(--danger); 
+            font-weight: 600; 
+            background-color: #fdf2f2;
+            padding: 4px;
+            border-radius: 4px;
+            margin-left: -4px;
+        }
+        .step-item.denied .step-marker {
+            background-color: var(--danger);
+            border-color: var(--danger);
+            color: #fff;
+            box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.15);
+        }
+
+        .step-item.pending { color: var(--text-muted); }
+        .step-item.pending .step-marker { background-color: #e9ecef; }
+
+        /* Ownership & Approver Badges */
+        .actor-tag {
+            font-size: 0.65rem;
+            background: #e9ecef;
+            color: #495057;
+            padding: 1px 4px;
+            border-radius: 3px;
+            margin-left: 6px;
+            font-weight: 500;
+        }
+        
+        .step-item.current .actor-tag {
+            background-color: rgba(0, 86, 179, 0.1);
+            color: var(--primary);
+        }
+
+        .step-item.denied .actor-tag {
+            background-color: var(--danger);
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+
+<div class="dashboard-stack">
+
+    <div class="card-wrapper">
+        <div class="card-actions-sidebar">
+            <a href="https://example.com/request-form-1" target="_blank" rel="noopener noreferrer" class="sidebar-link">
+                <span>Request</span>
+                <svg class="new-tab-icon" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14L21 3"/></svg>
+            </a>
+            <a href="https://example.com/iste-1" target="_blank" rel="noopener noreferrer" class="sidebar-link">
+                <span>ISTE</span>
+                <svg class="new-tab-icon" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14L21 3"/></svg>
+            </a>
+        </div>
+
+        <div class="travel-card">
+            <details>
+                <summary>
+                    <div class="card-summary-row">
+                        <div class="trip-identity">
+                            <h2 class="trip-title">Out-of-State Tech Conference</h2>
+                            <p class="trip-meta">Austin, TX • Oct 12 - Oct 16, 2026</p>
+                        </div>
+                        
+                        <div class="progress-block">
+                            <div class="bar-bg">
+                                <div class="bar-fill" style="width: 30%;"></div>
+                            </div>
+                            <div class="progress-labels">
+                                <span>Pre-Travel Sign-offs</span>
+                                <span>30% Complete</span>
+                            </div>
+                        </div>
+
+                        <div class="status-badge" style="background-color: #fff3cd; color: #856404;">HCA Approvals</div>
+                        <span class="toggle-arrow">▼</span>
+                    </div>
+                </summary>
+                
+                <div class="details-panel">
+                    <div class="phase-column">
+                        <h4>1. Pre-Travel Pipeline</h4>
+                        <div class="step-list">
+                            <div class="step-item done"><span class="step-marker">✓</span><span>Submit ITD Travel Request <span class="actor-tag">Traveler</span></span></div>
+                            <div class="step-item done"><span class="step-marker">✓</span><span>Initial Concept Approval <span class="actor-tag">Supervisor</span></span></div>
+                            <div class="step-item done"><span class="step-marker">✓</span><span>Compile HCA Travel Packet <span class="actor-tag">Travel Team</span></span></div>
+                            <div class="step-item done"><span class="step-marker">✓</span><span>HCA Form Approval <span class="actor-tag">Supervisor</span></span></div>
+                            <div class="step-item current"><span class="step-marker">•</span><span>Division Review & Sign-off <span class="actor-tag">ITD Division</span></span></div>
+                            <div class="step-item pending"><span class="step-marker"></span><span>Budget & Fund Allocation <span class="actor-tag">ASD Budget</span></span></div>
+                            <div class="step-item pending"><span class="step-marker"></span><span>Final Executive Authorization <span class="actor-tag">OOS (Deputy Sec)</span></span></div>
+                            <div class="step-item pending"><span class="step-marker"></span><span>SHARE PO Generation & Sourcing <span class="actor-tag">Travel/Procure</span></span></div>
+                        </div>
+                    </div>
+                    <div class="phase-column">
+                        <h4>2. Post-Travel Reimbursement</h4>
+                        <div class="step-list">
+                            <div class="step-item pending"><span class="step-marker"></span><span>Submit ITD Reimbursement Form & Receipts <span class="actor-tag">Traveler</span></span></div>
+                            <div class="step-item pending"><span class="step-marker"></span><span>Generate Itemized Statement (HCA ISTE) <span class="actor-tag">Travel Team</span></span></div>
+                            <div class="step-item pending"><span class="step-marker"></span><span>ISTE Signatures <span class="actor-tag">Traveler + Supervisor</span></span></div>
+                            <div class="step-item pending"><span class="step-marker"></span><span>Compliance Review & Audit <span class="actor-tag">Accounts Payable</span></span></div>
+                            <div class="step-item pending"><span class="step-marker"></span><span>Reimbursement Payment & Close PO <span class="actor-tag">Accounts Payable</span></span></div>
+                        </div>
+                    </div>
+                </div>
+            </details>
+        </div>
+    </div>
+
+    <div class="card-wrapper">
+        <div class="card-actions-sidebar">
+            <a href="https://example.com/request-form-2" target="_blank" rel="noopener noreferrer" class="sidebar-link">
+                <span>Request</span>
+                <svg class="new-tab-icon" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14L21 3"/></svg>
+            </a>
+            <a href="https://example.com/iste-2" target="_blank" rel="noopener noreferrer" class="sidebar-link">
+                <span>ISTE</span>
+                <svg class="new-tab-icon" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14L21 3"/></svg>
+            </a>
+        </div>
+
+        <div class="travel-card is-denied">
+            <details>
+                <summary>
+                    <div class="card-summary-row">
+                        <div class="trip-identity">
+                            <h2 class="trip-title">Project Management Training</h2>
+                            <p class="trip-meta">Chicago, IL • Jul 22 - Jul 25, 2026</p>
+                        </div>
+                        
+                        <div class="progress-block">
+                            <div class="bar-bg">
+                                <div class="bar-fill denied" style="width: 45%;"></div>
+                            </div>
+                            <div class="progress-labels">
+                                <span style="color: var(--danger); font-weight: 600;">Halted: Action Required</span>
+                                <span>Review Step 1.6</span>
+                            </div>
+                        </div>
+
+                        <div class="status-badge" style="background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb;">Returned / Denied</div>
+                        <span class="toggle-arrow">▼</span>
+                    </div>
+                </summary>
+                
+                <div class="details-panel">
+                    <div class="phase-column">
+                        <h4>1. Pre-Travel Pipeline</h4>
+                        <div class="step-list">
+                            <div class="step-item done"><span class="step-marker">✓</span><span>Submit ITD Travel Request <span class="actor-tag">Traveler</span></span></div>
+                            <div class="step-item done"><span class="step-marker">✓</span><span>Initial Concept Approval <span class="actor-tag">Supervisor</span></span></div>
+                            <div class="step-item done"><span class="step-marker">✓</span><span>Compile HCA Travel Packet <span class="actor-tag">Travel Team</span></span></div>
+                            <div class="step-item done"><span class="step-marker">✓</span><span>HCA Form Approval <span class="actor-tag">Supervisor</span></span></div>
+                            <div class="step-item done"><span class="step-marker">✓</span><span>Division Review & Sign-off <span class="actor-tag">ITD Division</span></span></div>
+                            <div class="step-item denied"><span class="step-marker">✕</span><span>Budget Allocation Denied: Insufficient Funds <span class="actor-tag">ASD Budget</span></span></div>
+                            <div class="step-item pending"><span class="step-marker"></span><span>Final Executive Authorization <span class="actor-tag">OOS (Deputy Sec)</span></span></div>
+                            <div class="step-item pending"><span class="step-marker"></span><span>SHARE PO Generation & Sourcing <span class="actor-tag">Travel/Procure</span></span></div>
+                        </div>
+                    </div>
+                    <div class="phase-column">
+                        <h4>2. Post-Travel Reimbursement</h4>
+                        <div class="step-list">
+                            <div class="step-item pending"><span class="step-marker"></span><span>Submit ITD Reimbursement Form & Receipts</span></div>
+                            <div class="step-item pending"><span class="step-marker"></span><span>Generate Itemized Statement (HCA ISTE)</span></div>
+                            <div class="step-item pending"><span class="step-marker"></span><span>ISTE Signatures</span></div>
+                            <div class="step-item pending"><span class="step-marker"></span><span>Compliance Review & Audit</span></div>
+                            <div class="step-item pending"><span class="step-marker"></span><span>Reimbursement Payment & Close PO</span></div>
+                        </div>
+                    </div>
+                </div>
+            </details>
+        </div>
+    </div>
+
+    <div class="card-wrapper">
+        <div class="card-actions-sidebar">
+            <a href="https://example.com/request-form-3" target="_blank" rel="noopener noreferrer" class="sidebar-link">
+                <span>Request</span>
+                <svg class="new-tab-icon" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14L21 3"/></svg>
+            </a>
+            <a href="https://example.com/iste-3" target="_blank" rel="noopener noreferrer" class="sidebar-link">
+                <span>ISTE</span>
+                <svg class="new-tab-icon" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14L21 3"/></svg>
+            </a>
+        </div>
+
+        <div class="travel-card">
+            <details>
+                <summary>
+                    <div class="card-summary-row">
+                        <div class="trip-identity">
+                            <h2 class="trip-title">National Leadership Summit</h2>
+                            <p class="trip-meta">Denver, CO • Mar 04 - Mar 06, 2026</p>
+                        </div>
+                        
+                        <div class="progress-block">
+                            <div class="bar-bg">
+                                <div class="bar-fill" style="width: 78%;"></div>
+                            </div>
+                            <div class="progress-labels">
+                                <span>Post-Travel Verification</span>
+                                <span>78% Complete</span>
+                            </div>
+                        </div>
+
+                        <div class="status-badge" style="background-color: #e3f2fd; color: #0d47a1;">AP Auditing</div>
+                        <span class="toggle-arrow">▼</span>
+                    </div>
+                </summary>
+                
+                <div class="details-panel">
+                    <div class="phase-column">
+                        <h4>1. Pre-Travel Pipeline (Complete)</h4>
+                        <div class="step-list">
+                            <div class="step-item done"><span class="step-marker">✓</span><span>Submit ITD Travel Request</span></div>
+                            <div class="step-item done"><span class="step-marker">✓</span><span>Initial Concept Approval</span></div>
+                            <div class="step-item done"><span class="step-marker">✓</span><span>Compile HCA Travel Packet</span></div>
+                            <div class="step-item done"><span class="step-marker">✓</span><span>HCA Form Approval <span class="actor-tag">Supervisor</span></span></div>
+                            <div class="step-item done"><span class="step-marker">✓</span><span>Division Review & Sign-off <span class="actor-tag">ITD Division</span></span></div>
+                            <div class="step-item done"><span class="step-marker">✓</span><span>Budget & Fund Allocation <span class="actor-tag">ASD Budget</span></span></div>
+                            <div class="step-item done"><span class="step-marker">✓</span><span>Final Executive Authorization <span class="actor-tag">OOS (Deputy Sec)</span></span></div>
+                            <div class="step-item done"><span class="step-marker">✓</span><span>SHARE PO Generation & Sourcing</span></div>
+                        </div>
+                    </div>
+                    <div class="phase-column">
+                        <h4>2. Post-Travel Reimbursement</h4>
+                        <div class="step-list">
+                            <div class="step-item done"><span class="step-marker">✓</span><span>Submit ITD Reimbursement Form & Receipts <span class="actor-tag">Traveler</span></span></div>
+                            <div class="step-item done"><span class="step-marker">✓</span><span>Generate Itemized Statement (HCA ISTE) <span class="actor-tag">Travel Team</span></span></div>
+                            <div class="step-item done"><span class="step-marker">✓</span><span>ISTE Signatures <span class="actor-tag">Traveler + Supervisor</span></span></div>
+                            <div class="step-item current"><span class="step-marker">•</span><span>Compliance Review & Audit <span class="actor-tag">Accounts Payable</span></span></div>
+                            <div class="step-item pending"><span class="step-marker"></span><span>Reimbursement Payment & Close PO <span class="actor-tag">Accounts Payable</span></span></div>
+                        </div>
+                    </div>
+                </div>
+            </details>
+        </div>
+    </div>
+
+</div>
+
+</body>
+</html>
