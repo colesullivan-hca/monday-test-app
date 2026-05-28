@@ -1,5 +1,6 @@
 import * as render from "./render.js";
 import {TRAVEL_STATUS} from "./enum.js";
+import "./stack-toggle.js";
 
 const monday = window.mondaySdk();
 let tripData;

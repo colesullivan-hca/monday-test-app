@@ -18,6 +18,52 @@ body {
     margin: 0;
 }
 
+.filter-navigation {
+    width: 600px;
+    margin: 0 auto 1rem auto;
+    display: flex;
+    background: #ffffff;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+    overflow: hidden;
+    padding: 4px; /* Creates a slight inset frame effect */
+}
+
+.filter-btn {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    padding: 0.65rem 0;
+    font-family: inherit;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border-radius: 6px;
+    text-align: center;
+}
+
+/* Hover mimics your sidebar link interaction */
+.filter-btn:hover {
+    background-color: rgba(0, 0, 0, 0.04);
+    color: var(--primary);
+}
+
+/* Active state matches your primary accent coloring */
+.filter-btn.active {
+    background-color: #e3f2fd; /* Light blue accent background */
+    color: #0d47a1;            /* Deep blue text matching status-badge */
+}
+
+/* Utility class to handle display toggling via JavaScript */
+.hidden-stack {
+    display: none !important;
+}
+
 /* Stack Container */
 .stack {
     max-width: 1000px;
