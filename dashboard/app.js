@@ -13,7 +13,7 @@ const TRAVEL_FORM_COLUMNS = {
     packetStatus: 'color_mm2xe9t',
     supervisorApproval: 'color_mm2x5q1s',
     divisionApproval: 'color_mm2xnfbh',
-    ASDAproval: 'color_mm2x8nh2',
+    ASDApproval: 'color_mm2x8nh2',
     OOSApproval: 'color_mm2xerea',
     rentalApproval: '',
     roomRatesApproval: '', 
@@ -45,11 +45,17 @@ function fillTripSteps(trip) {
     preTravelSteps.push({text: 'Compile HCA Travel Packet', state: trip.packetStatus === 'Ready For Approvals' ? 'done' : '', actor: 'Travel Team'});
     preTravelSteps.push({text: 'HCA Form Approval', state: trip.supervisorApproval === 'Approved'? 'done' : trip.supervisorApproval === 'Denied'? 'denied' : '', actor: 'Supervisor'});
     preTravelSteps.push({text: 'Division Review & Sign-off', state: trip.divisionApproval === 'Approved'? 'done' : trip.divisionApproval === 'Denied'? 'denied' : '', actor: 'ITD Division'});
-    preTravelSteps.push({text: 'ASD Review & Sign-off', state: trip.ASDAproval === 'Approved'? 'done' : trip.ASDAproval === 'Denied'? 'denied' : '', actor: 'ASD Budget'});
+    preTravelSteps.push({text: 'ASD Review & Sign-off', state: trip.ASDApproval === 'Approved'? 'done' : trip.ASDApproval === 'Denied'? 'denied' : '', actor: 'ASD Budget'});
     preTravelSteps.push({text: 'Final Executive Authorization', state: trip.OOSApproval === 'Approved'? 'done' : trip.OOSApproval === 'Denied'? 'denied' : '', actor: 'OOS (Deputy Sec)'});
     preTravelSteps.push({text: 'SHARE PO Generation & Sourcing', state: '', actor: 'Travel Team'});
-    const currentStep = preTravelSteps.find(step => step.state !== 'done' && step.state !== 'denied');
-    if (currentStep) currentStep.state = 'current';
+
+    const deniedStep = preTravelSteps.find(step => step.state === 'denied'); // Fixed typo here
+    if (deniedStep) {
+        trip.progressLabel = 'Halted: Action Required';
+    } else {
+        const currentStep = preTravelSteps.find(step => step.state !== 'done');
+        if (currentStep) currentStep.state = 'current';
+    }
 
     trip.preTravelSteps = preTravelSteps;
 
