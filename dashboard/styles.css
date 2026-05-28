@@ -29,6 +29,7 @@ body {
 }
 
 .travel-card {
+    flex-grow: 1;
     background: #ffffff;
     border-radius: 8px;
     border: 1px solid #e9ecef;
