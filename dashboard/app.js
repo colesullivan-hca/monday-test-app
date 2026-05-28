@@ -5,8 +5,6 @@ const monday = window.mondaySdk();
 let tripData;
 let trips;
 
-const container = document.querySelector('.pre-travel .stack');
-
 const TRAVEL_FORM_COLUMNS = {
     tripID: '',
     title: '',
@@ -164,6 +162,7 @@ async function init() {
     trips = fillTripObjects(tripData);
     console.log(trips);
 
+    const container = document.querySelector('.pre-travel.stack');
     container.innerHTML = render.renderDashboard(trips);
 
   } catch (err) {
