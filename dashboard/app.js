@@ -7,10 +7,9 @@ let tripData;
 let trips;
 
 const TRAVEL_FORM_COLUMNS = {
-    tripID: '',
+    tripID: 'text_mm35sbdp',
     title: 'text_mm2vj6tf',
     location: 'text_mm2vk860',
-    dates: '',
     packetStatus: 'color_mm2xe9t',
     supervisorApproval: 'color_mm2x5q1s',
     divisionApproval: 'color_mm2xnfbh',
@@ -23,8 +22,8 @@ const TRAVEL_FORM_COLUMNS = {
 }
 
 const ISTE_COLUMNS = {
-    ISTEDone: '',
-    ISTEApproved: '',
+    ISTEStatus: '',
+    ISTEApproval: '',
 }
 
 const BOARD_MAP = {
@@ -38,39 +37,66 @@ function formatDate(dateString, type) {
     else return new Date(`${dateString}T00:00:00`).toLocaleString('en-US', { month: 'short', day: 'numeric' });
 }
 
-function fillTripSteps(trip) {
-    const preTravelSteps = [];
+function fillPreTravelSteps(trip) {
+    const steps = [];
 
-    preTravelSteps.push({text: 'Submit ITD Travel Request', state: 'done', actor: 'Traveler'});
-    preTravelSteps.push({text: 'Initial Concept Approval', state: 'done', actor: 'Supervisor'});
-    preTravelSteps.push({text: 'Compile HCA Travel Packet', state: trip.packetStatus === 'Ready For Approvals' ? 'done' : '', actor: 'Travel Team'});
-    preTravelSteps.push({text: 'HCA Form Approval', state: trip.supervisorApproval === 'Approved'? 'done' : trip.supervisorApproval === 'Denied'? 'denied' : '', actor: 'Supervisor'});
-    preTravelSteps.push({text: 'Division Review & Sign-off', state: trip.divisionApproval === 'Approved'? 'done' : trip.divisionApproval === 'Denied'? 'denied' : '', actor: 'ITD Division'});
-    preTravelSteps.push({text: 'ASD Review & Sign-off', state: trip.ASDApproval === 'Approved'? 'done' : trip.ASDApproval === 'Denied'? 'denied' : '', actor: 'ASD Budget'});
-    preTravelSteps.push({text: 'Final Executive Authorization', state: trip.OOSApproval === 'Approved'? 'done' : trip.OOSApproval === 'Denied'? 'denied' : '', actor: 'OOS (Deputy Sec)'});
+    steps.push({text: 'Submit ITD Travel Request', state: 'done', actor: 'Traveler'});
+    steps.push({text: 'Initial Concept Approval', state: 'done', actor: 'Supervisor'});
+    steps.push({text: 'Compile HCA Travel Packet', state: trip.packetStatus === 'Ready For Approvals' ? 'done' : '', actor: 'Travel Team'});
+    steps.push({text: 'HCA Form Approval', state: trip.supervisorApproval === 'Approved'? 'done' : trip.supervisorApproval === 'Denied'? 'denied' : '', actor: 'Supervisor'});
+    steps.push({text: 'Division Review & Sign-off', state: trip.divisionApproval === 'Approved'? 'done' : trip.divisionApproval === 'Denied'? 'denied' : '', actor: 'ITD Division'});
+    steps.push({text: 'ASD Review & Sign-off', state: trip.ASDApproval === 'Approved'? 'done' : trip.ASDApproval === 'Denied'? 'denied' : '', actor: 'ASD Budget'});
+    steps.push({text: 'Final Executive Authorization', state: trip.OOSApproval === 'Approved'? 'done' : trip.OOSApproval === 'Denied'? 'denied' : '', actor: 'OOS (Deputy Sec)'});
     if (trip.rentalApproval != 'Not Applicable') {
-        preTravelSteps.push({text: 'Rental Car Authorization', state: trip.rentalApproval === 'Approved'? 'done' : trip.rentalApproval === 'Denied'? 'denied' : '', actor: 'CFO'});
+        steps.push({text: 'Rental Car Authorization', state: trip.rentalApproval === 'Approved'? 'done' : trip.rentalApproval === 'Denied'? 'denied' : '', actor: 'CFO'});
     }
     if (trip.roomRatesApproval != 'Not Applicable') {
-        preTravelSteps.push({text: 'Room Rates Authorization', state: trip.roomRatesApproval === 'Approved'? 'done' : trip.roomRatesApproval === 'Denied'? 'denied' : '', actor: 'CFO'});
+        steps.push({text: 'Room Rates Authorization', state: trip.roomRatesApproval === 'Approved'? 'done' : trip.roomRatesApproval === 'Denied'? 'denied' : '', actor: 'CFO'});
     }
-    preTravelSteps.push({text: 'SHARE PO Generation & Sourcing', state: '', actor: 'Travel Team'});
+    steps.push({text: 'SHARE PO Generation & Sourcing', state: '', actor: 'Travel Team'});
 
-    const deniedStep = preTravelSteps.find(step => step.state === 'denied'); // Fixed typo here
+    const deniedStep = steps.find(step => step.state === 'denied');
     if (deniedStep) {
         trip.progressLabel = 'Halted: Action Required';
         trip.isDenied = 'denied';
         trip.statusText = TRAVEL_STATUS.DENIED;
     } else {
-        const currentStep = preTravelSteps.find(step => step.state !== 'done');
+        const currentStep = steps.find(step => step.state !== 'done');
         if (currentStep) currentStep.state = 'current';
     }
 
-    trip.preTravelSteps = preTravelSteps;
+    trip.preTravelSteps = steps;
 
-    const completedSteps = preTravelSteps.filter(step => step.state === 'done').length;
-    const totalSteps = preTravelSteps.length;
+    const completedSteps = steps.filter(step => step.state === 'done').length;
+    const totalSteps = steps.length;
     trip.progress = totalSteps > 0 ? Math.round((completedSteps / totalSteps) * 100) : 0;
+}
+
+function fillPostTravelSteps(trip) {
+    const steps = [];
+    const formSubmitted = trip.isteUrl;
+
+    steps.push({text: 'Submit ITD Reimbursement Form & Receipts', state: formSubmitted ? 'done' : '', actor: 'Traveler'});
+    steps.push({text: 'Generate Itemized Statement', state: trip.ISTEStatus === 'Ready For Approvals' ? 'done' : '', actor: 'Travel Team'});
+    steps.push({text: 'Traveler Approval', state: '', actor: 'Traveler'});
+    steps.push({text: 'Supervisor Approval', state: '', actor: 'Traveler'});
+    steps.push({text: 'Payments Processing', state: '', actor: 'Accounts Payable'});
+
+    const deniedStep = steps.find(step => step.state === 'denied');
+    if (deniedStep) {
+        trip.progressLabel = 'Halted: Action Required';
+        trip.isDenied = 'denied';
+        trip.statusText = TRAVEL_STATUS.DENIED;
+    } else if (formSubmitted) {
+        const currentStep = steps.find(step => step.state !== 'done');
+        if (currentStep) currentStep.state = 'current';
+
+        const completedSteps = steps.filter(step => step.state === 'done').length;
+        const totalSteps = steps.length;
+        trip.progress = totalSteps > 0 ? Math.round((completedSteps / totalSteps) * 100) : 0;
+    }
+
+    trip.postTravelSteps = steps;
 }
 
 function fillTripObjects(tripData) {
@@ -107,7 +133,8 @@ function fillTripObjects(tripData) {
 
         trip.requestUrl = item.url;
 
-        fillTripSteps(trip);
+        fillPreTravelSteps(trip);
+        fillPostTravelSteps(trip);
     });
 
     return trips;
