@@ -52,6 +52,7 @@ function fillTripSteps(trip) {
     const deniedStep = preTravelSteps.find(step => step.state === 'denied'); // Fixed typo here
     if (deniedStep) {
         trip.progressLabel = 'Halted: Action Required';
+        trip.isDenied = 'denied';
     } else {
         const currentStep = preTravelSteps.find(step => step.state !== 'done');
         if (currentStep) currentStep.state = 'current';

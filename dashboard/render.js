@@ -59,7 +59,7 @@ export function renderDashboard(trips) {
                                         <span style="${trip.isDenied ? 'color: var(--danger); font-weight: 600;' : ''}">
                                             ${trip.progressLabel || ''}
                                         </span>
-                                        <span>${trip.progressLabel ? trip.progressLabel : `${trip.progress}% Complete`}</span>
+                                        <span>${trip.progressLabel ? '' : `${trip.progress}% Complete`}</span>
                                     </div>
                                 </div>
 
