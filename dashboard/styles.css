@@ -122,14 +122,6 @@ body {
     color: var(--primary);
 }
 
-.title-link {
-    color: inherit;
-    text-decoration: none;
-    &:hover {
-        text-decoration: underline;
-    }
-}
-
 /* Override title color if the entire record is in a denied/halted state */
 .travel-card.is-denied .trip-title {
     color: var(--danger);
