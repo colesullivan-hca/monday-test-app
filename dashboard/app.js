@@ -5,18 +5,22 @@ const monday = window.mondaySdk();
 let tripData;
 let trips;
 
+const container = document.querySelector('.pre-travel .stack');
+
 const TRAVEL_FORM_COLUMNS = {
     tripID: '',
     title: '',
     location: '',
     dates: '',
-    travelPacketDone: 'color_mm2xe9t',
+    packetStatus: 'color_mm2xe9t',
     supervisorApproval: 'color_mm2x5q1s',
     divisionApproval: 'color_mm2xnfbh',
     ASDAproval: 'color_mm2x8nh2',
     OOSApproval: 'color_mm2xerea',
     rentalApproval: '',
     roomRatesApproval: '', 
+    startDate: '',
+    endDate: '',
 }
 
 const ISTE_COLUMNS = {
@@ -29,6 +33,23 @@ const BOARD_MAP = {
     ISTEForm: 18412077425
 }
 
+function fillTripSteps(trip) {
+    const preTravelSteps = [];
+
+    preTravelSteps.push({text: 'Submit ITD Travel Request', state: 'done', actor: 'Traveler'});
+    preTravelSteps.push({text: 'Initial Concept Approval', state: 'done', actor: 'Supervisor'});
+    preTravelSteps.push({text: 'Compile HCA Travel Packet', state: trip.packetStatus === 'Ready For Approvals' ? 'done' : '', actor: 'Travel Team'});
+    preTravelSteps.push({text: 'HCA Form Approval', state: trip.supervisorApproval === 'Approved'? 'done' : trip.supervisorApproval === 'Denied'? 'denied' : '', actor: 'Supervisor'});
+    preTravelSteps.push({text: 'Division Review & Sign-off', state: trip.divisionApproval === 'Approved'? 'done' : trip.divisionApproval === 'Denied'? 'denied' : '', actor: 'ITD Division'});
+    preTravelSteps.push({text: 'ASD Review & Sign-off', state: trip.ASDAproval === 'Approved'? 'done' : trip.ASDAproval === 'Denied'? 'denied' : '', actor: 'ASD Budget'});
+    preTravelSteps.push({text: 'Final Executive Authorization', state: trip.OOSApproval === 'Approved'? 'done' : trip.OOSApproval === 'Denied'? 'denied' : '', actor: 'OOS (Deputy Sec)'});
+    preTravelSteps.push({text: 'SHARE PO Generation & Sourcing', state: '', actor: 'Travel Team'});
+    const currentStep = preTravelSteps.find(step => step.state !== 'done' && step.state !== 'denied');
+    if (currentStep) currentStep.state = 'current';
+
+    trip.preTravelSteps = preTravelSteps;
+}
+
 function fillTripObjects(tripData) {
     const trips = {};
     const travelItems = tripData[BOARD_MAP.travelForm] || [];
@@ -39,7 +60,7 @@ function fillTripObjects(tripData) {
         // 1. Create a fast lookup map: { "color_mm2xe9t": { id: "...", text: "..." } }
         const colMap = Object.fromEntries(cols.map(c => [c.id, c]));
 
-        const tripID = colMap[TRAVEL_FORM_COLUMNS.tripID]?.text || crypto.randomUUID();
+        const tripID = colMap[TRAVEL_FORM_COLUMNS.tripID]?.text || item.id || crypto.randomUUID();
         
         if (!trips[tripID]) {
             trips[tripID] = {};
@@ -53,8 +74,10 @@ function fillTripObjects(tripData) {
 
             const columnId = TRAVEL_FORM_COLUMNS[key];
 
-            trips[tripID][key] = colMap[columnId]?.text;
+            trips[tripID][key] = colMap[columnId]?.text || '';
         });
+
+        fillTripSteps(trips[tripID]);
     });
 
     return trips;
@@ -140,6 +163,8 @@ async function init() {
 
     trips = fillTripObjects(tripData);
     console.log(trips);
+
+    container.innerHTML = render.renderDashboard(trips);
 
   } catch (err) {
     console.error('Init error:', err);
