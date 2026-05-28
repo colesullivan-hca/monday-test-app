@@ -16,8 +16,8 @@ const TRAVEL_FORM_COLUMNS = {
     divisionApproval: 'color_mm2xnfbh',
     ASDApproval: 'color_mm2x8nh2',
     OOSApproval: 'color_mm2xerea',
-    rentalApproval: '',
-    roomRatesApproval: '', 
+    rentalApproval: 'color_mm3seyds',
+    roomRatesApproval: 'color_mm3s84rd', 
     startDate: 'date_mm2vze0a',
     endDate: 'date_mm2vnvrc',
 }
