@@ -20,7 +20,8 @@ body {
 
 /* Stack Container */
 .stack {
-    max-width: 940px;
+    max-width: 1040px;
+    min-width: 940px;
     margin: 0 auto;
     display: flex;
     flex-direction: column;
