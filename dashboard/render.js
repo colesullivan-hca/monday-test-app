@@ -24,7 +24,7 @@ export function renderDashboard(trips) {
                     <summary>
                         <div class="card-summary-row">
                             <div class="trip-identity">
-                                <h2 class="trip-title">${trip.title}</h2>
+                                <h2 class="trip-title"><a href="${trip.url}" target="_blank" rel="noopener noreferrer" class="title-link">${trip.title}</a></h2>
                                 <p class="trip-meta">${trip.location} • ${trip.dates}</p>
                             </div>
                             

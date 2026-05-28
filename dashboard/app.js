@@ -87,8 +87,10 @@ function fillTripObjects(tripData) {
             trip[key] = colMap[columnId]?.text || '';
         });
 
-        const dates = `${formatDate(trip.startDate, 'short')} - ${formatDate(trip.endDate, 'long')}`;
+        const dates = `${formatDate(trip.startDate, 'long')} - ${formatDate(trip.endDate, 'long')}`;
         trip.dates = dates;
+
+        trip.url = item.url;
 
         fillTripSteps(trip);
     });
@@ -105,6 +107,7 @@ async function fetchItemsFromBoards(boardIds) {
                 items {
                 id
                 name
+                url
                 column_values { id type text }
                 }
             }
@@ -118,6 +121,7 @@ async function fetchItemsFromBoards(boardIds) {
             items {
                 id
                 name
+                url
                 column_values { id type text }
             }
             }
@@ -129,7 +133,7 @@ async function fetchItemsFromBoards(boardIds) {
     const boardDataResult = {};
 
     for (const boardId of boardIds) {
-        console.log(`Fetching items for board ID: ${boardId}...`);
+        // console.log(`Fetching items for board ID: ${boardId}...`);
         
         // Initialize an empty array for this specific board
         boardDataResult[boardId] = [];
@@ -156,7 +160,7 @@ async function fetchItemsFromBoards(boardIds) {
         hasMore = !!cursor;
         }
         
-        console.log(`Finished board ${boardId}. Found ${boardDataResult[boardId].length} items.`);
+        // console.log(`Finished board ${boardId}. Found ${boardDataResult[boardId].length} items.`);
     }
 
     return boardDataResult;
