@@ -7,7 +7,7 @@ let trips;
 
 const TRAVEL_FORM_COLUMNS = {
     tripID: '',
-    title: '',
+    title: 'text_mm2vj6tf',
     location: 'text_mm2vk860',
     dates: '',
     packetStatus: 'color_mm2xe9t',
@@ -46,6 +46,10 @@ function fillTripSteps(trip) {
     if (currentStep) currentStep.state = 'current';
 
     trip.preTravelSteps = preTravelSteps;
+
+    const completedSteps = preTravelSteps.filter(step => step.state === 'done').length;
+    const totalSteps = preTravelSteps.length;
+    trip.progress = totalSteps > 0 ? Math.round((completedSteps / totalSteps) * 100) : 0;
 }
 
 function fillTripObjects(tripData) {
@@ -73,7 +77,6 @@ function fillTripObjects(tripData) {
             const columnId = TRAVEL_FORM_COLUMNS[key];
 
             trips[tripID][key] = colMap[columnId]?.text || '';
-            trips[tripID].title = item.name || '';
         });
 
         fillTripSteps(trips[tripID]);
