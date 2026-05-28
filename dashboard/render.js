@@ -1,4 +1,4 @@
-function renderSteps(steps) {
+export function renderSteps(steps) {
     return steps.map( step => {
         let marker = '';
         if (step.state === "done") marker = '✓';
@@ -16,8 +16,8 @@ function renderSteps(steps) {
     }).join('');
 }
 
-function renderDashboard(trips) {
-    return trips.map(trip => {
+export function renderDashboard(trips) {
+    return Object.values(trips).map(trip => {
         return `
             <div class="travel-card ${trip.isDenied ? 'is-denied' : ''}">
                 <details>
@@ -51,14 +51,14 @@ function renderDashboard(trips) {
                         <div class="phase-column">
                             <h4>1. Pre-Travel Pipeline</h4>
                             <div class="step-list">
-                                ${renderSteps(trip.preTravelSteps)}
+                                ${renderSteps(trip.preTravelSteps || [])}
                             </div>
                         </div>
 
                         <div class="phase-column">
                             <h4>2. Post-Travel Reimbursement</h4>
                             <div class="step-list">
-                                ${renderSteps(trip.postTravelSteps)}
+                                ${renderSteps(trip.postTravelSteps || [])}
                             </div>
                         </div>
                     </div>
