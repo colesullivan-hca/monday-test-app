@@ -63,7 +63,7 @@ export function renderDashboard(trips) {
                                     </div>
                                 </div>
 
-                                <div class="status-badge" style="background-color: ${trip.statusBg}; color: ${trip.statusColor}; ${trip.isDenied ? 'border: 1px solid #f5c6cb;' : ''}">
+                                <div class="status-badge" style="background-color: ${trip.isDenied ? '#f8d7da' : trip.statusBg}; color: ${trip.isDenied ? '#721c24' : trip.statusColor}; ${trip.isDenied ? 'border: 1px solid #f5c6cb;' : ''}">
                                     ${trip.statusText}
                                 </div>
                                 <span class="toggle-arrow">▼</span>
