@@ -73,7 +73,7 @@ function fillTripObjects(tripData) {
             const columnId = TRAVEL_FORM_COLUMNS[key];
 
             trips[tripID][key] = colMap[columnId]?.text || '';
-            trips[tripID].name = item?.name || '';
+            trips[tripID].title = item.name || '';
         });
 
         fillTripSteps(trips[tripID]);
