@@ -90,7 +90,7 @@ function fillTripObjects(tripData) {
         const dates = `${formatDate(trip.startDate, 'long')} - ${formatDate(trip.endDate, 'long')}`;
         trip.dates = dates;
 
-        trip.url = item.url;
+        trip.requestUrl = item.url;
 
         fillTripSteps(trip);
     });

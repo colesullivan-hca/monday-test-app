@@ -18,51 +18,75 @@ export function renderSteps(steps) {
 
 export function renderDashboard(trips) {
     return Object.values(trips).map(trip => {
+        // 1. Conditionally render the Request Link slot
+        const requestLinkMarkup = trip.requestUrl 
+            ? `<a href="${trip.requestUrl}" target="_blank" rel="noopener noreferrer" class="sidebar-link">
+                   <span>Request</span>
+                   <svg class="new-tab-icon" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14L21 3"/></svg>
+               </a>`
+            : '<div></div>'; // Blank spacer holding the top position if missing
+
+        // 2. Conditionally render the ISTE Link slot
+        const isteLinkMarkup = trip.isteUrl 
+            ? `<a href="${trip.isteUrl}" target="_blank" rel="noopener noreferrer" class="sidebar-link">
+                   <span>ISTE</span>
+                   <svg class="new-tab-icon" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14L21 3"/></svg>
+               </a>`
+            : '<div></div>'; // Blank spacer holding the bottom position if missing
+
+        // 3. Wrap everything inside the .card-wrapper structure
         return `
-            <div class="travel-card ${trip.isDenied ? 'is-denied' : ''}">
-                <details>
-                    <summary>
-                        <div class="card-summary-row">
-                            <div class="trip-identity">
-                                <h2 class="trip-title"><a href="${trip.url}" target="_blank" rel="noopener noreferrer" class="title-link">${trip.title}</a></h2>
-                                <p class="trip-meta">${trip.location} • ${trip.dates}</p>
-                            </div>
-                            
-                            <div class="progress-block">
-                                <div class="bar-bg">
-                                    <div class="bar-fill ${trip.isDenied ? 'denied' : ''}" style="width: ${trip.progress}%;"></div>
+            <div class="card-wrapper">
+                <div class="card-actions-sidebar">
+                    ${requestLinkMarkup}
+                    ${isteLinkMarkup}
+                </div>
+
+                <div class="travel-card ${trip.isDenied ? 'is-denied' : ''}">
+                    <details>
+                        <summary>
+                            <div class="card-summary-row">
+                                <div class="trip-identity">
+                                    <h2 class="trip-title"><a href="${trip.url}" target="_blank" rel="noopener noreferrer" class="title-link">${trip.title}</a></h2>
+                                    <p class="trip-meta">${trip.location} • ${trip.dates}</p>
                                 </div>
-                                <div class="progress-labels">
-                                    <span style="${trip.isDenied ? 'color: var(--danger); font-weight: 600;' : ''}">
-                                        ${trip.progressLabel}
-                                    </span>
-                                    <span>${trip.progress}% Complete</span>
+                                
+                                <div class="progress-block">
+                                    <div class="bar-bg">
+                                        <div class="bar-fill ${trip.isDenied ? 'denied' : ''}" style="width: ${trip.progress}%;"></div>
+                                    </div>
+                                    <div class="progress-labels">
+                                        <span style="${trip.isDenied ? 'color: var(--danger); font-weight: 600;' : ''}">
+                                            ${trip.progressLabel}
+                                        </span>
+                                        <span>${trip.progress}% Complete</span>
+                                    </div>
+                                </div>
+
+                                <div class="status-badge" style="background-color: ${trip.statusBg}; color: ${trip.statusColor}; ${trip.isDenied ? 'border: 1px solid #f5c6cb;' : ''}">
+                                    ${trip.statusText}
+                                </div>
+                                <span class="toggle-arrow">▼</span>
+                            </div>
+                        </summary>
+                        
+                        <div class="details-panel">
+                            <div class="phase-column">
+                                <h4>1. Pre-Travel Pipeline</h4>
+                                <div class="step-list">
+                                    ${renderSteps(trip.preTravelSteps || [])}
                                 </div>
                             </div>
 
-                            <div class="status-badge" style="background-color: ${trip.statusBg}; color: ${trip.statusColor}; ${trip.isDenied ? 'border: 1px solid #f5c6cb;' : ''}">
-                                ${trip.statusText}
-                            </div>
-                            <span class="toggle-arrow">▼</span>
-                        </div>
-                    </summary>
-                    
-                    <div class="details-panel">
-                        <div class="phase-column">
-                            <h4>1. Pre-Travel Pipeline</h4>
-                            <div class="step-list">
-                                ${renderSteps(trip.preTravelSteps || [])}
+                            <div class="phase-column">
+                                <h4>2. Post-Travel Reimbursement</h4>
+                                <div class="step-list">
+                                    ${renderSteps(trip.postTravelSteps || [])}
+                                </div>
                             </div>
                         </div>
-
-                        <div class="phase-column">
-                            <h4>2. Post-Travel Reimbursement</h4>
-                            <div class="step-list">
-                                ${renderSteps(trip.postTravelSteps || [])}
-                            </div>
-                        </div>
-                    </div>
-                </details>
+                    </details>
+                </div>
             </div>
         `;
     }).join('');
