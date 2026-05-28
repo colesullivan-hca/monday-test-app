@@ -31,6 +31,12 @@ const BOARD_MAP = {
     ISTEForm: 18412077425
 }
 
+function formatDate(dateString, type) {
+    if (!dateString) return '';
+    if (type === 'short') return new Date(`${dateString}T00:00:00`).toLocaleString('en-US', { month: 'short'});
+    else return new Date(`${dateString}T00:00:00`).toLocaleString('en-US', { month: 'short', day: 'numeric' });
+}
+
 function fillTripSteps(trip) {
     const preTravelSteps = [];
 
@@ -68,18 +74,23 @@ function fillTripObjects(tripData) {
             trips[tripID] = {};
         }
 
+        const trip = trips[tripID];
+
         Object.keys(TRAVEL_FORM_COLUMNS).forEach(key => {
             if (key === 'tripID') {
-                trips[tripID][key] = tripID;
+                trip[key] = tripID;
                 return;
             }
 
             const columnId = TRAVEL_FORM_COLUMNS[key];
 
-            trips[tripID][key] = colMap[columnId]?.text || '';
+            trip[key] = colMap[columnId]?.text || '';
         });
 
-        fillTripSteps(trips[tripID]);
+        const dates = `${formatDate(trip.startDate, 'short')} - ${formatDate(trip.endDate, 'long')}`;
+        trip.dates = dates;
+
+        fillTripSteps(trip);
     });
 
     return trips;
@@ -152,6 +163,7 @@ async function fetchItemsFromBoards(boardIds) {
 }
 
 async function init() {
+  const loadingScreen = document.getElementById("loading-screen");
   try {
     const context = await monday.get('context');
     const currentBoardId = context?.data?.boardId;
@@ -171,7 +183,6 @@ async function init() {
     const container = document.querySelector('.pre-travel.stack');
     container.innerHTML = render.renderDashboard(trips);
 
-    const loadingScreen = document.getElementById("loading-screen");
     if (loadingScreen) {
       loadingScreen.classList.add('hidden');
     }
