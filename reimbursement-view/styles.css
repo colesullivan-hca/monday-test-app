@@ -8,10 +8,10 @@
 
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  font-size: 14px; /* Increased for better legibility */
+  font-size: 13px;
   background: #f7f7f8;
   color: #1a1a1a; /* Dark contrast text */
-  padding: 20px 12px; /* Adaptive padding for smaller screens */
+  padding: 20px;
   line-height: 1.6;
 }
 
@@ -21,22 +21,20 @@ body {
   max-width: 920px;
   margin: 0 auto;
   background: #fff;
-  border: 1px solid #c1c1c7; /* Darker, high-contrast border */
+  border: 1px solid #c1c1c7; /* Darker border */
   border-radius: 6px;
   padding: 32px 36px 40px;
-  width: 100%;
-  overflow: hidden; /* Prevents container blowout */
 }
 
 /* ─── Heading ────────────────────────────────────────────────────────────── */
 
 h1 {
-  font-size: 14px; /* Bolder and slightly larger */
-  font-weight: 700;
+  font-size: 13px;
+  font-weight: 600;
   letter-spacing: 0.1em;
-  text-transform: uppercase;
+  text-transform: none; /* Changed to normal capitalization */
   text-align: center;
-  color: #444; /* Darker gray for readability */
+  color: #444; /* Darker gray */
   margin-bottom: 24px;
 }
 
@@ -45,52 +43,51 @@ h1 {
 form table {
   width: 100%;
   border-collapse: collapse;
-  margin-bottom: 24px;
-  table-layout: fixed; /* Forces columns to respect boundaries on desktop */
+  margin-bottom: 20px;
 }
 
 /* ─── Section Titles ─────────────────────────────────────────────────────── */
 
 .section-title {
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: #444; /* Darker section title */
-  padding: 12px 0 6px 0 !important;
-  border-bottom: 2px solid #a1a1a8; /* Noticeable separator line */
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: none; /* Changed to normal capitalization */
+  color: #444; /* Darker gray */
+  padding: 0 0 6px 0;
+  border-bottom: 1px solid #b5b5bc; /* Darker border line */
 }
 
 th {
-  font-size: 12px;
-  font-weight: 600;
+  font-size: 11px;
+  font-weight: 500;
   text-align: left;
   color: #555; /* Higher contrast */
   padding: 8px 16px 4px 0;
-  border-bottom: 1px solid #c1c1c7;
+  border-bottom: 1px solid #d1d1d6; /* Darker line */
 }
 
 /* ─── Label / Value Cells ────────────────────────────────────────────────── */
 
 td.label {
-  padding: 10px 12px 10px 0;
+  padding: 8px 16px 8px 0;
   font-size: 11px;
-  font-weight: 700; /* Much crisper text visibility */
-  color: #555; /* Clear, dark gray instead of faint gray */
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
+  font-weight: 600; /* Crisper text weight */
+  color: #555; /* Changed from faint gray to high-contrast gray */
+  text-transform: none; /* Changed to normal capitalization */
+  letter-spacing: 0.02em;
   vertical-align: middle;
-  border-bottom: 1px solid #e8e8ea;
+  white-space: nowrap; /* Prevents wrapping on desktop views */
+  border-bottom: 1px solid #e8e8ea; /* Darker line */
 }
 
 td.label .value {
-  font-weight: 500;
-  font-size: 14px;
+  font-weight: 400;
+  font-size: 13px;
   letter-spacing: 0;
   text-transform: none;
-  color: #1a1a1a; /* Pitch black text for form values */
-  margin-left: 4px;
-  display: inline;
+  color: #1a1a1a; /* True dark text for values */
+  margin-left: 6px;
 }
 
 /* ─── Transportation Section ─────────────────────────────────────────────── */
@@ -98,7 +95,7 @@ td.label .value {
 .transport-section {
   width: 100%;
   border-collapse: collapse;
-  margin-bottom: 24px;
+  margin-bottom: 20px;
 }
 
 .transport-section thead th.section-title {
@@ -106,27 +103,27 @@ td.label .value {
 }
 
 .transport-row td {
-  padding: 10px 12px 10px 0;
+  padding: 8px 16px 8px 0;
   border-bottom: 1px solid #e8e8ea;
   vertical-align: middle;
   font-size: 11px;
-  font-weight: 700;
-  color: #555;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
+  font-weight: 600;
+  color: #555; /* Higher contrast */
+  text-transform: none; /* Changed to normal capitalization */
+  letter-spacing: 0.02em;
 }
 
 .transport-row td .value {
-  font-weight: 500;
-  font-size: 14px;
+  font-weight: 400;
+  font-size: 13px;
   letter-spacing: 0;
   text-transform: none;
   color: #1a1a1a;
-  margin-left: 4px;
+  margin-left: 6px;
 }
 
 .receipts-cell {
-  white-space: normal; /* Allows buttons to drop to a new line gracefully if needed */
+  white-space: nowrap;
 }
 
 /* ─── Receipt Buttons ────────────────────────────────────────────────────── */
@@ -136,36 +133,34 @@ button.open-link-direct {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  padding: 4px 10px;
+  padding: 3px 8px;
   font-family: inherit;
-  font-size: 12px;
-  font-weight: 600;
-  color: #2c2c2c;
-  background: #ededf0; /* Darker, clear background button */
-  border: 1px solid #b5b5bc;
+  font-size: 11px;
+  font-weight: 500;
+  color: #2c2c2c; /* Clear button text */
+  background: #ededf0; /* Darker background fill */
+  border: 1px solid #c1c1c7;
   border-radius: 4px;
   cursor: pointer;
   transition: background 0.1s;
-  margin: 2px 0 2px 6px;
+  margin-left: 6px;
 }
 
 button.open-asset:hover,
 button.open-link-direct:hover {
   background: #d1d1d6;
-  color: #000;
 }
 
 /* ─── Error Banner ───────────────────────────────────────────────────────── */
 
 #app-error-banner {
-  background: #fff5f5;
-  color: #b02a1a; /* Accessible, high-contrast red */
-  padding: 12px 16px;
+  background: #fff8f8;
+  color: #b02a1a; /* Deeper red for legibility */
+  padding: 10px 14px;
   margin-bottom: 16px;
   border: 1px solid #f2a4a4;
   border-radius: 4px;
-  font-size: 13px;
-  font-weight: 600;
+  font-size: 12px;
   display: none;
 }
 
@@ -173,23 +168,22 @@ button.open-link-direct:hover {
 
 .download-bar {
   display: flex;
-  flex-wrap: wrap; /* Allows text/button to stack on mobile */
   align-items: center;
   gap: 12px;
   margin-top: 24px;
   padding-top: 16px;
-  border-top: 2px solid #c1c1c7;
+  border-top: 1px solid #b5b5bc;
 }
 
 .download-bar button {
   font-family: inherit;
-  font-size: 13px;
-  font-weight: 600;
+  font-size: 12px;
+  font-weight: 500;
   color: #1a1a1a;
   background: #ededf0;
-  border: 1px solid #b5b5bc;
+  border: 1px solid #c1c1c7;
   border-radius: 4px;
-  padding: 8px 16px;
+  padding: 6px 14px;
   cursor: pointer;
   transition: background 0.1s;
 }
@@ -199,14 +193,13 @@ button.open-link-direct:hover {
 }
 
 .download-bar button:disabled {
-  opacity: 0.4;
+  opacity: 0.45;
   cursor: default;
 }
 
 #download-status {
-  font-size: 12px;
-  color: #444;
-  font-weight: 600;
+  font-size: 11px;
+  color: #555; /* Higher contrast */
 }
 
 /* ─── No-data text ───────────────────────────────────────────────────────── */
@@ -216,18 +209,18 @@ td.no-data {
   font-style: italic;
   text-transform: none;
   letter-spacing: 0;
-  font-size: 13px;
-  font-weight: 600;
+  font-size: 12px;
+  font-weight: 400;
 }
 
-/* ─── Responsive Mobile Fixes ────────────────────────────────────────────── */
+/* ─── Responsive Media Query (Prevents Overflow on Small Windows) ────────── */
 
 @media (max-width: 768px) {
   .form-container {
-    padding: 20px 16px; /* Give side breathing room on phones */
+    padding: 24px 16px; /* Narrower container padding on mobile screens */
   }
 
-  /* This forces table rows to act like flexible blocks instead of rigid columns */
+  /* Force table layouts to stack vertically instead of stretching horizontally */
   form table, 
   thead, 
   tbody, 
@@ -238,29 +231,37 @@ td.no-data {
     width: 100% !important;
   }
 
-  /* Keep table headers from completely messing up alignment */
+  /* Avoid messy horizontal lines under empty mobile structures */
   th {
     border-bottom: none;
-    padding: 10px 0 2px 0;
+    padding: 8px 0 2px 0;
   }
 
   tr {
     margin-bottom: 12px;
   }
 
-  /* Provide proper breathing room when labels are stacked vertically */
+  /* Overrides nowrap behaviors so labels and values flow beautifully down the page */
   td.label, 
-  .transport-row td {
-    white-space: normal;
+  .transport-row td,
+  .receipts-cell {
+    white-space: normal; 
     padding: 8px 0;
     border-bottom: 1px solid #e8e8ea;
   }
-  
-  /* Make inline values drop beautifully under labels on small viewports if long */
+
+  /* Breaks values into their own row underneath the label tags on mobile */
   td.label .value,
   .transport-row td .value {
     display: block;
     margin-left: 0;
-    margin-top: 4px;
+    margin-top: 2px;
+  }
+  
+  /* Drop download bars into stacks if buttons and descriptions collide */
+  .download-bar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
   }
 }
