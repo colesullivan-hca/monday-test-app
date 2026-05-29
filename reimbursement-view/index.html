@@ -15,6 +15,7 @@
   <div class="form-container">
     <h1>TRAVELER REIMBURSEMENT REQUEST SUBMISSION</h1>
     <form id="travelForm">
+
       <table>
         <tr>
           <td id="trip-title" class="label">TRIP TITLE: <span class="value"></span></td>
@@ -55,29 +56,31 @@
         </tr>
       </table>
 
-      <table>
-        <tr><td colspan="5" class="section-title">TRANSPORTATION/FARES</td></tr>
-        <tr>
-          <td colspan="5" class="label" style="color:rgb(121, 0, 0); display: none;">
-            NO TRANSPORTATION LISTED BY TRAVELER
-          </td>
-        </tr>
+      <!--
+        TRANSPORTATION/FARES
+        ─────────────────────────────────────────────────────────────────────
+        The header, empty-state message, and all subitem rows live in ONE table.
+        JS targets:
+          #transport-body      → <tbody> where subitem rows are appended
+          #no-transport-message → row shown when there are zero subitems
+        The old standalone placeholder <table> with class="transport" is removed.
+      -->
+      <table class="transport-section">
+        <thead>
+          <tr><th colspan="5" class="section-title">TRANSPORTATION/FARES</th></tr>
+        </thead>
+        <tbody id="transport-body">
+          <!-- Subitem rows injected here by app.js -->
+        </tbody>
+        <tbody id="no-transport-message">
+          <tr>
+            <td colspan="5" class="label" style="color:rgb(121, 0, 0);">
+              NO TRANSPORTATION LISTED BY TRAVELER
+            </td>
+          </tr>
+        </tbody>
       </table>
-      
-      <table>
-        <tr class="transport">
-          <td class="label">TYPE: <span class="value" data-col="trans_type"></span></td>
-          <td class="label">DATE: <span class="value" data-col="trans_date"></span></td>
-          <td class="label">AMOUNT: <span class="value" data-col="trans_amount"></span></td>
-          <td class="label">TIP: <span class="value" data-col="trans_tip"></span></td>
-          <td class="label">
-            <!-- This target element handles 0, 1, or multiple dynamic receipts seamlessly -->
-            <div class="receipt-box" data-col="receipts_files">
-              <span>RECEIPTS:</span>
-            </div>
-          </td>
-        </tr>
-      </table>
+
     </form>
   </div>
   <script src="app.js"></script>
