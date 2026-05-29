@@ -137,6 +137,7 @@ function fillTripObjects(tripData) {
         trip.requestUrl = item.url;
 
         fillPreTravelSteps(trip);
+        fillPostTravelSteps(trip);
     });
 
     const ISTEFormItems = tripData[BOARD_MAP.ISTEForm] || [];
@@ -174,8 +175,7 @@ function fillTripObjects(tripData) {
     });
 
     Object.values(trips).forEach(trip => {
-        if(trip.isteUrl) trip.state = 'postTravel';
-        else trip.state = 'preTravel';
+        trip.state = 'preTravel';
         const today = new Date();
         today.setHours(0, 0, 0, 0);
         const start = new Date(trip.startDate);

@@ -65,19 +65,34 @@ body {
 }
 
 .stack-title {
-    background: #ffffff;
-    border: 1px solid #e9ecef;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+    /* Layout */
+    width: 100%;             /* Allow it to stretch across the stack container */
+    display: flex;
+    align-items: center;     /* Perfectly vertically centers the line with text */
+    gap: 15px;               /* Space between the text and the line */
+    margin: 10px 0 5px 0;
+    
+    /* Presentation */
+    background: transparent; /* Removes white card background */
+    border: none;            /* Removes card border */
+    box-shadow: none;        /* Removes card shadow */
+    text-align: left;        /* Aligns text nicely to the left */
+    
+    /* Typography adjustments for a cleaner, subtle look */
     color: var(--text-muted);
-    width: 150px;
-    padding: 0.65rem 0.8rem;
     font-family: inherit;
-    font-size: 0.8rem;
-    font-weight: 600;
+    font-size: 0.75rem;      /* Slightly smaller */
+    font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
-    text-align: center;
+    letter-spacing: 0.8px;   /* Added a bit more tracking for elegance */
+}
+
+.stack-title::after {
+    content: "";
+    flex: 1;                 /* Forces the line to take up all remaining horizontal space */
+    height: 1px;
+    background-color: var(--gray-border); /* Matches your existing border color palette */
+    opacity: 0.7;            /* Keeps it faint and non-distracting */
 }
 
 /* Stack Container */
