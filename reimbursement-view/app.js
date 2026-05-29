@@ -2,11 +2,7 @@ const monday = window.mondaySdk();
 
 let currentBoardId = null;
 let currentItemId = null;
-let isLocked = false;
 const originalValues = {};
-
-// CONFIGURATION: Replace these IDs with your actual column IDs
-const PARENT_STATUS_COL_ID = 'color_mm2xe9t';
 
 const SUBITEM_COL_IDS = {
   type:   'color_mm32gfgv',   // Transportation Type (Status/Color column)
@@ -109,10 +105,6 @@ async function init() {
       throw new Error('Could not load item data. Check the board/item IDs.');
     }
 
-    // ── Lock check ───────────────────────────────────────────────────────────
-    const statusCol = item.column_values.find(c => c.id === PARENT_STATUS_COL_ID);
-    isLocked = statusCol?.text?.includes('Ready') ?? false;
-
     // ── Populate parent-board fields (elements with data-col attributes) ─────
     document.querySelectorAll('[data-col]').forEach(field => {
       if (field.closest('.transport-section')) return; // handled separately
@@ -128,10 +120,8 @@ async function init() {
       }
       originalValues[field.dataset.col] = value;
 
-      if (isLocked) {
-        field.setAttribute('readonly', true);
-        field.classList.add('locked-field');
-      }
+      field.setAttribute('readonly', true);
+      field.classList.add('locked-field');
     });
 
     // ── Render transportation subitems ────────────────────────────────────────
