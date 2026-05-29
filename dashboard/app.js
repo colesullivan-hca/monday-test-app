@@ -25,6 +25,8 @@ const ISTE_COLUMNS = {
     tripID: 'text_mm35jsjp',
     ISTEStatus: '',
     ISTEApproval: '',
+    startDate: 'date_mm32tas8',
+    endDate: 'date_mm32gjap',
 }
 
 const BOARD_MAP = {
@@ -171,21 +173,23 @@ function fillTripObjects(tripData) {
         fillPostTravelSteps(trip);
     });
 
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const start = new Date(trip.startDate);
-    const end = new Date(trip.endDate);
-    if (today < start) {
-        trip.state = 'preTravel';
-    } else if (today >= start && today <= end) {
-        trip.state = 'travelling';
-    } else if (today > end) {
-        if (trip.progress === 100) {
-            trip.state = 'completed';
-        } else {
-            trip.state = 'postTravel';
+    Object.values(trips).forEach(trip => {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const start = new Date(trip.startDate);
+        const end = new Date(trip.endDate);
+        if (today < start) {
+            trip.state = 'preTravel';
+        } else if (today >= start && today <= end) {
+            trip.state = 'travelling';
+        } else if (today > end) {
+            if (trip.progress === 100) {
+                trip.state = 'completed';
+            } else {
+                trip.state = 'postTravel';
+            }
         }
-    }
+    });
 
     return trips;
 }
