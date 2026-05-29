@@ -152,13 +152,13 @@ function fillTripObjects(tripData) {
 
         const trip = trips[tripID];
 
-        Object.keys(TRAVEL_FORM_COLUMNS).forEach(key => {
+        Object.keys(ISTE_COLUMNS).forEach(key => {
             if (key === 'tripID') {
                 trip[key] = tripID;
                 return;
             }
 
-            const columnId = TRAVEL_FORM_COLUMNS[key];
+            const columnId = ISTE_COLUMNS[key];
 
             trip[key] = colMap[columnId]?.text || '';
         });
