@@ -144,7 +144,7 @@ function fillTripObjects(tripData) {
         // 1. Create a fast lookup map: { "color_mm2xe9t": { id: "...", text: "..." } }
         const colMap = Object.fromEntries(cols.map(c => [c.id, c]));
 
-        const tripID = colMap[TRAVEL_FORM_COLUMNS.tripID]?.text || item.id || crypto.randomUUID();
+        const tripID = colMap[ISTE_COLUMNS.tripID]?.text || item.id || crypto.randomUUID();
         
         if (!trips[tripID]) {
             trips[tripID] = {};
