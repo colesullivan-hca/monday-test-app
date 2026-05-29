@@ -199,7 +199,7 @@ function fillTripObjects(tripData) {
         if (!trip.requestUrl) trip.warning = "Missing Form ID";
 
         const currentStep = trip.postTravelSteps.find(step => step.state === 'current') || trip.preTravelSteps.find(step => step.state === 'current');
-        if (currentStep) {
+        if (currentStep && !trip.isDenied && !trip.warning) {
             switch (currentStep.text) {
                 case 'Compile HCA Travel Packet':
                 case 'SHARE PO Generation & Sourcing':
