@@ -191,6 +191,8 @@ function fillTripObjects(tripData) {
                 trip.state = 'postTravel';
             }
         }
+
+        if (!trip.requestUrl) trip.warning = "Missing Form ID";
     });
 
     return trips;

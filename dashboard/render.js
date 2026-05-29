@@ -53,7 +53,7 @@ export function renderDashboard(trips) {
                                 
                                 <div class="progress-block">
                                     <div class="bar-bg">
-                                        <div class="bar-fill ${trip.isDenied ? 'denied' : ''}" style="width: ${trip.progress}%;"></div>
+                                        <div class="bar-fill ${trip.warning ? 'warning' : trip.isDenied ? 'denied' : ''}" style="width: ${trip.progress}%;"></div>
                                     </div>
                                     <div class="progress-labels">
                                         <span style="${trip.isDenied ? 'color: var(--danger); font-weight: 600;' : ''}">
@@ -63,8 +63,8 @@ export function renderDashboard(trips) {
                                     </div>
                                 </div>
 
-                                <div class="status-badge" style="background-color: ${trip.isDenied ? '#f8d7da' : trip.statusBg}; color: ${trip.isDenied ? '#721c24' : trip.statusColor}; ${trip.isDenied ? 'border: 1px solid #f5c6cb;' : ''}">
-                                    ${trip.statusText}
+                                <div class="status-badge" style="background-color: ${trip.warning ? '#fff3cd' : trip.isDenied ? '#f8d7da' : trip.statusBg}; color: ${trip.warning ? '#856404' : trip.isDenied ? '#721c24' : trip.statusColor}; ${trip.isDenied ? 'border: 1px solid #f5c6cb;' : ''}">
+                                    ${trip.warning ? trip.warning : trip.statusText}
                                 </div>
                                 <span class="toggle-arrow">▼</span>
                             </div>

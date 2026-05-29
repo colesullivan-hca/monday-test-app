@@ -241,6 +241,10 @@ body {
     background-color: var(--danger);
 }
 
+.bar-fill.warning {
+    background-color: var(--warning);
+}
+
 .progress-labels {
     display: flex;
     justify-content: space-between;
