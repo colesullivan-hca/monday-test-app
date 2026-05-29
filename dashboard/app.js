@@ -25,8 +25,8 @@ const ISTE_COLUMNS = {
     tripID: 'text_mm35jsjp',
     ISTEStatus: '',
     ISTEApproval: '',
-    startDate: 'date_mm32tas8',
-    endDate: 'date_mm32gjap',
+    // startDate: 'date_mm32tas8',
+    // endDate: 'date_mm32gjap',
 }
 
 const BOARD_MAP = {
@@ -174,6 +174,8 @@ function fillTripObjects(tripData) {
     });
 
     Object.values(trips).forEach(trip => {
+        if(trip.isteUrl) trip.state = 'postTravel';
+        else trip.state = 'preTravel';
         const today = new Date();
         today.setHours(0, 0, 0, 0);
         const start = new Date(trip.startDate);
@@ -286,10 +288,10 @@ async function init() {
     const completed = document.querySelector('.completed.stack');
     
     const tripsList = Object.values(trips);
-    preTravel.innerHTML = render.renderDashboard(tripsList.filter(trip => trip.state === 'preTravel'));
-    travelling.innerHTML = render.renderDashboard(tripsList.filter(trip => trip.state === 'travelling'));
-    postTravel.innerHTML = render.renderDashboard(tripsList.filter(trip => trip.state === 'postTravel'));
-    completed.innerHTML = render.renderDashboard(tripsList.filter(trip => trip.state === 'completed'));
+    preTravel.insertAdjacentHTML('beforeend', render.renderDashboard(tripsList.filter(trip => trip.state === 'preTravel')));
+    travelling.insertAdjacentHTML('beforeend', render.renderDashboard(tripsList.filter(trip => trip.state === 'travelling')));
+    postTravel.insertAdjacentHTML('beforeend', render.renderDashboard(tripsList.filter(trip => trip.state === 'postTravel')));
+    completed.insertAdjacentHTML('beforeend', render.renderDashboard(tripsList.filter(trip => trip.state === 'completed')));
 
     if (loadingScreen) {
       loadingScreen.classList.add('hidden');
