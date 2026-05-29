@@ -9,10 +9,13 @@ const SUBITEM_COL_IDS = {
   type: "color_mm32gfgv",       // Subitem column ID for Transportation Type
   date: "date_mm32jk22",       // Subitem column ID for Date
   amount: "numeric_mm32yqpz",   // Subitem column ID for Amount
-  tip: "numeric_mm327arh",         // Subitem column ID for Tip
-  files: "file_mm33209m"   // Subitem column ID for Receipts (File Column)
+  tip: "numeric_mm327arh",      // Subitem column ID for Tip
+  files: "file_mm33209m"        // Subitem column ID for Receipts (File Column)
 };
 
+/**
+ * Initializes the application, pulls context, and queries the parent item and its subitems.
+ */
 async function init() {
   try {
     const context = await monday.get('context');
@@ -23,7 +26,7 @@ async function init() {
       throw new Error('Please open this app inside a monday item view.');
     }
 
-    // Fully updated GraphQL query supporting all FileValue polymorphic types
+    // Fully optimized GraphQL query addressing type conflicts and missing schema fields
     const query = `query {
       items(ids: [${currentItemId}]) {
         column_values {
@@ -50,7 +53,6 @@ async function init() {
                 }
                 ... on FileDocValue {
                   file_id
-                  name
                   url
                 }
                 ... on FileLinkValue {
@@ -60,7 +62,7 @@ async function init() {
                 }
                 ... on FileAssetInvalidValue {
                   asset_id
-                  name
+                  invalid_name: name
                   error
                 }
               }
@@ -77,7 +79,7 @@ async function init() {
       throw new Error('Could not load item data.');
     }
 
-    // Status / Read-only state check lock based on parent status
+    // Check if the item is locked based on parent status
     const statusCol = item.column_values.find(c => c.id === 'color_mm2xe9t');
     isLocked = statusCol?.text?.includes('Ready');
 
@@ -102,7 +104,7 @@ async function init() {
       }
     });
 
-    // 2. Process and dynamic render the Transportation subitems
+    // 2. Process and dynamically render the Transportation subitems
     renderTransportationSubitems(item.subitems || []);
 
   } catch (err) {
@@ -111,12 +113,13 @@ async function init() {
 }
 
 /**
- * Sweeps away placeholder transport elements and generates clean semantic markup rows
+ * Sweeps away placeholder transport elements and generates clean semantic markup rows.
  */
 function renderTransportationSubitems(subitems) {
   const transportTable = document.querySelector('.transport').closest('table');
   const noTransportWarning = document.querySelector('style[style*="display: none"], .label[style*="rgb(121, 0, 0)"]');
 
+  // Purge old placeholder rows (keeping headers/section titles)
   const existingRows = transportTable.querySelectorAll('tr');
   existingRows.forEach(row => {
     if (!row.querySelector('.section-title') && !row.querySelector('th')) {
@@ -161,7 +164,7 @@ function renderTransportationSubitems(subitems) {
 }
 
 /**
- * Builds actionable button items capable of identifying file versus link structures
+ * Builds separate actionable elements for zero, one, or multiple receipt links/assets.
  */
 function buildDynamicReceiptButtons(containerElement, columnData) {
   if (!columnData || !columnData.files || columnData.files.length === 0) {
@@ -174,7 +177,7 @@ function buildDynamicReceiptButtons(containerElement, columnData) {
   }
 
   columnData.files.forEach((file, index) => {
-    if (file.error) return; // Skip invalid file structures safely
+    if (file.error) return; // Skip invalid asset files safely
 
     const wrapper = document.createElement('div');
     wrapper.className = 'file-entry-wrapper';
@@ -183,20 +186,21 @@ function buildDynamicReceiptButtons(containerElement, columnData) {
 
     const actionButton = document.createElement('button');
     actionButton.type = 'button';
-    actionButton.title = `View File: ${file.name || 'Receipt'}`;
+    
+    // Fallback logic resolving names safely across varying schema definitions
+    const displayName = file.name || file.invalid_name || 'Receipt';
+    actionButton.title = `View File: ${displayName}`;
     actionButton.textContent = `📄 Receipt ${index + 1}`;
 
-    // Determine strategy: Direct Links/Docs vs Uploaded Binary Assets
+    // Routing Logic: External Storage (Links/Docs) vs Native Uploaded Assets
     if (file.url) {
-      // For FileLinkValue or FileDocValue: Open directly or tag URL onto the button
       actionButton.className = 'open-link-direct';
       actionButton.setAttribute('data-url', file.url);
     } else if (file.asset_id) {
-      // For FileAssetValue: Prepare local modal architecture
       actionButton.className = 'open-modal';
       actionButton.setAttribute('data-asset-id', file.asset_id);
       
-      // OPTIMIZATION: Cache URL returned instantly from initial load if present
+      // Inject pre-fetched public url if valid to reduce runtime API calls
       if (file.asset?.public_url) {
         actionButton.setAttribute('data-pre-url', file.asset.public_url);
       }
@@ -207,7 +211,7 @@ function buildDynamicReceiptButtons(containerElement, columnData) {
       const iframeElement = document.createElement('iframe');
       iframeElement.className = 'modal-content';
       iframeElement.frameBorder = '0';
-      iframeElement.src = ''; // Lazy load on element execution click
+      iframeElement.src = ''; // Lazy loaded on open click
 
       dialogElement.appendChild(iframeElement);
       wrapper.appendChild(dialogElement);
@@ -219,7 +223,7 @@ function buildDynamicReceiptButtons(containerElement, columnData) {
 }
 
 /**
- * Fallback async request to fetch fresh 1-hour secure tokens if the initial one expired
+ * Utility fallback function providing token renewals for uploaded local files.
  */
 async function getMondayFileUrl(assetId) {
   try {
@@ -237,11 +241,11 @@ async function getMondayFileUrl(assetId) {
 }
 
 /* ==========================================================================
-    Global Modal & Redirection Delegation Triggers
+    Global Delegation Action Event Handlers
    ========================================================================== */
 
 document.addEventListener('click', async (e) => {
-  // 1. Handle External Links and Docs safely in a new tab
+  // 1. Direct external link redirection routing
   const linkTargetBtn = e.target.closest('.open-link-direct');
   if (linkTargetBtn) {
     const directUrl = linkTargetBtn.getAttribute('data-url');
@@ -249,7 +253,7 @@ document.addEventListener('click', async (e) => {
     return;
   }
 
-  // 2. Handle Asset Previews with intelligent token reuse
+  // 2. Local system asset modal display previews
   const openTargetBtn = e.target.closest('.open-modal');
   if (openTargetBtn) {
     const parentContainer = openTargetBtn.closest('.file-entry-wrapper');
@@ -260,7 +264,7 @@ document.addEventListener('click', async (e) => {
 
     if (contextAssetId && !dynamicIframe.src) {
       dynamicIframe.src = 'about:blank';
-      // Use pre-fetched URL if available, fallback to active API call if expired or blank
+      // Load pre-fetched direct link if alive, else call fallback API generator
       const secureCloudUrl = preFetchedUrl ? preFetchedUrl : await getMondayFileUrl(contextAssetId);
       dynamicIframe.src = secureCloudUrl;
     }
@@ -269,6 +273,7 @@ document.addEventListener('click', async (e) => {
   }
 });
 
+// Click outside standard modal backdrop listener closing active element window
 document.addEventListener('click', (e) => {
   if (e.target.tagName === 'DIALOG' && e.target.hasAttribute('open')) {
     e.target.close();
