@@ -42,7 +42,7 @@ export function renderDashboard(trips) {
                     ${isteLinkMarkup}
                 </div>
 
-                <div class="travel-card ${trip.isDenied ? 'is-denied' : ''}">
+                <div class="travel-card ${trip.warning ? 'is-warning' : trip.isDenied ? 'is-denied' : ''}">
                     <details>
                         <summary>
                             <div class="card-summary-row">

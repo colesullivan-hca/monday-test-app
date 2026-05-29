@@ -208,6 +208,10 @@ body {
     color: var(--danger);
 }
 
+.travel-card.is-warning .trip-title {
+    color: var(--warning);
+}
+
 .trip-meta {
     margin: 0;
     font-size: 0.8rem;
