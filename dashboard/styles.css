@@ -87,7 +87,7 @@ body {
     letter-spacing: 0.8px;   /* Added a bit more tracking for elegance */
 }
 
-.stack-title::after {
+.stack-title::before {
     content: "";
     flex: 1;                 /* Forces the line to take up all remaining horizontal space */
     height: 1px;
