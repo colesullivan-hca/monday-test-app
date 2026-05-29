@@ -261,7 +261,7 @@ function buildReceiptButtons(cell, files, fileContext, label = 'File') {
 
     const btn = document.createElement('button');
     btn.type = 'button';
-    btn.textContent = `📄 ${label} ${files.length > 1 ? index + 1 : ''}`.trim();
+    btn.textContent = `📄 ${file.name}`;
     btn.title = `View: ${escHtml(file.name)}`;
 
     if (file.url) {
@@ -279,46 +279,78 @@ function buildReceiptButtons(cell, files, fileContext, label = 'File') {
   });
 }
 
-// ─── Download All ─────────────────────────────────────────────────────────────
+// ─── Download All ─────────────────────────────────────────────────────
 
 /**
- * Opens every attached file one by one using monday's native file viewer.
- * There is no bulk-download API in the monday SDK, so we open each file
- * sequentially with a short delay to avoid flooding the dialog.
+ * Downloads every attached file directly to the browser.
+ *
+ * Fetches all public_urls in a single batch GraphQL query (requires
+ * assets:read scope), then fires an <a download> click for each one.
+ * External link-type files open in a new tab since they can't be
+ * force-downloaded cross-origin.
+ * Downloads are staggered 300ms apart so the browser doesn't block them.
  */
 async function downloadAllFiles() {
   const btn    = document.getElementById('download-all-btn');
   const status = document.getElementById('download-status');
 
   btn.disabled = true;
-  const total = allFiles.length;
+  if (status) status.textContent = 'Fetching file URLs…';
 
-  for (let i = 0; i < allFiles.length; i++) {
-    const file = allFiles[i];
-    if (status) status.textContent = `Opening ${i + 1} of ${total}…`;
+  const assets = allFiles.filter(f => f.assetId);
+  const links  = allFiles.filter(f => f.url && !f.assetId);
 
+  // Batch-fetch all public_urls in one query
+  const assetUrlMap = {};
+  if (assets.length > 0) {
     try {
-      if (file.url) {
-        window.open(file.url, '_blank');
-      } else if (file.assetId) {
-        await monday.execute('openFilesDialog', {
-          boardId:  Number(file.boardId),
-          itemId:   Number(file.itemId),
-          columnId: file.columnId,
-          assetId:  Number(file.assetId),
-        });
-      }
+      const ids = assets.map(f => f.assetId).join(', ');
+      const res = await monday.api(`query { assets(ids: [${ids}]) { id public_url name } }`);
+      (res?.data?.assets ?? []).forEach(a => {
+        assetUrlMap[String(a.id)] = { url: a.public_url, name: a.name };
+      });
     } catch (err) {
-      console.error(`Error opening file ${file.name}:`, err);
-    }
-
-    // Small delay between opens so monday doesn't drop dialogs
-    if (i < allFiles.length - 1) {
-      await new Promise(r => setTimeout(r, 600));
+      console.error('Error fetching asset URLs:', err);
+      showError('Could not fetch file URLs. Check that the assets:read scope is enabled.');
+      btn.disabled = false;
+      if (status) status.textContent = '';
+      return;
     }
   }
 
-  if (status) status.textContent = `${total} file${total !== 1 ? 's' : ''} opened.`;
+  const downloads = [
+    ...assets.map(f => ({
+      url:  assetUrlMap[String(f.assetId)]?.url  ?? null,
+      name: assetUrlMap[String(f.assetId)]?.name ?? f.name,
+    })).filter(f => f.url),
+    ...links.map(f => ({ url: f.url, name: f.name })),
+  ];
+
+  const total = downloads.length;
+  if (total === 0) {
+    if (status) status.textContent = 'No downloadable files found.';
+    btn.disabled = false;
+    return;
+  }
+
+  for (let i = 0; i < downloads.length; i++) {
+    const { url, name } = downloads[i];
+    if (status) status.textContent = `Downloading ${i + 1} of ${total}…`;
+
+    const a = document.createElement('a');
+    a.href     = url;
+    a.download = name || `file-${i + 1}`;
+    a.style.display = 'none';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+
+    if (i < downloads.length - 1) {
+      await new Promise(r => setTimeout(r, 300));
+    }
+  }
+
+  if (status) status.textContent = `${total} file${total !== 1 ? 's' : ''} downloaded.`;
   btn.disabled = false;
 }
 
