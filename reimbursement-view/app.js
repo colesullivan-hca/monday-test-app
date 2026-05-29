@@ -199,6 +199,12 @@ function renderTransportationSubitems(subitems) {
 
 /**
  * Appends receipt buttons (or a "None" notice) to the given cell element.
+ *
+ * For uploaded assets we use monday.execute('openFilesDialog') instead of
+ * querying the assets API — item-view apps don't have the assets:read scope,
+ * so the assets query returns UNAUTHORIZED_FIELD_OR_TYPE.
+ * openFilesDialog opens monday's own native file viewer without needing
+ * any extra OAuth scopes.
  */
 function buildReceiptButtons(cell, files) {
   if (files.length === 0) {
@@ -220,25 +226,14 @@ function buildReceiptButtons(cell, files) {
     btn.title = `View: ${file.name}`;
 
     if (file.url) {
-      // External / link-type file — open directly
+      // External / link-type file — open in new tab directly
       btn.className = 'open-link-direct';
       btn.dataset.url = file.url;
     } else if (file.asset_id) {
-      // Uploaded asset — preview in a <dialog>
-      btn.className = 'open-modal';
+      // Uploaded asset — delegate to monday's native file viewer.
+      // This requires no extra OAuth scopes and works in all item view apps.
+      btn.className = 'open-asset';
       btn.dataset.assetId = String(file.asset_id);
-
-      const dialog = document.createElement('dialog');
-      dialog.className = 'preview-modal';
-
-      const iframe = document.createElement('iframe');
-      iframe.className = 'modal-content';
-      iframe.setAttribute('frameborder', '0');
-      // Mark as unloaded; we lazy-load the src on first open
-      iframe.dataset.loaded = 'false';
-
-      dialog.appendChild(iframe);
-      wrapper.appendChild(dialog);
     }
 
     wrapper.prepend(btn);
@@ -246,34 +241,10 @@ function buildReceiptButtons(cell, files) {
   });
 }
 
-// ─── Asset URL lookup ────────────────────────────────────────────────────────
-
-/**
- * Fetches a fresh public URL for a monday.com uploaded asset.
- * Public URLs are time-limited, so we fetch on demand rather than caching.
- */
-async function getMondayFileUrl(assetId) {
-  try {
-    const res = await monday.api(
-      `query { assets(ids: [${assetId}]) { public_url } }`
-    );
-    return res?.data?.assets?.[0]?.public_url ?? 'about:blank';
-  } catch (err) {
-    console.error('getMondayFileUrl error:', err);
-    return 'about:blank';
-  }
-}
-
 // ─── Event delegation ────────────────────────────────────────────────────────
 
 document.addEventListener('click', async (e) => {
-  // Close modal when clicking the backdrop (the <dialog> element itself)
-  if (e.target.tagName === 'DIALOG' && e.target.open) {
-    e.target.close();
-    return;
-  }
-
-  // Open external link
+  // Open external / link-type file in a new tab
   const linkBtn = e.target.closest('.open-link-direct');
   if (linkBtn) {
     const url = linkBtn.dataset.url;
@@ -281,24 +252,18 @@ document.addEventListener('click', async (e) => {
     return;
   }
 
-  // Open asset preview modal
-  const modalBtn = e.target.closest('.open-modal');
-  if (modalBtn) {
-    const wrapper = modalBtn.closest('.file-entry-wrapper');
-    const dialog  = wrapper?.querySelector('.preview-modal');
-    const iframe  = dialog?.querySelector('.modal-content');
+  // Open uploaded asset using monday's native file viewer (no assets:read scope needed)
+  const assetBtn = e.target.closest('.open-asset');
+  if (assetBtn) {
+    const assetId = Number(assetBtn.dataset.assetId);
+    if (!assetId) return;
 
-    if (!dialog || !iframe) return;
-
-    // Lazy-load the iframe src only on first open
-    if (iframe.dataset.loaded === 'false') {
-      iframe.dataset.loaded = 'loading';
-      const assetId = modalBtn.dataset.assetId;
-      iframe.src = await getMondayFileUrl(assetId);
-      iframe.dataset.loaded = 'true';
+    try {
+      await monday.execute('openFilesDialog', { assetId });
+    } catch (err) {
+      console.error('openFilesDialog error:', err);
+      showError('Could not open file preview. Make sure the app has file viewer permissions.');
     }
-
-    dialog.showModal();
   }
 });
 
