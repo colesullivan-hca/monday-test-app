@@ -1,0 +1,213 @@
+/* ==========================================================================
+   1. Canvas Layout & Typography
+   ========================================================================== */
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  background-color: #fcfcfc;
+  color: #222222;
+  margin: 0;
+  padding: 40px 20px;
+  line-height: 1.5;
+}
+
+.form-container {
+  max-width: 900px;
+  margin: 0 auto;
+  background: #ffffff;
+  padding: 30px;
+  border: 1px solid #eef0f5;
+  border-radius: 6px;
+}
+
+/* Page Header */
+h1 {
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-align: left;
+  margin: 0 0 30px 0;
+  color: #111111;
+  /* Capitalization Normalization */
+  text-transform: capitalize; 
+  border-bottom: 2px solid #222222;
+  padding-bottom: 12px;
+}
+
+/* ==========================================================================
+   2. Low-Profile Action Bar (Save/Print)
+   ========================================================================== */
+.save {
+  max-width: 900px;
+  margin: 0 auto 15px auto;
+  display: flex;
+  justify-content: flex-end;
+  gap: 20px;
+}
+
+.saveButton, .printButton {
+  font-size: 13px;
+  font-weight: 500;
+  padding: 6px 12px;
+  cursor: pointer;
+  background: none;
+  border: none;
+  text-transform: capitalize; /* Forces structural capitalization */
+  transition: color 0.1s ease;
+}
+
+.printButton {
+  color: #666666;
+  text-decoration: underline;
+}
+
+.printButton:hover {
+  color: #111111;
+}
+
+.saveButton {
+  color: #0073ea;
+  font-weight: 600;
+}
+
+.saveButton.inactive {
+  color: #cccccc;
+  cursor: not-allowed;
+  text-decoration: none;
+}
+
+/* ==========================================================================
+   3. Plain-Text Information Grid & Scannability
+   ========================================================================== */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 30px;
+  table-layout: fixed;
+}
+
+th, td {
+  border: none;
+  padding: 10px 14px; /* Added horizontal padding to prevent cramped text */
+  vertical-align: top;
+  font-size: 13px;
+}
+
+/* Subtle Row Striping or Background Blocks for Multiline Tables */
+th {
+  color: #555555;
+  font-weight: 600;
+  text-transform: capitalize; /* Capitalizes structural text strings */
+  font-size: 11px;
+  letter-spacing: 0.3px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #e1e6f0;
+  background-color: #f8f9fc; /* Soft tint block for headers */
+}
+
+/* Flat Accent Section Spacers */
+.section-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: #444444;
+  letter-spacing: 0.3px;
+  text-transform: capitalize; /* Normalizes layout grouping bars */
+  padding: 8px 14px;
+  background-color: #f1f3f9; /* Grounding strip makes separate modules distinct */
+  border-radius: 4px;
+}
+
+/* Plain-text Key/Value Pairs Form Layout formatting */
+.label {
+  font-weight: 500;
+  color: #666666;
+  text-transform: capitalize; /* Catches and standardizes inline labels */
+}
+
+.value {
+  font-weight: 400;
+  color: #111111;
+  display: block; 
+  margin-top: 4px;
+  font-size: 14px; /* Marginally scaled up for fast reading */
+  text-transform: none; /* Keeps user input exactly as they typed it */
+}
+
+/* Locked / Read-Only Display States */
+.locked-field {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+/* ==========================================================================
+   4. Document Receipt Controls
+   ========================================================================== */
+.receipt-box {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.receipt-box span {
+  text-transform: capitalize; /* Normalizes the 'RECEIPTS:' layout string */
+}
+
+.file-entry-wrapper {
+  display: inline-block;
+}
+
+/* Minimal text link button presentation */
+.open-modal {
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 2px 0 0 0;
+  font-size: 13px;
+  color: #0073ea;
+  cursor: pointer;
+  text-decoration: underline;
+  text-align: left;
+  text-transform: capitalize;
+}
+
+.open-modal:hover {
+  color: #004b9a;
+}
+
+/* Document Lightbox Configuration Overlays */
+.preview-modal {
+  border: 1px solid #dddddd;
+  border-radius: 6px;
+  padding: 0;
+  width: 80vw;
+  max-width: 900px;
+  height: 85vh;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+}
+
+.preview-modal::backdrop {
+  background: rgba(255, 255, 255, 0.9); 
+}
+
+.modal-content {
+  width: 100%;
+  height: 100%;
+  display: block;
+  background-color: #ffffff;
+}
+
+/* ==========================================================================
+   5. System Print Formats
+   ========================================================================== */
+@media print {
+  body {
+    padding: 0;
+    background-color: #ffffff;
+  }
+  .form-container {
+    border: none;
+    padding: 0;
+  }
+  .save, .open-modal, dialog {
+    display: none !important;
+  }
+}
