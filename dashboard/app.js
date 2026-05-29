@@ -22,6 +22,7 @@ const TRAVEL_FORM_COLUMNS = {
 }
 
 const ISTE_COLUMNS = {
+    tripID: 'text_mm35jsjp',
     ISTEStatus: '',
     ISTEApproval: '',
 }
@@ -101,9 +102,9 @@ function fillPostTravelSteps(trip) {
 
 function fillTripObjects(tripData) {
     const trips = {};
-    const travelItems = tripData[BOARD_MAP.travelForm] || [];
+    const travelFormItems = tripData[BOARD_MAP.travelForm] || [];
 
-    travelItems.forEach(item => {
+    travelFormItems.forEach(item => {
         const cols = item.column_values || [];
         
         // 1. Create a fast lookup map: { "color_mm2xe9t": { id: "...", text: "..." } }
@@ -134,6 +135,39 @@ function fillTripObjects(tripData) {
         trip.requestUrl = item.url;
 
         fillPreTravelSteps(trip);
+    });
+
+    const ISTEFormItems = tripData[BOARD_MAP.ISTEForm] || [];
+    ISTEFormItems.forEach(item => {
+        const cols = item.column_values || [];
+        
+        // 1. Create a fast lookup map: { "color_mm2xe9t": { id: "...", text: "..." } }
+        const colMap = Object.fromEntries(cols.map(c => [c.id, c]));
+
+        const tripID = colMap[TRAVEL_FORM_COLUMNS.tripID]?.text || item.id || crypto.randomUUID();
+        
+        if (!trips[tripID]) {
+            trips[tripID] = {};
+        }
+
+        const trip = trips[tripID];
+
+        Object.keys(TRAVEL_FORM_COLUMNS).forEach(key => {
+            if (key === 'tripID') {
+                trip[key] = tripID;
+                return;
+            }
+
+            const columnId = TRAVEL_FORM_COLUMNS[key];
+
+            trip[key] = colMap[columnId]?.text || '';
+        });
+
+        const dates = `${formatDate(trip.startDate, 'long')} - ${formatDate(trip.endDate, 'long')}`;
+        trip.dates = dates;
+
+        trip.isteUrl = item.url;
+
         fillPostTravelSteps(trip);
     });
 
