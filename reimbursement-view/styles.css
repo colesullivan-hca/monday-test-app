@@ -32,7 +32,7 @@ h1 {
   font-size: 13px;
   font-weight: 600;
   letter-spacing: 0.1em;
-  text-transform: none; /* Changed to normal capitalization */
+  text-transform: none; /* Normal capitalization */
   text-align: center;
   color: #444; /* Darker gray */
   margin-bottom: 24px;
@@ -52,7 +52,7 @@ form table {
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.05em;
-  text-transform: none; /* Changed to normal capitalization */
+  text-transform: none; /* Normal capitalization */
   color: #444; /* Darker gray */
   padding: 0 0 6px 0;
   border-bottom: 1px solid #b5b5bc; /* Darker border line */
@@ -73,8 +73,8 @@ td.label {
   padding: 8px 16px 8px 0;
   font-size: 11px;
   font-weight: 600; /* Crisper text weight */
-  color: #555; /* Changed from faint gray to high-contrast gray */
-  text-transform: none; /* Changed to normal capitalization */
+  color: #555; /* Clear, high-contrast gray */
+  text-transform: none; /* Normal capitalization */
   letter-spacing: 0.02em;
   vertical-align: middle;
   white-space: nowrap; /* Prevents wrapping on desktop views */
@@ -109,7 +109,7 @@ td.label .value {
   font-size: 11px;
   font-weight: 600;
   color: #555; /* Higher contrast */
-  text-transform: none; /* Changed to normal capitalization */
+  text-transform: none; /* Normal capitalization */
   letter-spacing: 0.02em;
 }
 
@@ -132,30 +132,41 @@ button.open-asset,
 button.open-link-direct {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  padding: 3px 8px;
+  justify-content: center;
+  gap: 5px;
+  padding: 4px 10px; /* Enhanced vertical/horizontal padding */
   font-family: inherit;
   font-size: 11px;
   font-weight: 500;
-  color: #2c2c2c; /* Clear button text */
-  background: #ededf0; /* Darker background fill */
-  border: 1px solid #c1c1c7;
-  border-radius: 4px;
+  color: #333336; /* Clean dark gray text */
+  background: #f4f4f7; /* Soft gray fill */
+  border: 1px solid #d1d1d6; /* Subtle, crisp border */
+  border-radius: 5px; /* Softer rounded corners */
   cursor: pointer;
-  transition: background 0.1s;
-  margin-left: 6px;
+  transition: all 0.15s ease;
+  margin-left: 8px;
+  vertical-align: middle; /* Ensures button aligns beautifully with the label text */
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05); /* Soft depth */
 }
 
 button.open-asset:hover,
 button.open-link-direct:hover {
+  background: #e5e5ea; /* Darker tone on hover */
+  border-color: #b5b5bc;
+  color: #1a1a1a;
+}
+
+button.open-asset:active,
+button.open-link-direct:active {
   background: #d1d1d6;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1); /* Pressed down state */
 }
 
 /* ─── Error Banner ───────────────────────────────────────────────────────── */
 
 #app-error-banner {
   background: #fff8f8;
-  color: #b02a1a; /* Deeper red for legibility */
+  color: #b02a1a; /* Deeper red */
   padding: 10px 14px;
   margin-bottom: 16px;
   border: 1px solid #f2a4a4;
@@ -180,21 +191,24 @@ button.open-link-direct:hover {
   font-size: 12px;
   font-weight: 500;
   color: #1a1a1a;
-  background: #ededf0;
-  border: 1px solid #c1c1c7;
-  border-radius: 4px;
-  padding: 6px 14px;
+  background: #f4f4f7;
+  border: 1px solid #d1d1d6;
+  border-radius: 5px;
+  padding: 8px 16px; /* Balanced padding */
   cursor: pointer;
-  transition: background 0.1s;
+  transition: all 0.15s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
 .download-bar button:hover:not(:disabled) {
-  background: #d1d1d6;
+  background: #e5e5ea;
+  border-color: #b5b5bc;
 }
 
 .download-bar button:disabled {
   opacity: 0.45;
   cursor: default;
+  box-shadow: none;
 }
 
 #download-status {
@@ -255,9 +269,15 @@ td.no-data {
   .transport-row td .value {
     display: block;
     margin-left: 0;
-    margin-top: 2px;
+    margin-top: 4px;
   }
   
+  /* Give buttons space when elements wrap on smaller screens */
+  button.open-asset,
+  button.open-link-direct {
+    margin: 6px 4px 2px 0; 
+  }
+
   /* Drop download bars into stacks if buttons and descriptions collide */
   .download-bar {
     flex-direction: column;
