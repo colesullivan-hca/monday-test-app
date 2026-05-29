@@ -9,18 +9,15 @@ const originalValues = {};
 const PARENT_STATUS_COL_ID = 'color_mm2xe9t';
 
 const SUBITEM_COL_IDS = {
-  type:   'color_mm32gfgv',  // Transportation Type (Status/Color column)
-  date:   'date_mm32jk22',   // Date
-  amount: 'numeric_mm32yqpz',// Amount
-  tip:    'numeric_mm327arh',// Tip
-  files:  'file_mm33209m'    // Receipts (File column)
+  type:   'color_mm32gfgv',   // Transportation Type (Status/Color column)
+  date:   'date_mm32jk22',    // Date
+  amount: 'numeric_mm32yqpz', // Amount
+  tip:    'numeric_mm327arh', // Tip
+  files:  'file_mm33209m'     // Receipts (File column)
 };
 
-// ─── Helpers ────────────────────────────────────────────────────────────────
+// ─── Helpers ─────────────────────────────────────────────────────────────────
 
-/**
- * Shows a user-visible error banner inside the app.
- */
 function showError(message) {
   let banner = document.getElementById('app-error-banner');
   if (!banner) {
@@ -35,15 +32,21 @@ function showError(message) {
   banner.style.display = 'block';
 }
 
+/** Escapes a string for safe insertion as HTML text content. */
+function escHtml(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
 /**
- * Parses the raw JSON `value` string from a file column and returns an array
- * of normalised file objects: { asset_id, name, url }.
+ * Parses the raw JSON `value` string from a monday file column.
+ * Returns an array of { asset_id, name, url } objects.
  *
- * monday.com returns file column values as a JSON string like:
- *   { "files": [ { "assetId": 123, "name": "receipt.pdf", "fileType": "ASSET" }, … ] }
- *
- * We avoid inline GraphQL fragments (... on FileValue) because they are
- * unreliable across API versions and board configurations.
+ * monday returns file column values as JSON like:
+ *   { "files": [ { "assetId": 123, "name": "receipt.pdf", "fileType": "ASSET" }, ... ] }
  */
 function parseFileColumnValue(rawValue) {
   if (!rawValue) return [];
@@ -55,14 +58,14 @@ function parseFileColumnValue(rawValue) {
       .map(f => ({
         asset_id: f.assetId ?? f.asset_id ?? null,
         name:     f.name ?? 'Receipt',
-        url:      f.url  ?? null   // only present for link-type entries
+        url:      f.url  ?? null  // only present for link-type entries
       }));
   } catch {
     return [];
   }
 }
 
-// ─── Main init ───────────────────────────────────────────────────────────────
+// ─── Main init ────────────────────────────────────────────────────────────────
 
 async function init() {
   try {
@@ -74,8 +77,8 @@ async function init() {
       throw new Error('Please open this app inside a monday.com item view.');
     }
 
-    // Minimal query — file data is fetched via the `value` field (raw JSON)
-    // rather than inline fragments, which are fragile across API versions.
+    // We also fetch subitem board IDs so openFilesDialog gets the correct boardId.
+    // Subitems live on their own auto-generated board, not the parent board.
     const query = `
       query {
         items(ids: [${currentItemId}]) {
@@ -87,6 +90,7 @@ async function init() {
           subitems {
             id
             name
+            board { id }
             column_values {
               id
               text
@@ -105,14 +109,13 @@ async function init() {
       throw new Error('Could not load item data. Check the board/item IDs.');
     }
 
-    // ── Lock check ──────────────────────────────────────────────────────────
+    // ── Lock check ───────────────────────────────────────────────────────────
     const statusCol = item.column_values.find(c => c.id === PARENT_STATUS_COL_ID);
     isLocked = statusCol?.text?.includes('Ready') ?? false;
 
-    // ── Populate parent-board fields (data-col attributes) ──────────────────
+    // ── Populate parent-board fields (elements with data-col attributes) ─────
     document.querySelectorAll('[data-col]').forEach(field => {
-      // Skip elements that are part of the subitem table (rendered separately)
-      if (field.closest('.transport-section')) return;
+      if (field.closest('.transport-section')) return; // handled separately
 
       const col = item.column_values.find(c => c.id === field.dataset.col);
       if (!col) return;
@@ -131,7 +134,7 @@ async function init() {
       }
     });
 
-    // ── Render transportation subitems ───────────────────────────────────────
+    // ── Render transportation subitems ────────────────────────────────────────
     renderTransportationSubitems(item.subitems ?? []);
 
   } catch (err) {
@@ -140,15 +143,9 @@ async function init() {
   }
 }
 
-// ─── Subitem rendering ───────────────────────────────────────────────────────
+// ─── Subitem rendering ────────────────────────────────────────────────────────
 
-/**
- * Clears any existing subitem rows and re-renders one row per subitem.
- * Expects a container element with id="transport-body" (a <tbody> or <div>).
- * Falls back gracefully if the container is missing.
- */
 function renderTransportationSubitems(subitems) {
-  // Use a dedicated container so we never accidentally destroy header rows.
   const container = document.getElementById('transport-body');
   const noDataMsg  = document.getElementById('no-transport-message');
 
@@ -157,7 +154,6 @@ function renderTransportationSubitems(subitems) {
     return;
   }
 
-  // Clear previous rows
   container.innerHTML = '';
 
   if (subitems.length === 0) {
@@ -175,13 +171,11 @@ function renderTransportationSubitems(subitems) {
     const amountText = get(SUBITEM_COL_IDS.amount)?.text ?? '';
     const tipText    = get(SUBITEM_COL_IDS.tip)?.text    ?? '';
     const filesRaw   = get(SUBITEM_COL_IDS.files)?.value ?? null;
-
-    const files = parseFileColumnValue(filesRaw);
+    const files      = parseFileColumnValue(filesRaw);
 
     const row = document.createElement('tr');
     row.className = 'transport-row';
 
-    // Build the five standard cells
     row.innerHTML = `
       <td class="label">Type:   <span class="value">${escHtml(typeText)}</span></td>
       <td class="label">Date:   <span class="value">${escHtml(dateText)}</span></td>
@@ -190,17 +184,27 @@ function renderTransportationSubitems(subitems) {
       <td class="label receipts-cell">Receipts: </td>
     `;
 
-    const receiptsCell = row.querySelector('.receipts-cell');
-    buildReceiptButtons(receiptsCell, files);
+    // openFilesDialog requires boardId + itemId + columnId + assetId.
+    // Subitems have their own board ID (different from the parent board).
+    const fileContext = {
+      boardId:  subitem.board?.id ?? currentBoardId,
+      itemId:   subitem.id,
+      columnId: SUBITEM_COL_IDS.files
+    };
 
+    buildReceiptButtons(row.querySelector('.receipts-cell'), files, fileContext);
     container.appendChild(row);
   });
 }
 
 /**
- * Appends receipt buttons (or a "None" notice) to the given cell element.
+ * Appends receipt buttons to a cell.
+ *
+ * Uses monday.execute('openFilesDialog', { boardId, itemId, columnId, assetId })
+ * which requires all four params — passing only assetId causes "file not found".
+ * This approach needs no extra OAuth scopes unlike the assets API.
  */
-function buildReceiptButtons(cell, files) {
+function buildReceiptButtons(cell, files, fileContext) {
   if (files.length === 0) {
     const none = document.createElement('span');
     none.textContent = ' None';
@@ -217,28 +221,19 @@ function buildReceiptButtons(cell, files) {
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.textContent = `📄 Receipt ${index + 1}`;
-    btn.title = `View: ${file.name}`;
+    btn.title = `View: ${escHtml(file.name)}`;
 
     if (file.url) {
-      // External / link-type file — open directly
+      // External / link-type file — open in a new tab
       btn.className = 'open-link-direct';
       btn.dataset.url = file.url;
     } else if (file.asset_id) {
-      // Uploaded asset — preview in a <dialog>
-      btn.className = 'open-modal';
+      // Uploaded asset — use monday's native viewer with all required params
+      btn.className = 'open-asset';
       btn.dataset.assetId = String(file.asset_id);
-
-      const dialog = document.createElement('dialog');
-      dialog.className = 'preview-modal';
-
-      const iframe = document.createElement('iframe');
-      iframe.className = 'modal-content';
-      iframe.setAttribute('frameborder', '0');
-      // Mark as unloaded; we lazy-load the src on first open
-      iframe.dataset.loaded = 'false';
-
-      dialog.appendChild(iframe);
-      wrapper.appendChild(dialog);
+      btn.dataset.boardId  = String(fileContext.boardId);
+      btn.dataset.itemId   = String(fileContext.itemId);
+      btn.dataset.columnId = fileContext.columnId;
     }
 
     wrapper.prepend(btn);
@@ -246,34 +241,10 @@ function buildReceiptButtons(cell, files) {
   });
 }
 
-// ─── Asset URL lookup ────────────────────────────────────────────────────────
-
-/**
- * Fetches a fresh public URL for a monday.com uploaded asset.
- * Public URLs are time-limited, so we fetch on demand rather than caching.
- */
-async function getMondayFileUrl(assetId) {
-  try {
-    const res = await monday.api(
-      `query { assets(ids: [${assetId}]) { public_url } }`
-    );
-    return res?.data?.assets?.[0]?.public_url ?? 'about:blank';
-  } catch (err) {
-    console.error('getMondayFileUrl error:', err);
-    return 'about:blank';
-  }
-}
-
-// ─── Event delegation ────────────────────────────────────────────────────────
+// ─── Event delegation ─────────────────────────────────────────────────────────
 
 document.addEventListener('click', async (e) => {
-  // Close modal when clicking the backdrop (the <dialog> element itself)
-  if (e.target.tagName === 'DIALOG' && e.target.open) {
-    e.target.close();
-    return;
-  }
-
-  // Open external link
+  // Open external / link-type file in a new tab
   const linkBtn = e.target.closest('.open-link-direct');
   if (linkBtn) {
     const url = linkBtn.dataset.url;
@@ -281,37 +252,24 @@ document.addEventListener('click', async (e) => {
     return;
   }
 
-  // Open asset preview modal
-  const modalBtn = e.target.closest('.open-modal');
-  if (modalBtn) {
-    const wrapper = modalBtn.closest('.file-entry-wrapper');
-    const dialog  = wrapper?.querySelector('.preview-modal');
-    const iframe  = dialog?.querySelector('.modal-content');
+  // Open uploaded asset using monday's native file viewer
+  const assetBtn = e.target.closest('.open-asset');
+  if (assetBtn) {
+    const assetId  = Number(assetBtn.dataset.assetId);
+    const boardId  = Number(assetBtn.dataset.boardId);
+    const itemId   = Number(assetBtn.dataset.itemId);
+    const columnId = assetBtn.dataset.columnId;
 
-    if (!dialog || !iframe) return;
+    if (!assetId) return;
 
-    // Lazy-load the iframe src only on first open
-    if (iframe.dataset.loaded === 'false') {
-      iframe.dataset.loaded = 'loading';
-      const assetId = modalBtn.dataset.assetId;
-      iframe.src = await getMondayFileUrl(assetId);
-      iframe.dataset.loaded = 'true';
+    try {
+      await monday.execute('openFilesDialog', { boardId, itemId, columnId, assetId });
+    } catch (err) {
+      console.error('openFilesDialog error:', err);
+      showError('Could not open file preview.');
     }
-
-    dialog.showModal();
   }
 });
-
-// ─── Utility ─────────────────────────────────────────────────────────────────
-
-/** Escapes a string for safe insertion as HTML text content. */
-function escHtml(str) {
-  return str
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
-}
 
 // ─── Boot ─────────────────────────────────────────────────────────────────────
 
