@@ -171,6 +171,22 @@ function fillTripObjects(tripData) {
         fillPostTravelSteps(trip);
     });
 
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const start = new Date(trip.startDate);
+    const end = new Date(trip.endDate);
+    if (today < start) {
+        trip.state = 'preTravel';
+    } else if (today >= start && today <= end) {
+        trip.state = 'travelling';
+    } else if (today > end) {
+        if (trip.progress === 100) {
+            trip.state = 'completed';
+        } else {
+            trip.state = 'postTravel';
+        }
+    }
+
     return trips;
 }
 
@@ -260,8 +276,16 @@ async function init() {
     trips = fillTripObjects(tripData);
     console.log(trips);
 
-    const container = document.querySelector('.pre-travel.stack');
-    container.innerHTML = render.renderDashboard(trips);
+    const preTravel = document.querySelector('.pre-travel.stack');
+    const travelling = document.querySelector('.travelling.stack');
+    const postTravel = document.querySelector('.post-travel.stack');
+    const completed = document.querySelector('.completed.stack');
+    
+    const tripsList = Object.values(trips);
+    preTravel.innerHTML = render.renderDashboard(tripsList.filter(trip => trip.state === 'preTravel'));
+    travelling.innerHTML = render.renderDashboard(tripsList.filter(trip => trip.state === 'travelling'));
+    postTravel.innerHTML = render.renderDashboard(tripsList.filter(trip => trip.state === 'postTravel'));
+    completed.innerHTML = render.renderDashboard(tripsList.filter(trip => trip.state === 'completed'));
 
     if (loadingScreen) {
       loadingScreen.classList.add('hidden');
