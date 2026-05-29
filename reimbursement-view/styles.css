@@ -163,3 +163,52 @@ button.open-link-direct:hover {
   font-size: 12px;
   display: none;
 }
+
+/* ─── Download Bar ───────────────────────────────────────────────────────── */
+
+.download-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid #e8e8ea;
+}
+
+.download-bar button {
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  color: #444;
+  background: #f4f4f5;
+  border: 1px solid #e4e4e6;
+  border-radius: 4px;
+  padding: 6px 14px;
+  cursor: pointer;
+  transition: background 0.1s;
+}
+
+.download-bar button:hover:not(:disabled) {
+  background: #eaeaec;
+}
+
+.download-bar button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+#download-status {
+  font-size: 11px;
+  color: #999;
+}
+
+/* ─── No-data text ───────────────────────────────────────────────────────── */
+
+td.no-data {
+  color: #c0392b;
+  font-style: italic;
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 12px;
+  font-weight: 400;
+}

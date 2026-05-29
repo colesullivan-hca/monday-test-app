@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>HCA Travel Request</title>
   <script src="https://cdn.jsdelivr.net/npm/monday-sdk-js/dist/main.js"></script>
-  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="test.css" />
 </head>
 <body>
   <div class="form-container">
@@ -52,30 +52,43 @@
         </tr>
       </table>
 
-      <!--
-        TRANSPORTATION/FARES
-        ─────────────────────────────────────────────────────────────────────
-        The header, empty-state message, and all subitem rows live in ONE table.
-        JS targets:
-          #transport-body      → <tbody> where subitem rows are appended
-          #no-transport-message → row shown when there are zero subitems
-        The old standalone placeholder <table> with class="transport" is removed.
-      -->
+      <!-- TRANSPORTATION/FARES — subitem rows injected by app.js -->
       <table class="transport-section">
         <thead>
           <tr><th colspan="5" class="section-title">TRANSPORTATION/FARES</th></tr>
         </thead>
-        <tbody id="transport-body">
-          <!-- Subitem rows injected here by app.js -->
-        </tbody>
+        <tbody id="transport-body"></tbody>
         <tbody id="no-transport-message">
           <tr>
-            <td colspan="5" class="label" style="color:rgb(121, 0, 0);">
-              NO TRANSPORTATION LISTED BY TRAVELER
-            </td>
+            <td colspan="5" class="label no-data">NO TRANSPORTATION LISTED BY TRAVELER</td>
           </tr>
         </tbody>
       </table>
+
+      <!-- AIRPORT PARKING & BAGGAGE — parent item columns, populated by app.js -->
+      <table>
+        <tr><td colspan="4" class="section-title">AIRPORT PARKING &amp; BAGGAGE</td></tr>
+        <tr>
+          <td class="label">AIRPORT PARKING FEE: <span class="value" id="parking-amount"></span></td>
+          <td class="label receipts-cell" id="parking-receipts">PARKING RECEIPT:</td>
+          <td class="label">BAGGAGE FEE: <span class="value" id="baggage-amount"></span></td>
+          <td class="label receipts-cell" id="baggage-receipts">BAGGAGE RECEIPT:</td>
+        </tr>
+      </table>
+
+      <!-- OTHER SUPPORTING DOCUMENTS — parent item file column, populated by app.js -->
+      <table>
+        <tr><td colspan="2" class="section-title">OTHER SUPPORTING DOCUMENTS</td></tr>
+        <tr>
+          <td class="label receipts-cell" id="other-documents" colspan="2">DOCUMENTS:</td>
+        </tr>
+      </table>
+
+      <!-- DOWNLOAD ALL -->
+      <div class="download-bar">
+        <button type="button" id="download-all-btn">⬇ Download All Receipts &amp; Documents</button>
+        <span id="download-status"></span>
+      </div>
 
     </form>
   </div>
