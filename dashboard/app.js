@@ -191,8 +191,39 @@ function fillTripObjects(tripData) {
                 trip.state = 'postTravel';
             }
         }
+        if (trip.state === 'postTravel' && !trip.isteUrl) {
+            const currentStep = trip.postTravelSteps.find(step => step.state !== 'done');
+            if (currentStep) currentStep.state = 'current';
+        }
 
         if (!trip.requestUrl) trip.warning = "Missing Form ID";
+
+        const currentStep = trip.postTravelSteps.find(step => step.state === 'current') || trip.preTravelSteps.find(step => step.state === 'current');
+        if (currentStep) {
+            switch (currentStep.text) {
+                case 'Compile HCA Travel Packet':
+                case 'SHARE PO Generation & Sourcing':
+                case 'Generate Itemized Statement':
+                    trip.statusText = 'Travel Team Processing';
+                    break;
+                case 'HCA Form Approval':
+                case 'Division Review & Sign-off':
+                case 'ASD Review & Sign-off':
+                case 'Final Executive Authorization':
+                case 'Traveler Approval':
+                case 'Supervisor Approval':
+                    trip.statusText = 'HCA Approvals';
+                    break;
+                case 'Submit ITD Reimbursement Form & Receipts':
+                    trip.statusText = 'Waiting On Traveler';
+                    break;
+                case 'Payments Processing':
+                    trip.statusText = 'AP Processing';
+                    break;
+                default:
+                    trip.statusText = 'Undefined';
+            }
+        }
     });
 
     return trips;
