@@ -2,10 +2,15 @@ const monday = window.mondaySdk();
 
 let currentBoardId = null;
 let currentItemId = null;
+let isLocked = false;
 const originalValues = {};
 
+// CONFIGURATION: Replace these IDs with your actual column IDs
+const PARENT_STATUS_COL_ID = 'color_mm2xe9t';
+
 const SUBITEM_COL_IDS = {
-  type:   'color_mm32gfgv',   // Transportation Type (Status/Color column)
+  type:      'color_mm32gfgv',   // Transportation Type (Status/Color column)
+  typeOther: 'text_mm32rvf0',    // Specified type when Type is "Other"
   date:   'date_mm32jk22',    // Date
   amount: 'numeric_mm32yqpz', // Amount
   tip:    'numeric_mm327arh', // Tip
@@ -105,6 +110,10 @@ async function init() {
       throw new Error('Could not load item data. Check the board/item IDs.');
     }
 
+    // ── Lock check ───────────────────────────────────────────────────────────
+    const statusCol = item.column_values.find(c => c.id === PARENT_STATUS_COL_ID);
+    isLocked = statusCol?.text?.includes('Ready') ?? false;
+
     // ── Populate parent-board fields (elements with data-col attributes) ─────
     document.querySelectorAll('[data-col]').forEach(field => {
       if (field.closest('.transport-section')) return; // handled separately
@@ -120,8 +129,10 @@ async function init() {
       }
       originalValues[field.dataset.col] = value;
 
-      field.setAttribute('readonly', true);
-      field.classList.add('locked-field');
+      if (isLocked) {
+        field.setAttribute('readonly', true);
+        field.classList.add('locked-field');
+      }
     });
 
     // ── Render transportation subitems ────────────────────────────────────────
@@ -156,7 +167,9 @@ function renderTransportationSubitems(subitems) {
   subitems.forEach(subitem => {
     const get = id => subitem.column_values.find(c => c.id === id);
 
-    const typeText   = get(SUBITEM_COL_IDS.type)?.text   ?? '';
+    const rawType    = get(SUBITEM_COL_IDS.type)?.text   ?? '';
+    const typeOther  = get(SUBITEM_COL_IDS.typeOther)?.text ?? '';
+    const typeText   = rawType.toLowerCase() === 'other' && typeOther ? typeOther : rawType;
     const dateText   = get(SUBITEM_COL_IDS.date)?.text   ?? '';
     const amountText = get(SUBITEM_COL_IDS.amount)?.text ?? '';
     const tipText    = get(SUBITEM_COL_IDS.tip)?.text    ?? '';
