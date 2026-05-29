@@ -261,7 +261,7 @@ function buildReceiptButtons(cell, files, fileContext, label = 'File') {
 
     const btn = document.createElement('button');
     btn.type = 'button';
-    btn.textContent = `📄 ${file.name}`;
+    btn.textContent = `📷 ${file.name}`;
     btn.title = `View: ${escHtml(file.name)}`;
 
     if (file.url) {
