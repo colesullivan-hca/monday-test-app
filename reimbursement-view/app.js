@@ -23,7 +23,7 @@ async function init() {
       throw new Error('Please open this app inside a monday item view.');
     }
 
-    // Updated GraphQL query to pull standard parent columns AND deeply nested subitem columns
+    // Fully updated GraphQL query supporting all FileValue polymorphic types
     const query = `query {
       items(ids: [${currentItemId}]) {
         column_values {
@@ -41,8 +41,28 @@ async function init() {
             value
             ... on FileValue {
               files {
-                name
-                asset_id
+                ... on FileAssetValue {
+                  asset_id
+                  name
+                  asset {
+                    public_url
+                  }
+                }
+                ... on FileDocValue {
+                  file_id
+                  name
+                  url
+                }
+                ... on FileLinkValue {
+                  file_id
+                  name
+                  url
+                }
+                ... on FileAssetInvalidValue {
+                  asset_id
+                  name
+                  error
+                }
               }
             }
           }
@@ -63,7 +83,6 @@ async function init() {
 
     // 1. Populate standard parent board text/date layout fields
     document.querySelectorAll('[data-col]').forEach(field => {
-      // Skip the dynamic receipt-box element if it's on the main level placeholder
       if (field.classList.contains('receipt-box')) return;
 
       const col = item.column_values.find(c => c.id === field.dataset.col);
@@ -95,11 +114,9 @@ async function init() {
  * Sweeps away placeholder transport elements and generates clean semantic markup rows
  */
 function renderTransportationSubitems(subitems) {
-  // Target the transport table body layout
   const transportTable = document.querySelector('.transport').closest('table');
   const noTransportWarning = document.querySelector('style[style*="display: none"], .label[style*="rgb(121, 0, 0)"]');
 
-  // Purge any old placeholder rows (any rows that aren't headers or section titles)
   const existingRows = transportTable.querySelectorAll('tr');
   existingRows.forEach(row => {
     if (!row.querySelector('.section-title') && !row.querySelector('th')) {
@@ -107,7 +124,6 @@ function renderTransportationSubitems(subitems) {
     }
   });
 
-  // Handle zero-state edge case if no transport lines exist
   if (subitems.length === 0) {
     if (noTransportWarning) noTransportWarning.parentElement.style.display = 'table-row';
     return;
@@ -115,19 +131,16 @@ function renderTransportationSubitems(subitems) {
     if (noTransportWarning) noTransportWarning.parentElement.style.display = 'none';
   }
 
-  // Loop over every subitem row entry pulled from the board
   subitems.forEach(subitem => {
     const row = document.createElement('tr');
     row.className = 'transport-row';
 
-    // Find subitem column details
     const typeCol = subitem.column_values.find(c => c.id === SUBITEM_COL_IDS.type);
     const dateCol = subitem.column_values.find(c => c.id === SUBITEM_COL_IDS.date);
     const amountCol = subitem.column_values.find(c => c.id === SUBITEM_COL_IDS.amount);
     const tipCol = subitem.column_values.find(c => c.id === SUBITEM_COL_IDS.tip);
     const filesCol = subitem.column_values.find(c => c.id === SUBITEM_COL_IDS.files);
 
-    // Append cells mirroring your original placeholder text nodes
     row.innerHTML = `
       <td class="label">Type: <span class="value">${typeCol?.text || ''}</span></td>
       <td class="label">Date: <span class="value">${dateCol?.text || ''}</span></td>
@@ -140,7 +153,6 @@ function renderTransportationSubitems(subitems) {
       </td>
     `;
 
-    // Target the newly injected inner dynamic receipt container element within this specific row
     const receiptBoxContainer = row.querySelector('.receipt-box');
     buildDynamicReceiptButtons(receiptBoxContainer, filesCol);
 
@@ -149,7 +161,7 @@ function renderTransportationSubitems(subitems) {
 }
 
 /**
- * Builds separate download link buttons for zero, one, or multiple receipt assets inside a subitem row
+ * Builds actionable button items capable of identifying file versus link structures
  */
 function buildDynamicReceiptButtons(containerElement, columnData) {
   if (!columnData || !columnData.files || columnData.files.length === 0) {
@@ -162,35 +174,52 @@ function buildDynamicReceiptButtons(containerElement, columnData) {
   }
 
   columnData.files.forEach((file, index) => {
+    if (file.error) return; // Skip invalid file structures safely
+
     const wrapper = document.createElement('div');
     wrapper.className = 'file-entry-wrapper';
     wrapper.style.display = 'inline-block';
     wrapper.style.marginLeft = '8px';
 
     const actionButton = document.createElement('button');
-    actionButton.className = 'open-modal';
     actionButton.type = 'button';
-    actionButton.setAttribute('data-asset-id', file.asset_id);
-    actionButton.title = `View File: ${file.name}`;
+    actionButton.title = `View File: ${file.name || 'Receipt'}`;
     actionButton.textContent = `📄 Receipt ${index + 1}`;
 
-    const dialogElement = document.createElement('dialog');
-    dialogElement.className = 'preview-modal';
-    
-    const iframeElement = document.createElement('iframe');
-    iframeElement.className = 'modal-content';
-    iframeElement.frameBorder = '0';
-    iframeElement.src = ''; // Lazy load on execution click
+    // Determine strategy: Direct Links/Docs vs Uploaded Binary Assets
+    if (file.url) {
+      // For FileLinkValue or FileDocValue: Open directly or tag URL onto the button
+      actionButton.className = 'open-link-direct';
+      actionButton.setAttribute('data-url', file.url);
+    } else if (file.asset_id) {
+      // For FileAssetValue: Prepare local modal architecture
+      actionButton.className = 'open-modal';
+      actionButton.setAttribute('data-asset-id', file.asset_id);
+      
+      // OPTIMIZATION: Cache URL returned instantly from initial load if present
+      if (file.asset?.public_url) {
+        actionButton.setAttribute('data-pre-url', file.asset.public_url);
+      }
 
-    dialogElement.appendChild(iframeElement);
-    wrapper.appendChild(actionButton);
-    wrapper.appendChild(dialogElement);
+      const dialogElement = document.createElement('dialog');
+      dialogElement.className = 'preview-modal';
+      
+      const iframeElement = document.createElement('iframe');
+      iframeElement.className = 'modal-content';
+      iframeElement.frameBorder = '0';
+      iframeElement.src = ''; // Lazy load on element execution click
+
+      dialogElement.appendChild(iframeElement);
+      wrapper.appendChild(dialogElement);
+    }
+
+    wrapper.insertBefore(actionButton, wrapper.firstChild);
     containerElement.appendChild(wrapper);
   });
 }
 
 /**
- * Async utility fetching temporary authentication tokens for secure download view URLs
+ * Fallback async request to fetch fresh 1-hour secure tokens if the initial one expired
  */
 async function getMondayFileUrl(assetId) {
   try {
@@ -208,21 +237,31 @@ async function getMondayFileUrl(assetId) {
 }
 
 /* ==========================================================================
-   Global Modal Delegation Triggers
+    Global Modal & Redirection Delegation Triggers
    ========================================================================== */
 
 document.addEventListener('click', async (e) => {
+  // 1. Handle External Links and Docs safely in a new tab
+  const linkTargetBtn = e.target.closest('.open-link-direct');
+  if (linkTargetBtn) {
+    const directUrl = linkTargetBtn.getAttribute('data-url');
+    if (directUrl) window.open(directUrl, '_blank');
+    return;
+  }
+
+  // 2. Handle Asset Previews with intelligent token reuse
   const openTargetBtn = e.target.closest('.open-modal');
-  
   if (openTargetBtn) {
     const parentContainer = openTargetBtn.closest('.file-entry-wrapper');
     const assignedModal = parentContainer.querySelector('.preview-modal');
     const dynamicIframe = assignedModal.querySelector('.modal-content');
     const contextAssetId = openTargetBtn.getAttribute('data-asset-id');
+    const preFetchedUrl = openTargetBtn.getAttribute('data-pre-url');
 
     if (contextAssetId && !dynamicIframe.src) {
       dynamicIframe.src = 'about:blank';
-      const secureCloudUrl = await getMondayFileUrl(contextAssetId);
+      // Use pre-fetched URL if available, fallback to active API call if expired or blank
+      const secureCloudUrl = preFetchedUrl ? preFetchedUrl : await getMondayFileUrl(contextAssetId);
       dynamicIframe.src = secureCloudUrl;
     }
 
