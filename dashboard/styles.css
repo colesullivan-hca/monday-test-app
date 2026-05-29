@@ -89,6 +89,7 @@ body {
     flex-direction: column;
     gap: 12px;
     align-items: center;
+    margin-bottom: 12px;
 }
 
 .travel-card {
