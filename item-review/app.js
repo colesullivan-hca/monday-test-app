@@ -26,6 +26,7 @@ const BOARD_META = {
 // ─────────────────────────────────────────────
 let monday = null;
 let currentUser = null;
+let currentUserTeamIds = [];
 let allItems = [];
 let activeItem = null;
 let currentFilter = 'pending';
@@ -70,6 +71,9 @@ async function loadQueue() {
 
         if (!currentUser) throw new Error('Could not identify current user.');
 
+        const teams = await fetchCurrentUserTeams();
+        currentUserTeamIds = teams.map(t => String(t.id));
+
         const items = await fetchReviewItems(currentUser.id);
         allItems = items;
         renderQueue();
@@ -80,6 +84,11 @@ async function loadQueue() {
     } finally {
         setRefreshSpinning(false);
     }
+}
+
+async function fetchCurrentUserTeams() {
+  const res = await monday.api(`query { me { teams { id name } } }`);
+  return res?.data?.me?.teams || [];
 }
 
 async function fetchCurrentUser() {
@@ -144,16 +153,19 @@ async function fetchReviewItems(userId) {
 }
 
 function reviewerColIncludesUser(colValue, userId) {
-    if (!colValue?.value) return false;
-    try {
-        const parsed = JSON.parse(colValue.value);
-        const personsAndTeams = parsed?.personsAndTeams || [];
-        return personsAndTeams.some(p => String(p.id) === String(userId) && p.kind === 'person');
-    } catch {
-        return false;
-    }
+  if (!colValue?.value) return false;
+  try {
+    const parsed = JSON.parse(colValue.value);
+    const personsAndTeams = parsed?.personsAndTeams || [];
+    return personsAndTeams.some(p => {
+      if (p.kind === 'person') return String(p.id) === String(userId);
+      if (p.kind === 'team')   return currentUserTeamIds.includes(String(p.id));
+      return false;
+    });
+  } catch {
+    return false;
+  }
 }
-
 function deriveReviewStatus(statusText) {
     const lower = statusText.toLowerCase();
     if (lower === CONFIG.statusApprovedLabel.toLowerCase()) return 'approved';
