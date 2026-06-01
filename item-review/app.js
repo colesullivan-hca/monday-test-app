@@ -87,8 +87,15 @@ async function loadQueue() {
 }
 
 async function fetchCurrentUserTeams() {
-  const res = await monday.api(`query { me { teams { id name } } }`);
-  return res?.data?.me?.teams || [];
+  const res = await monday.api(`
+    query ($userId: [ID!]) {
+      users(ids: $userId) {
+        teams { id name }
+      }
+    }
+  `, { variables: { userId: [String(currentUser.id)] } });
+
+  return res?.data?.users?.[0]?.teams || [];
 }
 
 async function fetchCurrentUser() {
