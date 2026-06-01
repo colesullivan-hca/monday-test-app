@@ -87,30 +87,8 @@ async function loadQueue() {
 }
 
 async function fetchCurrentUserTeams() {
-  try {
-    const tokenRes = await monday.get('sessionToken');
-    monday.setToken(tokenRes.data); // set on SDK, don't pass inline
-
-    const res = await monday.api(`
-      query ($teamIds: [ID!]) {
-        teams(ids: $teamIds) {
-          id
-          users { id }
-        }
-      }
-    `, { variables: { teamIds: getTeamIdsFromItems() } });
-
-    // Reset to default viewer token after
-    monday.setToken('');
-
-    const teams = res?.data?.teams || [];
-    return teams
-      .filter(t => t.users.some(u => String(u.id) === String(currentUser.id)))
-      .map(t => ({ id: t.id }));
-  } catch (e) {
-    console.warn('Could not resolve team membership:', e);
-    return [];
-  }
+  const res = await monday.api(`query { me { teams { id } } }`);
+  return res?.data?.me?.teams || [];
 }
 
 async function fetchCurrentUser() {
