@@ -87,15 +87,25 @@ async function loadQueue() {
 }
 
 async function fetchCurrentUserTeams() {
-  const res = await monday.api(`
-    query ($userId: [ID!]) {
-      users(ids: $userId) {
-        teams { id name }
+  try {
+    const tokenRes = await monday.get('sessionToken');
+    const res = await monday.api(`
+      query ($userId: [ID!]) {
+        users(ids: $userId) {
+          teams { id name }
+        }
       }
-    }
-  `, { variables: { userId: [String(currentUser.id)] } });
+    `, {
+      variables: { userId: [String(currentUser.id)] },
+      apiVersion: '2024-01',
+      token: tokenRes.data  // use the session token instead of viewer token
+    });
 
-  return res?.data?.users?.[0]?.teams || [];
+    return res?.data?.users?.[0]?.teams || [];
+  } catch (e) {
+    console.warn('Could not fetch teams:', e);
+    return [];
+  }
 }
 
 async function fetchCurrentUser() {
