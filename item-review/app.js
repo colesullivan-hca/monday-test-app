@@ -15,8 +15,8 @@ const CONFIG = {
   // Board 2: single reviewer column, multiple status columns
   board2: {
     id: 18412077425,
-    reviewerColumnId: 'person',
-    statusColumnIds: ['status_a', 'status_b', 'status_c'],
+    reviewerColumnId: 'multiple_person_mm3tmrp3',
+    statusColumnIds: ['color_mm3tzwcd', 'color_mm3txq9z', 'color_mm3t1vzy'],
   },
 
   awaitingLabel:  'Awaiting Review',
