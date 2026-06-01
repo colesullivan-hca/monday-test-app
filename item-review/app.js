@@ -1,24 +1,33 @@
 const CONFIG = {
-    boardIds: [
-        18412077420,   // ← Replace with Board 1 ID
-            // ← Replace with Board 2 ID
+  // Board 1: 6 paired { peopleColId, statusColId } entries
+  board1: {
+    id: 18412077420,
+    pairs: [
+      { peopleColId: 'multiple_person_mm3te832',   statusColId: 'color_mm2x5q1s' },
+      { peopleColId: 'multiple_person_mm3te832',   statusColId: 'color_mm2xnfbh' },
+      { peopleColId: 'multiple_person_mm3te832',   statusColId: 'color_mm2x8nh2' },
+      { peopleColId: 'multiple_person_mm3te832',   statusColId: 'color_mm2xerea' },
+      { peopleColId: 'multiple_person_mm3xtzcj',   statusColId: 'color_mm3seyds' }, // conditional pair A
+      { peopleColId: 'multiple_person_mm3x20zt',   statusColId: 'color_mm3s84rd' }, // conditional pair B
     ],
-    // The ID of the "People" column that holds reviewers
-    reviewerColumnId: 'multiple_person_mm3te832',       // ← Replace with your reviewer column ID
+  },
 
-    // The ID of the status column to update on approve/deny
-    statusColumnId: 'color_mm2xnfbh',         // ← Replace with your status column ID
+  // Board 2: single reviewer column, multiple status columns
+  board2: {
+    id: 18412077425,
+    reviewerColumnId: 'person',
+    statusColumnIds: ['status_a', 'status_b', 'status_c'],
+  },
 
-    // Status column label values for approve/deny
-    // These must match your board's status labels exactly
-    statusApprovedLabel: 'Approved',  // ← Replace with your "approved" label
-    statusDeniedLabel: 'Denied',    // ← Replace with your "denied" label
+  awaitingLabel:  'Awaiting Review',
+  approvedLabel:  'Approved',
+  deniedLabel:    'Denied',
 };
 
 // Board display config: color dots and names per board ID
 const BOARD_META = {
-    [CONFIG.boardIds[0]]: { name: 'Board 1', color: '#0073ea' },
-    [CONFIG.boardIds[1]]: { name: 'Board 2', color: '#00c875' },
+    [CONFIG.board1.id]: { name: 'Board 1', color: '#0073ea' },
+    [CONFIG.board2.id]: { name: 'Board 2', color: '#00c875' },
 };
 
 // ─────────────────────────────────────────────
@@ -74,7 +83,7 @@ async function loadQueue() {
         const teams = await fetchCurrentUserTeams();
         currentUserTeamIds = teams.map(t => String(t.id));
 
-        const items = await fetchReviewItems(currentUser.id);
+        const items = await fetchReviewItems();
         allItems = items;
         renderQueue();
     } catch (err) {
@@ -97,59 +106,103 @@ async function fetchCurrentUser() {
     return res?.data?.me || null;
 }
 
-async function fetchReviewItems(userId) {
-    // Query both boards for items where the reviewer column contains this user
-    const query = `
-        query ($boardIds: [ID!]!) {
-          boards(ids: $boardIds) {
-            id
-            name
-            items_page(limit: 100) {
-              items {
-                id
-                name
-                updated_at
-                column_values(ids: ["${CONFIG.reviewerColumnId}", "${CONFIG.statusColumnId}"]) {
-                  id
-                  text
-                  value
-                }
-              }
-            }
+async function fetchReviewItems() {
+  // Collect all unique column IDs to fetch
+  const b1PeopleCols  = CONFIG.board1.pairs.map(p => p.peopleColId);
+  const b1StatusCols  = CONFIG.board1.pairs.map(p => p.statusColId);
+  const b2ColIds      = [CONFIG.board2.reviewerColumnId, ...CONFIG.board2.statusColumnIds];
+  const allB1Cols     = [...new Set([...b1PeopleCols, ...b1StatusCols])];
+  const allB2Cols     = [...new Set(b2ColIds)];
+
+  const query = `
+    query ($b1Id: ID!, $b2Id: ID!, $b1Cols: [String!]!, $b2Cols: [String!]!) {
+      board1: boards(ids: [$b1Id]) {
+        id name
+        items_page(limit: 100) {
+          items {
+            id name updated_at
+            column_values(ids: $b1Cols) { id text value }
           }
         }
-      `;
-
-    const res = await monday.api(query, {
-        variables: { boardIds: CONFIG.boardIds.map(String) }
-    });
-
-    const boards = res?.data?.boards || [];
-    const matched = [];
-
-    for (const board of boards) {
-        const items = board.items_page?.items || [];
-        for (const item of items) {
-            const reviewerCol = item.column_values.find(c => c.id === CONFIG.reviewerColumnId);
-            const statusCol = item.column_values.find(c => c.id === CONFIG.statusColumnId);
-
-            if (reviewerColIncludesUser(reviewerCol, userId)) {
-                matched.push({
-                    id: item.id,
-                    name: item.name,
-                    boardId: board.id,
-                    boardName: board.name,
-                    updatedAt: item.updated_at,
-                    statusText: statusCol?.text || '',
-                    reviewStatus: deriveReviewStatus(statusCol?.text || ''),
-                    columnValues: item.column_values,
-                    rawItem: item,
-                });
-            }
+      }
+      board2: boards(ids: [$b2Id]) {
+        id name
+        items_page(limit: 100) {
+          items {
+            id name updated_at
+            column_values(ids: $b2Cols) { id text value }
+          }
         }
+      }
     }
+  `;
 
-    return matched;
+  const res = await monday.api(query, {
+    variables: {
+      b1Id:   String(CONFIG.board1.id),
+      b2Id:   String(CONFIG.board2.id),
+      b1Cols: allB1Cols,
+      b2Cols: allB2Cols,
+    }
+  });
+
+  const items = [];
+
+  // ── Board 1: check each pair ──
+  for (const item of res?.data?.board1?.[0]?.items_page?.items || []) {
+    const colMap = Object.fromEntries(item.column_values.map(c => [c.id, c]));
+
+    for (const pair of CONFIG.board1.pairs) {
+      const peopleCol = colMap[pair.peopleColId];
+      const statusCol = colMap[pair.statusColId];
+
+      // Must be assigned in the people col AND status must be Awaiting Review
+      if (
+        statusCol?.text?.trim() === CONFIG.awaitingLabel &&
+        reviewerColIncludesUser(peopleCol, currentUser.id)
+      ) {
+        items.push({
+          id:              item.id,
+          name:            item.name,
+          boardId:         CONFIG.board1.id,
+          boardName:       res.data.board1[0].name,
+          updatedAt:       item.updated_at,
+          reviewStatus:    'pending',
+          columnValues:    item.column_values,
+          // Store which status col to update on this item
+          activeStatusColId: pair.statusColId,
+        });
+        break; // only add the item once even if multiple pairs match
+      }
+    }
+  }
+
+  // ── Board 2: any status col showing Awaiting Review ──
+  for (const item of res?.data?.board2?.[0]?.items_page?.items || []) {
+    const colMap = Object.fromEntries(item.column_values.map(c => [c.id, c]));
+
+    const reviewerCol = colMap[CONFIG.board2.reviewerColumnId];
+    if (!reviewerColIncludesUser(reviewerCol, currentUser.id)) continue;
+
+    const activeStatusCol = CONFIG.board2.statusColumnIds
+      .map(id => colMap[id])
+      .find(c => c?.text?.trim() === CONFIG.awaitingLabel);
+
+    if (activeStatusCol) {
+      items.push({
+        id:              item.id,
+        name:            item.name,
+        boardId:         CONFIG.board2.id,
+        boardName:       res.data.board2[0].name,
+        updatedAt:       item.updated_at,
+        reviewStatus:    'pending',
+        columnValues:    item.column_values,
+        activeStatusColId: activeStatusCol.id,
+      });
+    }
+  }
+
+  return items;
 }
 
 function reviewerColIncludesUser(colValue, userId) {
@@ -273,80 +326,65 @@ function handleOverlayClick(e) {
 // REVIEW SUBMISSION
 // ─────────────────────────────────────────────
 async function submitReview(decision) {
-    if (!activeItem) return;
+  if (!activeItem) return;
 
-    const item = activeItem;
-    const comment = document.getElementById('modal-comment').value.trim();
-    const label = decision === 'approved' ? CONFIG.statusApprovedLabel : CONFIG.statusDeniedLabel;
+  const item    = activeItem;
+  const comment = document.getElementById('modal-comment').value.trim();
+  const label   = decision === 'approved' ? CONFIG.approvedLabel : CONFIG.deniedLabel;
 
-    setBtnsLoading(true);
+  setBtnsLoading(true);
 
-    try {
-        // 1. Find the index of the status label on this board
-        const indexQuery = `
-          query ($boardId: ID!, $columnId: String!) {
-            boards(ids: [$boardId]) {
-              columns(ids: [$columnId]) {
-                settings_str
-              }
-            }
-          }
-        `;
-        const idxRes = await monday.api(indexQuery, {
-            variables: { boardId: String(item.boardId), columnId: CONFIG.statusColumnId }
-        });
-
-        const settingsRaw = idxRes?.data?.boards?.[0]?.columns?.[0]?.settings_str;
-        const settings = JSON.parse(settingsRaw || '{}');
-        const labelIndex = findStatusIndex(settings, label);
-
-        if (labelIndex === null) {
-            throw new Error(`Status label "${label}" not found on this board. Check CONFIG.`);
+  try {
+    // Look up the index for the label on this board's specific status column
+    const indexQuery = `
+      query ($boardId: ID!, $columnId: String!) {
+        boards(ids: [$boardId]) {
+          columns(ids: [$columnId]) { settings_str }
         }
+      }
+    `;
+    const idxRes = await monday.api(indexQuery, {
+      variables: {
+        boardId:  String(item.boardId),
+        columnId: item.activeStatusColId,  // use the stored active col
+      }
+    });
 
-        // 2. Update the status column
-        const columnValue = JSON.stringify({ index: labelIndex });
-        const mutation = `
-          mutation ($itemId: ID!, $boardId: ID!, $colId: String!, $value: JSON!) {
-            change_column_value(
-              item_id: $itemId,
-              board_id: $boardId,
-              column_id: $colId,
-              value: $value
-            ) { id }
-          }
-        `;
-        await monday.api(mutation, {
-            variables: {
-                itemId: String(item.id),
-                boardId: String(item.boardId),
-                colId: CONFIG.statusColumnId,
-                value: columnValue,
-            }
-        });
+    const settings   = JSON.parse(idxRes?.data?.boards?.[0]?.columns?.[0]?.settings_str || '{}');
+    const labelIndex = findStatusIndex(settings, label);
+    if (labelIndex === null) throw new Error(`Label "${label}" not found. Check CONFIG.`);
 
-        // 3. Optionally post comment via monday updates API
-        if (comment) {
-            await monday.api(`
-            mutation ($itemId: ID!, $body: String!) {
-              create_update(item_id: $itemId, body: $body) { id }
-            }
-          `, { variables: { itemId: String(item.id), body: comment } });
+    await monday.api(`
+      mutation ($itemId: ID!, $boardId: ID!, $colId: String!, $value: JSON!) {
+        change_column_value(item_id: $itemId, board_id: $boardId, column_id: $colId, value: $value) { id }
+      }
+    `, {
+      variables: {
+        itemId:  String(item.id),
+        boardId: String(item.boardId),
+        colId:   item.activeStatusColId,
+        value:   JSON.stringify({ index: labelIndex }),
+      }
+    });
+
+    if (comment) {
+      await monday.api(`
+        mutation ($itemId: ID!, $body: String!) {
+          create_update(item_id: $itemId, body: $body) { id }
         }
-
-        // 4. Update local state
-        item.reviewStatus = decision;
-        item.statusText = label;
-
-        closeModal();
-        renderQueue();
-        showToast(decision === 'approved' ? 'Item approved ✓' : 'Item denied', decision === 'approved' ? 'success' : 'error');
-    } catch (err) {
-        console.error(err);
-        showToast('Failed to update: ' + err.message, 'error');
-    } finally {
-        setBtnsLoading(false);
+      `, { variables: { itemId: String(item.id), body: comment } });
     }
+
+    item.reviewStatus = decision;
+    closeModal();
+    renderQueue();
+    showToast(decision === 'approved' ? 'Item approved ✓' : 'Item denied', decision === 'approved' ? 'success' : 'error');
+  } catch (err) {
+    console.error(err);
+    showToast('Failed to update: ' + err.message, 'error');
+  } finally {
+    setBtnsLoading(false);
+  }
 }
 
 function findStatusIndex(settings, labelText) {
