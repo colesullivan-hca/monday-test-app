@@ -784,7 +784,7 @@ function docCard(asset, item, filesColId) {
     const emoji = fileEmoji(ext);
     const date = asset.created_at ? new Date(asset.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : '';
 
-    const ext = (asset.file_extension || '').toLowerCase();
+    ext = (asset.file_extension || '').toLowerCase();
     const previewUrl = getPreviewUrl(asset.public_url, ext);
     
     return `
