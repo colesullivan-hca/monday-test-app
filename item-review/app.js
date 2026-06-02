@@ -1,54 +1,54 @@
 const CONFIG = {
-  // Board 1: 6 paired { peopleColId, statusColId } entries
-  board1: {
-    id: 18412077420,
-    pairs: [
-      { peopleColId: 'multiple_person_mm3te832',   statusColId: 'color_mm2x5q1s' },
-      { peopleColId: 'multiple_person_mm3te832',   statusColId: 'color_mm2xnfbh' },
-      { peopleColId: 'multiple_person_mm3te832',   statusColId: 'color_mm2x8nh2' },
-      { peopleColId: 'multiple_person_mm3te832',   statusColId: 'color_mm2xerea' },
-      { peopleColId: 'multiple_person_mm3xtzcj',   statusColId: 'color_mm3seyds' }, // conditional pair A
-      { peopleColId: 'multiple_person_mm3x20zt',   statusColId: 'color_mm3s84rd' }, // conditional pair B
-    ],
-  },
+    // Board 1: 6 paired { peopleColId, statusColId } entries
+    board1: {
+        id: 18412077420,
+        pairs: [
+            { peopleColId: 'multiple_person_mm3te832', statusColId: 'color_mm2x5q1s' },
+            { peopleColId: 'multiple_person_mm3te832', statusColId: 'color_mm2xnfbh' },
+            { peopleColId: 'multiple_person_mm3te832', statusColId: 'color_mm2x8nh2' },
+            { peopleColId: 'multiple_person_mm3te832', statusColId: 'color_mm2xerea' },
+            { peopleColId: 'multiple_person_mm3xtzcj', statusColId: 'color_mm3seyds' }, // conditional pair A
+            { peopleColId: 'multiple_person_mm3x20zt', statusColId: 'color_mm3s84rd' }, // conditional pair B
+        ],
+    },
 
-  // Board 2: single reviewer column, multiple status columns
-  board2: {
-    id: 18412077425,
-    reviewerColumnId: 'multiple_person_mm3tmrp3',
-    statusColumnIds: ['color_mm3tzwcd', 'color_mm3txq9z', 'color_mm3t1vzy'],
-  },
+    // Board 2: single reviewer column, multiple status columns
+    board2: {
+        id: 18412077425,
+        reviewerColumnId: 'multiple_person_mm3tmrp3',
+        statusColumnIds: ['color_mm3tzwcd', 'color_mm3txq9z', 'color_mm3t1vzy'],
+    },
 
-  awaitingLabel:  'Awaiting Review',
-  approvedLabel:  'Approved',
-  deniedLabel:    'Denied',
+    awaitingLabel: 'Awaiting Review',
+    approvedLabel: 'Approved',
+    deniedLabel: 'Denied',
 
-  board1FilesColumnId: 'file_mm2vqvz3',
-  board2FilesColumnId: '',
+    board1FilesColumnId: 'file_mm2vqvz3',
+    board2FilesColumnId: '',
 };
 
 const BOARD1_FORM_COLS = [
-  'color_mm2vy7r8',
-  'date_mm2yy6cp',
-  'text_mm2vn25f',
-  'text_mm2vh585',
-  'text_mm2vc3h',
-  'text_mm2vk860',
-  'text_mm2vj6tf',
-  'date_mm2vze0a',
-  'date_mm2vnvrc',
-  'numeric_mm2vt4x6', 'numeric_mm2vx6wy',
-  'numeric_mm2v1d3j', 'numeric_mm2vqaak',
-  'numeric_mm2vsqsd', 'numeric_mm2vr1m5',
-  'numeric_mm2v651g', 'numeric_mm2vcjps',
-  'numeric_mm2v3q9x', 'numeric_mm2vjmz',
-  'numeric_mm2vs9mf', 'numeric_mm2vm1be',
-  'numeric_mm2vsfjf', 'numeric_mm2vnekg',
-  'numeric_mm2vg56f', 'numeric_mm2vrj5n',
-  'numeric_mm2vt4ft', 'numeric_mm2vwf01',
-  'numeric_mm2v4vtt', 'numeric_mm2v1ef6',
-  'numeric_mm2vncda', 'numeric_mm2vd6bx',
-  'long_text_mm2vd845',
+    'color_mm2vy7r8',
+    'date_mm2yy6cp',
+    'text_mm2vn25f',
+    'text_mm2vh585',
+    'text_mm2vc3h',
+    'text_mm2vk860',
+    'text_mm2vj6tf',
+    'date_mm2vze0a',
+    'date_mm2vnvrc',
+    'numeric_mm2vt4x6', 'numeric_mm2vx6wy',
+    'numeric_mm2v1d3j', 'numeric_mm2vqaak',
+    'numeric_mm2vsqsd', 'numeric_mm2vr1m5',
+    'numeric_mm2v651g', 'numeric_mm2vcjps',
+    'numeric_mm2v3q9x', 'numeric_mm2vjmz',
+    'numeric_mm2vs9mf', 'numeric_mm2vm1be',
+    'numeric_mm2vsfjf', 'numeric_mm2vnekg',
+    'numeric_mm2vg56f', 'numeric_mm2vrj5n',
+    'numeric_mm2vt4ft', 'numeric_mm2vwf01',
+    'numeric_mm2v4vtt', 'numeric_mm2v1ef6',
+    'numeric_mm2vncda', 'numeric_mm2vd6bx',
+    'long_text_mm2vd845',
 ];
 
 // Board display config: color dots and names per board ID
@@ -92,73 +92,74 @@ document.addEventListener('DOMContentLoaded', async () => {
 // DATA FETCHING
 // ─────────────────────────────────────────────
 async function loadQueue({ bustCache = false } = {}) {
-  showState('loading');
-  setRefreshSpinning(true);
+    showState('loading');
+    setRefreshSpinning(true);
 
-  try {
-    const cached    = sessionStorage.getItem('itemsCache');
-    const cacheTime = parseInt(sessionStorage.getItem('itemsCacheTime') || '0');
-    const isFresh   = Date.now() - cacheTime < 5 * 60 * 1000;
+    try {
+        const cached = sessionStorage.getItem('itemsCache');
+        const cacheTime = parseInt(sessionStorage.getItem('itemsCacheTime') || '0');
+        const isFresh = Date.now() - cacheTime < 5 * 60 * 1000;
 
-    if (cached && isFresh && !bustCache) {
-      allItems = JSON.parse(cached);
-      if (!currentUser) {
-        const ctx = await monday.get('context');
-        currentUser = ctx.data?.user;
-      }
-      if (currentUser) {
-        document.getElementById('user-label').textContent =
-          `Showing items assigned to ${currentUser.name}`;
-      }
-    } else {
-      if (!currentUser) {
-        const ctx = await monday.get('context');
-        currentUser = ctx.data?.user;
-      }
-      if (!currentUser) {
-        currentUser = await fetchCurrentUser();
-      }
-      if (currentUser) {
-        document.getElementById('user-label').textContent =
-          `Showing items assigned to ${currentUser.name}`;
-      }
-      if (!currentUser) throw new Error('Could not identify current user.');
+        if (cached && isFresh && !bustCache) {
+            allItems = JSON.parse(cached);
+            if (!currentUser) {
+                const ctx = await monday.get('context');
+                currentUser = ctx.data?.user;
+            }
+            if (currentUser) {
+                document.getElementById('user-label').textContent =
+                    `Showing items assigned to ${currentUser.name}`;
+            }
+        } else {
+            if (!currentUser) {
+                const ctx = await monday.get('context');
+                currentUser = ctx.data?.user;
+            }
+            if (!currentUser) {
+                currentUser = await fetchCurrentUser();
+            }
+            if (currentUser) {
+                document.getElementById('user-label').textContent =
+                    `Showing items assigned to ${currentUser.name}`;
+            }
+            if (!currentUser) throw new Error('Could not identify current user.');
 
-      const teams = await fetchCurrentUserTeams();
-      currentUserTeamIds = teams.map(t => String(t.id));
+            const teams = await fetchCurrentUserTeams();
+            currentUserTeamIds = teams.map(t => String(t.id));
 
-      allItems = await fetchReviewItems();
-      sessionStorage.setItem('itemsCache', JSON.stringify(allItems));
-      sessionStorage.setItem('itemsCacheTime', String(Date.now()));
+            allItems = await fetchReviewItems();
+            sessionStorage.setItem('itemsCache', JSON.stringify(allItems));
+            sessionStorage.setItem('itemsCacheTime', String(Date.now()));
+        }
+
+        renderQueue();
+
+        // Reopen modal if we were viewing one before a dialog reload
+        const reopenId = sessionStorage.getItem('reopenItemId');
+        const reopenTab = sessionStorage.getItem('reopenTab');
+        if (reopenId) {
+            const item = allItems.find(i => String(i.id) === reopenId);
+            if (item) {
+                activeModalTab = reopenTab || 'docs';
+                openModal(item);
+            }
+            // Remove AFTER openModal so the check inside still sees them
+            sessionStorage.removeItem('reopenItemId');
+            sessionStorage.removeItem('reopenTab');
+        }
+
+    } catch (err) {
+        console.error(err);
+        document.getElementById('error-msg').textContent = err.message || 'An error occurred.';
+        showState('error');
+    } finally {
+        setRefreshSpinning(false);
     }
-
-    renderQueue();
-
-    // Reopen modal if we were viewing one before a dialog reload
-    const reopenId  = sessionStorage.getItem('reopenItemId');
-    const reopenTab = sessionStorage.getItem('reopenTab');
-    if (reopenId) {
-      sessionStorage.removeItem('reopenItemId');
-      sessionStorage.removeItem('reopenTab');
-      const item = allItems.find(i => String(i.id) === reopenId);
-      if (item) {
-        activeModalTab = reopenTab || 'docs';
-        openModal(item);
-      }
-    }
-
-  } catch (err) {
-    console.error(err);
-    document.getElementById('error-msg').textContent = err.message || 'An error occurred.';
-    showState('error');
-  } finally {
-    setRefreshSpinning(false);
-  }
 }
 
 async function fetchCurrentUserTeams() {
-  const res = await monday.api(`query { me { teams { id } } }`);
-  return res?.data?.me?.teams || [];
+    const res = await monday.api(`query { me { teams { id } } }`);
+    return res?.data?.me?.teams || [];
 }
 
 async function fetchCurrentUser() {
@@ -168,14 +169,14 @@ async function fetchCurrentUser() {
 }
 
 async function fetchReviewItems() {
-  // Collect all unique column IDs to fetch
-  const b1PeopleCols  = CONFIG.board1.pairs.map(p => p.peopleColId);
-  const b1StatusCols  = CONFIG.board1.pairs.map(p => p.statusColId);
-  const b2ColIds      = [CONFIG.board2.reviewerColumnId, ...CONFIG.board2.statusColumnIds];
-  const allB1Cols = [...new Set([...b1PeopleCols, ...b1StatusCols, ...BOARD1_FORM_COLS])];
-  const allB2Cols     = [...new Set(b2ColIds)];
+    // Collect all unique column IDs to fetch
+    const b1PeopleCols = CONFIG.board1.pairs.map(p => p.peopleColId);
+    const b1StatusCols = CONFIG.board1.pairs.map(p => p.statusColId);
+    const b2ColIds = [CONFIG.board2.reviewerColumnId, ...CONFIG.board2.statusColumnIds];
+    const allB1Cols = [...new Set([...b1PeopleCols, ...b1StatusCols, ...BOARD1_FORM_COLS])];
+    const allB2Cols = [...new Set(b2ColIds)];
 
-  const query = `
+    const query = `
     query ($b1Id: ID!, $b2Id: ID!, $b1Cols: [String!]!, $b2Cols: [String!]!) {
       board1: boards(ids: [$b1Id]) {
         id name
@@ -198,87 +199,87 @@ async function fetchReviewItems() {
     }
   `;
 
-  const res = await monday.api(query, {
-    variables: {
-      b1Id:   String(CONFIG.board1.id),
-      b2Id:   String(CONFIG.board2.id),
-      b1Cols: allB1Cols,
-      b2Cols: allB2Cols,
+    const res = await monday.api(query, {
+        variables: {
+            b1Id: String(CONFIG.board1.id),
+            b2Id: String(CONFIG.board2.id),
+            b1Cols: allB1Cols,
+            b2Cols: allB2Cols,
+        }
+    });
+
+    const items = [];
+
+    // ── Board 1: check each pair ──
+    for (const item of res?.data?.board1?.[0]?.items_page?.items || []) {
+        const colMap = Object.fromEntries(item.column_values.map(c => [c.id, c]));
+
+        for (const pair of CONFIG.board1.pairs) {
+            const peopleCol = colMap[pair.peopleColId];
+            const statusCol = colMap[pair.statusColId];
+
+            // Must be assigned in the people col AND status must be Awaiting Review
+            if (
+                statusCol?.text?.trim() === CONFIG.awaitingLabel &&
+                reviewerColIncludesUser(peopleCol, currentUser.id)
+            ) {
+                items.push({
+                    id: item.id,
+                    name: item.name,
+                    boardId: CONFIG.board1.id,
+                    boardName: res.data.board1[0].name,
+                    updatedAt: item.updated_at,
+                    reviewStatus: 'pending',
+                    columnValues: item.column_values,
+                    // Store which status col to update on this item
+                    activeStatusColId: pair.statusColId,
+                });
+                break; // only add the item once even if multiple pairs match
+            }
+        }
     }
-  });
 
-  const items = [];
+    // ── Board 2: any status col showing Awaiting Review ──
+    for (const item of res?.data?.board2?.[0]?.items_page?.items || []) {
+        const colMap = Object.fromEntries(item.column_values.map(c => [c.id, c]));
 
-  // ── Board 1: check each pair ──
-  for (const item of res?.data?.board1?.[0]?.items_page?.items || []) {
-    const colMap = Object.fromEntries(item.column_values.map(c => [c.id, c]));
+        const reviewerCol = colMap[CONFIG.board2.reviewerColumnId];
+        if (!reviewerColIncludesUser(reviewerCol, currentUser.id)) continue;
 
-    for (const pair of CONFIG.board1.pairs) {
-      const peopleCol = colMap[pair.peopleColId];
-      const statusCol = colMap[pair.statusColId];
+        const activeStatusCol = CONFIG.board2.statusColumnIds
+            .map(id => colMap[id])
+            .find(c => c?.text?.trim() === CONFIG.awaitingLabel);
 
-      // Must be assigned in the people col AND status must be Awaiting Review
-      if (
-        statusCol?.text?.trim() === CONFIG.awaitingLabel &&
-        reviewerColIncludesUser(peopleCol, currentUser.id)
-      ) {
-        items.push({
-          id:              item.id,
-          name:            item.name,
-          boardId:         CONFIG.board1.id,
-          boardName:       res.data.board1[0].name,
-          updatedAt:       item.updated_at,
-          reviewStatus:    'pending',
-          columnValues:    item.column_values,
-          // Store which status col to update on this item
-          activeStatusColId: pair.statusColId,
-        });
-        break; // only add the item once even if multiple pairs match
-      }
+        if (activeStatusCol) {
+            items.push({
+                id: item.id,
+                name: item.name,
+                boardId: CONFIG.board2.id,
+                boardName: res.data.board2[0].name,
+                updatedAt: item.updated_at,
+                reviewStatus: 'pending',
+                columnValues: item.column_values,
+                activeStatusColId: activeStatusCol.id,
+            });
+        }
     }
-  }
 
-  // ── Board 2: any status col showing Awaiting Review ──
-  for (const item of res?.data?.board2?.[0]?.items_page?.items || []) {
-    const colMap = Object.fromEntries(item.column_values.map(c => [c.id, c]));
-
-    const reviewerCol = colMap[CONFIG.board2.reviewerColumnId];
-    if (!reviewerColIncludesUser(reviewerCol, currentUser.id)) continue;
-
-    const activeStatusCol = CONFIG.board2.statusColumnIds
-      .map(id => colMap[id])
-      .find(c => c?.text?.trim() === CONFIG.awaitingLabel);
-
-    if (activeStatusCol) {
-      items.push({
-        id:              item.id,
-        name:            item.name,
-        boardId:         CONFIG.board2.id,
-        boardName:       res.data.board2[0].name,
-        updatedAt:       item.updated_at,
-        reviewStatus:    'pending',
-        columnValues:    item.column_values,
-        activeStatusColId: activeStatusCol.id,
-      });
-    }
-  }
-
-  return items;
+    return items;
 }
 
 function reviewerColIncludesUser(colValue, userId) {
-  if (!colValue?.value) return false;
-  try {
-    const parsed = JSON.parse(colValue.value);
-    const personsAndTeams = parsed?.personsAndTeams || [];
-    return personsAndTeams.some(p => {
-      if (p.kind === 'person') return String(p.id) === String(userId);
-      if (p.kind === 'team')   return currentUserTeamIds.includes(String(p.id));
-      return false;
-    });
-  } catch {
-    return false;
-  }
+    if (!colValue?.value) return false;
+    try {
+        const parsed = JSON.parse(colValue.value);
+        const personsAndTeams = parsed?.personsAndTeams || [];
+        return personsAndTeams.some(p => {
+            if (p.kind === 'person') return String(p.id) === String(userId);
+            if (p.kind === 'team') return currentUserTeamIds.includes(String(p.id));
+            return false;
+        });
+    } catch {
+        return false;
+    }
 }
 function deriveReviewStatus(statusText) {
     const lower = statusText.toLowerCase();
@@ -355,23 +356,23 @@ function buildQueueCard(item) {
 // MODAL
 // ─────────────────────────────────────────────
 function openModal(item) {
-  activeItem = item;
-  window.activeItem = item;
+    activeItem = item;
+    window.activeItem = item;
 
-  const meta = BOARD_META[item.boardId] || { name: item.boardName };
-  document.getElementById('modal-board-label').textContent = meta.name;
-  document.getElementById('modal-item-title').textContent  = item.name;
-  document.getElementById('modal-comment').value = '';
+    const meta = BOARD_META[item.boardId] || { name: item.boardName };
+    document.getElementById('modal-board-label').textContent = meta.name;
+    document.getElementById('modal-item-title').textContent = item.name;
+    document.getElementById('modal-comment').value = '';
 
-  // Only reset to form tab if not restoring from a reload
-  if (!sessionStorage.getItem('reopenItemId')) {
-    activeModalTab = 'form';
-  }
+    // Only reset to form tab if not restoring from a reload
+    if (!sessionStorage.getItem('reopenItemId')) {
+        activeModalTab = 'form';
+    }
 
-  renderModalTabs(item);
+    renderModalTabs(item);
 
-  document.getElementById('modal-overlay').classList.add('visible');
-  document.body.style.overflow = 'hidden';
+    document.getElementById('modal-overlay').classList.add('visible');
+    document.body.style.overflow = 'hidden';
 }
 
 function closeModal() {
@@ -389,65 +390,65 @@ function handleOverlayClick(e) {
 // REVIEW SUBMISSION
 // ─────────────────────────────────────────────
 async function submitReview(decision) {
-  if (!activeItem) return;
+    if (!activeItem) return;
 
-  const item    = activeItem;
-  const comment = document.getElementById('modal-comment').value.trim();
-  const label   = decision === 'approved' ? CONFIG.approvedLabel : CONFIG.deniedLabel;
+    const item = activeItem;
+    const comment = document.getElementById('modal-comment').value.trim();
+    const label = decision === 'approved' ? CONFIG.approvedLabel : CONFIG.deniedLabel;
 
-  setBtnsLoading(true);
+    setBtnsLoading(true);
 
-  try {
-    // Look up the index for the label on this board's specific status column
-    const indexQuery = `
+    try {
+        // Look up the index for the label on this board's specific status column
+        const indexQuery = `
       query ($boardId: ID!, $columnId: String!) {
         boards(ids: [$boardId]) {
           columns(ids: [$columnId]) { settings_str }
         }
       }
     `;
-    const idxRes = await monday.api(indexQuery, {
-      variables: {
-        boardId:  String(item.boardId),
-        columnId: item.activeStatusColId,  // use the stored active col
-      }
-    });
+        const idxRes = await monday.api(indexQuery, {
+            variables: {
+                boardId: String(item.boardId),
+                columnId: item.activeStatusColId,  // use the stored active col
+            }
+        });
 
-    const settings   = JSON.parse(idxRes?.data?.boards?.[0]?.columns?.[0]?.settings_str || '{}');
-    const labelIndex = findStatusIndex(settings, label);
-    if (labelIndex === null) throw new Error(`Label "${label}" not found. Check CONFIG.`);
+        const settings = JSON.parse(idxRes?.data?.boards?.[0]?.columns?.[0]?.settings_str || '{}');
+        const labelIndex = findStatusIndex(settings, label);
+        if (labelIndex === null) throw new Error(`Label "${label}" not found. Check CONFIG.`);
 
-    await monday.api(`
+        await monday.api(`
       mutation ($itemId: ID!, $boardId: ID!, $colId: String!, $value: JSON!) {
         change_column_value(item_id: $itemId, board_id: $boardId, column_id: $colId, value: $value) { id }
       }
     `, {
-      variables: {
-        itemId:  String(item.id),
-        boardId: String(item.boardId),
-        colId:   item.activeStatusColId,
-        value:   JSON.stringify({ index: labelIndex }),
-      }
-    });
+            variables: {
+                itemId: String(item.id),
+                boardId: String(item.boardId),
+                colId: item.activeStatusColId,
+                value: JSON.stringify({ index: labelIndex }),
+            }
+        });
 
-    if (comment) {
-      await monday.api(`
+        if (comment) {
+            await monday.api(`
         mutation ($itemId: ID!, $body: String!) {
           create_update(item_id: $itemId, body: $body) { id }
         }
       `, { variables: { itemId: String(item.id), body: comment } });
-    }
+        }
 
-    item.reviewStatus = decision;
-    closeModal();
-    renderQueue();
-    showToast(decision === 'approved' ? 'Item approved ✓' : 'Item denied', decision === 'approved' ? 'success' : 'error');
-  } catch (err) {
-    console.error(err);
-    showToast('Failed to update: ' + err.message, 'error');
-  } finally {
-    setBtnsLoading(false);
-  }
+        item.reviewStatus = decision;
+        closeModal();
+        renderQueue();
+        showToast(decision === 'approved' ? 'Item approved ✓' : 'Item denied', decision === 'approved' ? 'success' : 'error');
+    } catch (err) {
+        console.error(err);
+        showToast('Failed to update: ' + err.message, 'error');
+    } finally {
+        setBtnsLoading(false);
+    }
 }
 
 function findStatusIndex(settings, labelText) {
@@ -749,36 +750,36 @@ function renderBoard2Form(panel, item) {
 // ── Documents panel ───────────────────────────────────────────
 
 function getViewableUrl(url) {
-  try {
-    const u = new URL(url);
-    u.searchParams.delete('response-content-disposition');
-    return u.toString();
-  } catch {
-    return url;
-  }
+    try {
+        const u = new URL(url);
+        u.searchParams.delete('response-content-disposition');
+        return u.toString();
+    } catch {
+        return url;
+    }
 }
 
 function openFilesTab() {
-  if (!activePanelAssets.length) return;
+    if (!activePanelAssets.length) return;
 
-  const itemName = escHtml(activeItem?.name || 'Files');
+    const itemName = escHtml(activeItem?.name || 'Files');
 
-  const assetBlocks = activePanelAssets.map(asset => {
-    const ext = (asset.file_extension || '').toLowerCase().replace(/^\./, '');
-    const isImage = ['png','jpg','jpeg','gif','webp'].includes(ext);
-    const isPdf   = ext === 'pdf';
-    const url     = asset.public_url;
-    const name    = asset.name;
+    const assetBlocks = activePanelAssets.map(asset => {
+        const ext = (asset.file_extension || '').toLowerCase().replace(/^\./, '');
+        const isImage = ['png', 'jpg', 'jpeg', 'gif', 'webp'].includes(ext);
+        const isPdf = ext === 'pdf';
+        const url = asset.public_url;
+        const name = asset.name;
 
-    if (isImage) {
-      return `
+        if (isImage) {
+            return `
         <div class="file-block">
           <div class="file-label">${name}</div>
           <img src="${url}" alt="${name}" style="max-width:100%;border-radius:4px;box-shadow:0 2px 12px rgba(0,0,0,0.15);" />
         </div>
       `;
-    } else if (isPdf) {
-    return `
+        } else if (isPdf) {
+            return `
         <div class="file-block">
         <div class="file-label">${name}</div>
         <div class="other-file">
@@ -788,8 +789,8 @@ function openFilesTab() {
         </div>
         </div>
     `;
-    } else {
-      return `
+        } else {
+            return `
         <div class="file-block">
           <div class="file-label">${name}</div>
           <div class="other-file">
@@ -798,10 +799,10 @@ function openFilesTab() {
           </div>
         </div>
       `;
-    }
-  }).join('');
+        }
+    }).join('');
 
-  const html = `<!DOCTYPE html>
+    const html = `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8"/>
@@ -855,9 +856,9 @@ function openFilesTab() {
 </body>
 </html>`;
 
-  const blob = new Blob([html], { type: 'text/html' });
-  const url  = URL.createObjectURL(blob);
-  window.open(url, '_blank');
+    const blob = new Blob([html], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    window.open(url, '_blank');
 }
 
 async function renderDocsPanel(panel, item) {
@@ -917,15 +918,15 @@ async function renderDocsPanel(panel, item) {
 }
 
 function openMondayFileViewer(assetId, itemId, columnId) {
-  sessionStorage.setItem('reopenItemId', String(activeItem.id));
-  sessionStorage.setItem('reopenTab', activeModalTab);
+    sessionStorage.setItem('reopenItemId', String(activeItem.id));
+    sessionStorage.setItem('reopenTab', activeModalTab);
 
-  monday.execute('openFilesDialog', {
-    boardId:  String(activeItem.boardId),
-    itemId:   String(itemId),
-    columnId: columnId,
-    assetId:  String(assetId),
-  });
+    monday.execute('openFilesDialog', {
+        boardId: String(activeItem.boardId),
+        itemId: String(itemId),
+        columnId: columnId,
+        assetId: String(assetId),
+    });
 }
 
 function docCard(asset, item, filesColId) {
