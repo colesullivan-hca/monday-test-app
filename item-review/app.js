@@ -713,6 +713,106 @@ function renderBoard2Form(panel, item) {
 
 // ── Documents panel ───────────────────────────────────────────
 
+function openFilesTab() {
+  if (!activePanelAssets.length) return;
+
+  const itemName = escHtml(activeItem?.name || 'Files');
+
+  const assetBlocks = activePanelAssets.map(asset => {
+    const ext = (asset.file_extension || '').toLowerCase();
+    const isImage = ['png','jpg','jpeg','gif','webp'].includes(ext);
+    const isPdf   = ext === 'pdf';
+    const url     = asset.public_url;
+    const name    = asset.name;
+
+    if (isImage) {
+      return `
+        <div class="file-block">
+          <div class="file-label">${name}</div>
+          <img src="${url}" alt="${name}" style="max-width:100%;border-radius:4px;box-shadow:0 2px 12px rgba(0,0,0,0.15);" />
+        </div>
+      `;
+    } else if (isPdf) {
+      return `
+        <div class="file-block">
+          <div class="file-label">${name}</div>
+          <div class="pdf-container" data-url="${url}">
+            <div class="loading">Loading PDF…</div>
+          </div>
+        </div>
+      `;
+    } else {
+      return `
+        <div class="file-block">
+          <div class="file-label">${name}</div>
+          <div class="other-file">
+            <span>${(ext || 'file').toUpperCase()}</span>
+            <a href="${url}" target="_blank" rel="noopener">Download</a>
+          </div>
+        </div>
+      `;
+    }
+  }).join('');
+
+  const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <title>${itemName} — Files</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"><\/script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f6f8; padding: 32px; }
+    h1 { font-size: 20px; font-weight: 700; color: #323338; margin-bottom: 24px; }
+    .file-block { background: white; border-radius: 8px; border: 1px solid #e6e9ef; padding: 20px; margin-bottom: 24px; }
+    .file-label { font-size: 13px; font-weight: 600; color: #323338; margin-bottom: 12px; padding-bottom: 10px; border-bottom: 1px solid #e6e9ef; }
+    .pdf-container { background: #525659; padding: 16px; border-radius: 4px; display: flex; flex-direction: column; gap: 10px; }
+    .pdf-container canvas { width: 100%; box-shadow: 0 2px 8px rgba(0,0,0,0.3); border-radius: 2px; display: block; }
+    .loading { color: #ccc; font-size: 13px; text-align: center; padding: 32px; }
+    .other-file { display: flex; align-items: center; gap: 12px; padding: 16px; background: #f5f6f8; border-radius: 6px; font-size: 13px; color: #676879; }
+    .other-file a { color: #0073ea; font-weight: 600; text-decoration: none; }
+    .other-file a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <h1>${itemName} — Attached Files</h1>
+  ${assetBlocks}
+  <script>
+    pdfjsLib.GlobalWorkerOptions.workerSrc =
+      'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+    async function renderPdfs() {
+      const containers = document.querySelectorAll('.pdf-container');
+      for (const container of containers) {
+        const url = container.dataset.url;
+        try {
+          const pdf = await pdfjsLib.getDocument(url).promise;
+          container.innerHTML = '';
+          for (let i = 1; i <= pdf.numPages; i++) {
+            const page     = await pdf.getPage(i);
+            const viewport = page.getViewport({ scale: 1.5 });
+            const canvas   = document.createElement('canvas');
+            canvas.width   = viewport.width;
+            canvas.height  = viewport.height;
+            container.appendChild(canvas);
+            await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
+          }
+        } catch (e) {
+          container.innerHTML = '<div class="loading">Could not render PDF — <a href="' + url + '" target="_blank">download instead</a></div>';
+        }
+      }
+    }
+
+    renderPdfs();
+  <\/script>
+</body>
+</html>`;
+
+  const tab = window.open('', '_blank');
+  tab.document.write(html);
+  tab.document.close();
+}
+
 async function renderDocsPanel(panel, item) {
     panel.innerHTML = `<div class="tab-loading"><div class="spinner-ring"></div> Loading files…</div>`;
 
@@ -751,12 +851,19 @@ async function renderDocsPanel(panel, item) {
         }
 
         panel.innerHTML = `
-      <div class="docs-panel">
-        <div class="docs-grid">
-          ${assets.map(a => docCard(a, item, filesColId)).join('')}
+        <div class="docs-panel">
+            <div style="display:flex; justify-content:flex-end; margin-bottom:12px;">
+            <button class="btn btn-secondary" onclick="openFilesTab()">
+                <svg viewBox="0 0 20 20" fill="currentColor" style="width:14px;height:14px"><path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z"/><path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z"/></svg>
+                Open all in viewer
+            </button>
+            </div>
+            <div class="docs-grid">
+            ${assets.map(a => docCard(a, item, filesColId)).join('')}
+            </div>
         </div>
-      </div>
-    `;
+        `;
+        activePanelAssets = assets;
     } catch (err) {
         panel.innerHTML = `<div class="docs-panel"><div class="docs-empty"><p>Failed to load files: ${escHtml(err.message)}</p></div></div>`;
     }
