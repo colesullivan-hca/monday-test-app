@@ -698,6 +698,8 @@ font-weight: 600;
 color: var(--monday-blue);
 text-decoration: none;
 padding: 5px 0;
+border: none;
+background: none;
 }
 .doc-card-open:hover { text-decoration: underline; }
 .doc-card-open svg { width: 12px; height: 12px; }
