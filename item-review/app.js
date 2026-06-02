@@ -72,6 +72,10 @@ let currentFilter = 'pending';
 // ─────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', async () => {
     monday = window.mondaySdk();
+    monday.listen('context', (res) => {
+    // Intentionally suppress context change events to prevent
+    // reload after openFilesDialog closes
+    });
     monday.setToken(''); // SDK handles token via context in custom objects
 
     try {
