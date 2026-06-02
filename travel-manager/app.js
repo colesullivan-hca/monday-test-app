@@ -1,0 +1,221 @@
+// =============================================================================
+//  app.js  —  App bootstrap, routing, and save logic.
+//  You should not need to edit this for normal config changes.
+//  To add new editable fields to the forms, see forms-pre.js / forms-post.js.
+// =============================================================================
+
+import { fetchAllBoards, assembleTrips, MUTATION_CHANGE_COLUMN } from './data.js';
+import { BOARDS, HCA_PACKET_COLS, ISTE_PACKET_COLS } from './config.js';
+import { renderSidebar, renderDetail, renderEmptyState } from './render.js';
+
+const monday = window.mondaySdk();
+
+// App state
+let trips     = {};
+let activeId  = null;
+let activeTab = 'pre'; // 'pre' | 'post'
+
+
+// ---------------------------------------------------------------------------
+//  Boot
+// ---------------------------------------------------------------------------
+
+async function init() {
+  const loader = document.getElementById('loader');
+
+  try {
+    await monday.get('context');  // validates we're inside monday
+
+    const raw  = await fetchAllBoards(monday);
+    trips      = assembleTrips(raw);
+
+    renderSidebar(trips, { onSelect });
+    renderEmptyState();
+
+    // Auto-select first active trip if any
+    const firstActive = Object.values(trips).find(t =>
+      ['preTravel', 'postTravel', 'travelling'].includes(t.state)
+    );
+    if (firstActive) onSelect(firstActive.tripID);
+
+  } catch (err) {
+    console.error('Init error:', err);
+    loader.innerHTML = `
+      <div class="error-state">
+        <i class="icon-warning"></i>
+        <p>Could not load trip data.</p>
+        <p class="error-detail">${err.message}</p>
+        <button onclick="location.reload()">Retry</button>
+      </div>`;
+    return;
+  }
+
+  loader.classList.add('hidden');
+}
+
+
+// ---------------------------------------------------------------------------
+//  Navigation
+// ---------------------------------------------------------------------------
+
+function onSelect(tripId) {
+  activeId  = tripId;
+  activeTab = 'pre';   // always open on pre-travel tab
+  renderDetail(trips[tripId], activeTab, { onSavePre, onSavePost, onTabSwitch });
+  highlightSidebarItem(tripId);
+}
+
+function onTabSwitch(tab) {
+  activeTab = tab;
+  renderDetail(trips[activeId], tab, { onSavePre, onSavePost, onTabSwitch });
+}
+
+function highlightSidebarItem(tripId) {
+  document.querySelectorAll('.sidebar-trip').forEach(el => {
+    el.classList.toggle('active', el.dataset.tripId === tripId);
+  });
+}
+
+
+// ---------------------------------------------------------------------------
+//  Save — Board 2 (HCA Packet)
+// ---------------------------------------------------------------------------
+
+async function onSavePre(formData) {
+  const trip = trips[activeId];
+  if (!trip?.mondayItemId_hca) {
+    showSaveStatus('No HCA board item linked to this trip.', 'error');
+    return;
+  }
+
+  try {
+    showSaveStatus('Saving…', 'saving');
+
+    for (const [fieldKey, value] of Object.entries(formData)) {
+      const colId = HCA_PACKET_COLS[fieldKey];
+      if (!colId) continue;
+
+      await monday.api(MUTATION_CHANGE_COLUMN, {
+        variables: {
+          boardId:  String(BOARDS.hcaPacket),
+          itemId:   String(trip.mondayItemId_hca),
+          columnId: colId,
+          value:    JSON.stringify(value),
+        },
+      });
+
+      // Keep local state current so pipeline re-renders correctly
+      trip[fieldKey] = typeof value === 'object' ? value.label : value;
+    }
+
+    // Re-assemble trip pipelines with updated values
+    rehydrateTrip(trip);
+    renderDetail(trip, activeTab, { onSavePre, onSavePost, onTabSwitch });
+    renderSidebar(trips, { onSelect });
+    highlightSidebarItem(activeId);
+    showSaveStatus('Saved', 'saved');
+
+  } catch (err) {
+    console.error('Save error:', err);
+    showSaveStatus('Save failed — check console', 'error');
+  }
+}
+
+
+// ---------------------------------------------------------------------------
+//  Save — Board 4 (ISTE Packet)
+// ---------------------------------------------------------------------------
+
+async function onSavePost(formData) {
+  const trip = trips[activeId];
+  if (!trip?.mondayItemId_iste) {
+    showSaveStatus('No ISTE board item linked to this trip.', 'error');
+    return;
+  }
+
+  try {
+    showSaveStatus('Saving…', 'saving');
+
+    for (const [fieldKey, value] of Object.entries(formData)) {
+      const colId = ISTE_PACKET_COLS[fieldKey];
+      if (!colId) continue;
+
+      await monday.api(MUTATION_CHANGE_COLUMN, {
+        variables: {
+          boardId:  String(BOARDS.istePacket),
+          itemId:   String(trip.mondayItemId_iste),
+          columnId: colId,
+          value:    JSON.stringify(value),
+        },
+      });
+
+      trip[fieldKey] = typeof value === 'object' ? value.label : value;
+    }
+
+    rehydrateTrip(trip);
+    renderDetail(trip, activeTab, { onSavePre, onSavePost, onTabSwitch });
+    renderSidebar(trips, { onSelect });
+    highlightSidebarItem(activeId);
+    showSaveStatus('Saved', 'saved');
+
+  } catch (err) {
+    console.error('Save error:', err);
+    showSaveStatus('Save failed — check console', 'error');
+  }
+}
+
+
+// ---------------------------------------------------------------------------
+//  Rehydrate pipeline after local edits
+// ---------------------------------------------------------------------------
+
+import { PRE_TRAVEL_STEPS, POST_TRAVEL_STEPS, STATUS_LABELS } from './config.js';
+
+function resolveSteps(stepDefs, data, isteUrl) {
+  // (same logic as data.js — kept here so we can update without a full re-fetch)
+  const steps = [];
+  for (const def of stepDefs) {
+    if (def.optional && data[def.colKey] === STATUS_LABELS.notApplicable) continue;
+    let state = '';
+    if (def.autoComplete) state = 'done';
+    else if (def.isteUrlRequired) state = isteUrl ? 'done' : '';
+    else if (def.colKey) {
+      const val = data[def.colKey] || '';
+      if (val === def.doneValue)   state = 'done';
+      if (val === def.deniedValue) state = 'denied';
+    }
+    steps.push({ label: def.label, actor: def.actor, state });
+  }
+  const hasDenial = steps.some(s => s.state === 'denied');
+  if (!hasDenial) {
+    const first = steps.find(s => s.state === '');
+    if (first) first.state = 'current';
+  }
+  return steps;
+}
+
+function rehydrateTrip(trip) {
+  trip.preTravelSteps  = resolveSteps(PRE_TRAVEL_STEPS,  trip, null);
+  trip.postTravelSteps = resolveSteps(POST_TRAVEL_STEPS, trip, trip.isteUrl);
+  trip.preProgress     = Math.round(trip.preTravelSteps.filter(s => s.state === 'done').length / trip.preTravelSteps.length * 100);
+  trip.postProgress    = Math.round(trip.postTravelSteps.filter(s => s.state === 'done').length / trip.postTravelSteps.length * 100);
+}
+
+
+// ---------------------------------------------------------------------------
+//  Save status banner
+// ---------------------------------------------------------------------------
+
+function showSaveStatus(msg, type) {
+  const el = document.getElementById('save-status');
+  if (!el) return;
+  el.textContent = msg;
+  el.className   = `save-status save-status--${type}`;
+  el.classList.remove('hidden');
+  if (type === 'saved') {
+    setTimeout(() => el.classList.add('hidden'), 2500);
+  }
+}
+
+
+init();

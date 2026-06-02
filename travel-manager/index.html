@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ITD Out-of-State Travel Tracker</title>
+  <script src="https://cdn.jsdelivr.net/npm/monday-sdk-js/dist/main.js"></script>
+  <link rel="stylesheet" href="styles.css">
+  <script src="app.js" type="module"></script>
+</head>
+<body>
+
+  <!-- Full-screen loader -->
+  <div id="loader" class="loader">
+    <div class="loader__spinner"></div>
+    <p class="loader__text">Loading trip data…</p>
+  </div>
+
+  <!-- App shell: sidebar + detail panel -->
+  <div class="app-shell">
+
+    <!-- LEFT: Trip list -->
+    <aside class="sidebar">
+      <div class="sidebar__header">
+        <span class="sidebar__title">Active Trips</span>
+      </div>
+      <div class="sidebar__list" id="sidebar-list">
+        <!-- Populated by render.js renderSidebar() -->
+      </div>
+    </aside>
+
+    <!-- RIGHT: Detail panel -->
+    <main class="detail-panel" id="detail-panel">
+      <!-- Populated by render.js renderDetail() / renderEmptyState() -->
+    </main>
+
+  </div>
+
+</body>
+</html>
