@@ -753,7 +753,7 @@ async function renderDocsPanel(panel, item) {
         panel.innerHTML = `
       <div class="docs-panel">
         <div class="docs-grid">
-          ${assets.map(a => docCard(a)).join('')}
+          ${assets.map(a => docCard(a, item, filesColId)).join('')}
         </div>
       </div>
     `;
