@@ -733,14 +733,16 @@ function openFilesTab() {
         </div>
       `;
     } else if (isPdf) {
-      return `
+    return `
         <div class="file-block">
-          <div class="file-label">${name}</div>
-          <div class="pdf-container" data-url="${url}">
-            <div class="loading">Loading PDF…</div>
-          </div>
+        <div class="file-label">${name}</div>
+        <div class="other-file">
+            <svg viewBox="0 0 20 20" fill="currentColor" style="width:24px;height:24px;color:#e2445c"><path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clip-rule="evenodd"/></svg>
+            <span>PDF Document</span>
+            <a href="${getViewableUrl(url)}" target="_blank" rel="noopener">View PDF</a>
         </div>
-      `;
+        </div>
+    `;
     } else {
       return `
         <div class="file-block">
