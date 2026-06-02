@@ -72,10 +72,6 @@ let currentFilter = 'pending';
 // ─────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', async () => {
     monday = window.mondaySdk();
-    monday.listen('context', (res) => {
-    // Intentionally suppress context change events to prevent
-    // reload after openFilesDialog closes
-    });
     monday.setToken(''); // SDK handles token via context in custom objects
 
     try {
@@ -95,35 +91,69 @@ document.addEventListener('DOMContentLoaded', async () => {
 // ─────────────────────────────────────────────
 // DATA FETCHING
 // ─────────────────────────────────────────────
-async function loadQueue() {
-    showState('loading');
-    setRefreshSpinning(true);
+async function loadQueue({ bustCache = false } = {}) {
+  showState('loading');
+  setRefreshSpinning(true);
 
-    try {
-        // If context didn't give us the user, fetch via API
-        if (!currentUser) {
-            currentUser = await fetchCurrentUser();
-            if (currentUser) {
-                document.getElementById('user-label').textContent =
-                    `Showing items assigned to ${currentUser.name}`;
-            }
-        }
+  try {
+    const cached    = sessionStorage.getItem('itemsCache');
+    const cacheTime = parseInt(sessionStorage.getItem('itemsCacheTime') || '0');
+    const isFresh   = Date.now() - cacheTime < 5 * 60 * 1000;
 
-        if (!currentUser) throw new Error('Could not identify current user.');
+    if (cached && isFresh && !bustCache) {
+      allItems = JSON.parse(cached);
+      if (!currentUser) {
+        const ctx = await monday.get('context');
+        currentUser = ctx.data?.user;
+      }
+      if (currentUser) {
+        document.getElementById('user-label').textContent =
+          `Showing items assigned to ${currentUser.name}`;
+      }
+    } else {
+      if (!currentUser) {
+        const ctx = await monday.get('context');
+        currentUser = ctx.data?.user;
+      }
+      if (!currentUser) {
+        currentUser = await fetchCurrentUser();
+      }
+      if (currentUser) {
+        document.getElementById('user-label').textContent =
+          `Showing items assigned to ${currentUser.name}`;
+      }
+      if (!currentUser) throw new Error('Could not identify current user.');
 
-        const teams = await fetchCurrentUserTeams();
-        currentUserTeamIds = teams.map(t => String(t.id));
+      const teams = await fetchCurrentUserTeams();
+      currentUserTeamIds = teams.map(t => String(t.id));
 
-        const items = await fetchReviewItems();
-        allItems = items;
-        renderQueue();
-    } catch (err) {
-        console.error(err);
-        document.getElementById('error-msg').textContent = err.message || 'An error occurred.';
-        showState('error');
-    } finally {
-        setRefreshSpinning(false);
+      allItems = await fetchReviewItems();
+      sessionStorage.setItem('itemsCache', JSON.stringify(allItems));
+      sessionStorage.setItem('itemsCacheTime', String(Date.now()));
     }
+
+    renderQueue();
+
+    // Reopen modal if we were viewing one before a dialog reload
+    const reopenId  = sessionStorage.getItem('reopenItemId');
+    const reopenTab = sessionStorage.getItem('reopenTab');
+    if (reopenId) {
+      sessionStorage.removeItem('reopenItemId');
+      sessionStorage.removeItem('reopenTab');
+      const item = allItems.find(i => String(i.id) === reopenId);
+      if (item) {
+        activeModalTab = reopenTab || 'form';
+        openModal(item);
+      }
+    }
+
+  } catch (err) {
+    console.error(err);
+    document.getElementById('error-msg').textContent = err.message || 'An error occurred.';
+    showState('error');
+  } finally {
+    setRefreshSpinning(false);
+  }
 }
 
 async function fetchCurrentUserTeams() {
@@ -886,6 +916,9 @@ async function renderDocsPanel(panel, item) {
 }
 
 function openMondayFileViewer(assetId, itemId, columnId) {
+  sessionStorage.setItem('reopenItemId', String(activeItem.id));
+  sessionStorage.setItem('reopenTab', activeModalTab);
+
   monday.execute('openFilesDialog', {
     boardId:  String(activeItem.boardId),
     itemId:   String(itemId),
@@ -905,9 +938,9 @@ function docCard(asset, item, filesColId) {
       <div class="doc-card-icon">${emoji}</div>
       <div class="doc-card-name">${escHtml(asset.name)}</div>
       <div class="doc-card-meta">${ext}${size ? ' · ' + size : ''}${date ? ' · ' + date : ''}</div>
-      <button type="button" class="doc-card-open" onclick="openMondayFileViewer('${escHtml(asset.id)}', '${escHtml(item.id)}', '${escHtml(filesColId)}'); return false;">
-      View
-      <svg viewBox="0 0 20 20" fill="currentColor"><path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z"/><path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z"/></svg>
+      <button type="button" class="doc-card-open" onclick="openMondayFileViewer('${escHtml(asset.id)}', '${escHtml(item.id)}', '${escHtml(filesColId)}');">
+        View
+        <svg viewBox="0 0 20 20" fill="currentColor"><path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z"/><path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z"/></svg>
       </button>
     </div>
   `;
