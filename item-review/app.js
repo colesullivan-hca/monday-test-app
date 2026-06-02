@@ -27,6 +27,30 @@ const CONFIG = {
   board2FilesColumnId: '',
 };
 
+const BOARD1_FORM_COLS = [
+  'color_mm2vy7r8',
+  'date_mm2yy6cp',
+  'text_mm2vn25f',
+  'text_mm2vh585',
+  'text_mm2vc3h',
+  'text_mm2vk860',
+  'text_mm2vj6tf',
+  'date_mm2vze0a',
+  'date_mm2vnvrc',
+  'numeric_mm2vt4x6', 'numeric_mm2vx6wy',
+  'numeric_mm2v1d3j', 'numeric_mm2vqaak',
+  'numeric_mm2vsqsd', 'numeric_mm2vr1m5',
+  'numeric_mm2v651g', 'numeric_mm2vcjps',
+  'numeric_mm2v3q9x', 'numeric_mm2vjmz',
+  'numeric_mm2vs9mf', 'numeric_mm2vm1be',
+  'numeric_mm2vsfjf', 'numeric_mm2vnekg',
+  'numeric_mm2vg56f', 'numeric_mm2vrj5n',
+  'numeric_mm2vt4ft', 'numeric_mm2vwf01',
+  'numeric_mm2v4vtt', 'numeric_mm2v1ef6',
+  'numeric_mm2vncda', 'numeric_mm2vd6bx',
+  'long_text_mm2vd845',
+];
+
 // Board display config: color dots and names per board ID
 const BOARD_META = {
     [CONFIG.board1.id]: { name: 'HCA Out Of State Travel Form', color: '#0073ea' },
@@ -114,7 +138,7 @@ async function fetchReviewItems() {
   const b1PeopleCols  = CONFIG.board1.pairs.map(p => p.peopleColId);
   const b1StatusCols  = CONFIG.board1.pairs.map(p => p.statusColId);
   const b2ColIds      = [CONFIG.board2.reviewerColumnId, ...CONFIG.board2.statusColumnIds];
-  const allB1Cols     = [...new Set([...b1PeopleCols, ...b1StatusCols])];
+  const allB1Cols = [...new Set([...b1PeopleCols, ...b1StatusCols, ...BOARD1_FORM_COLS])];
   const allB2Cols     = [...new Set(b2ColIds)];
 
   const query = `
