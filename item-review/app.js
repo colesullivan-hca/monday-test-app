@@ -805,7 +805,7 @@ function formatFileSize(bytes) {
 // ── Updates panel ─────────────────────────────────────────────
 
 async function renderUpdatesPanel(panel, item) {
-    panel.innerHTML = `<div class="docs-scroll">${assets.map(a => docCard(a, item, filesColId)).join('')}</div>`;
+    panel.innerHTML = `<div class="tab-loading"><div class="spinner-ring"></div> Loading updates…</div>`;
 
     try {
         const res = await monday.api(`
