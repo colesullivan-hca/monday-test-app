@@ -142,7 +142,7 @@ async function loadQueue({ bustCache = false } = {}) {
       sessionStorage.removeItem('reopenTab');
       const item = allItems.find(i => String(i.id) === reopenId);
       if (item) {
-        activeModalTab = reopenTab || 'form';
+        activeModalTab = reopenTab || 'docs';
         openModal(item);
       }
     }
@@ -357,18 +357,19 @@ function buildQueueCard(item) {
 function openModal(item) {
   activeItem = item;
   window.activeItem = item;
- 
+
   const meta = BOARD_META[item.boardId] || { name: item.boardName };
   document.getElementById('modal-board-label').textContent = meta.name;
   document.getElementById('modal-item-title').textContent  = item.name;
   document.getElementById('modal-comment').value = '';
- 
-  // Reset to form tab on each open
-  activeModalTab = 'form';
- 
-  // Render tab bar + panels
+
+  // Only reset to form tab if not restoring from a reload
+  if (!sessionStorage.getItem('reopenItemId')) {
+    activeModalTab = 'form';
+  }
+
   renderModalTabs(item);
- 
+
   document.getElementById('modal-overlay').classList.add('visible');
   document.body.style.overflow = 'hidden';
 }
