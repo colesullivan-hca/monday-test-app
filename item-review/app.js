@@ -713,6 +713,16 @@ function renderBoard2Form(panel, item) {
 
 // ── Documents panel ───────────────────────────────────────────
 
+function getViewableUrl(url) {
+  try {
+    const u = new URL(url);
+    u.searchParams.delete('response-content-disposition');
+    return u.toString();
+  } catch {
+    return url;
+  }
+}
+
 function openFilesTab() {
   if (!activePanelAssets.length) return;
 
