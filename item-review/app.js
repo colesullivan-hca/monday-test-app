@@ -808,9 +808,9 @@ function openFilesTab() {
 </body>
 </html>`;
 
-  const tab = window.open('', '_blank');
-  tab.document.write(html);
-  tab.document.close();
+  const blob = new Blob([html], { type: 'text/html' });
+  const url  = URL.createObjectURL(blob);
+  window.open(url, '_blank');
 }
 
 async function renderDocsPanel(panel, item) {
