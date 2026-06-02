@@ -22,12 +22,15 @@ const CONFIG = {
   awaitingLabel:  'Awaiting Review',
   approvedLabel:  'Approved',
   deniedLabel:    'Denied',
+
+  board1FilesColumnId: 'file_mm2vqvz3',
+  board2FilesColumnId: '',
 };
 
 // Board display config: color dots and names per board ID
 const BOARD_META = {
-    [CONFIG.board1.id]: { name: 'Board 1', color: '#0073ea' },
-    [CONFIG.board2.id]: { name: 'Board 2', color: '#00c875' },
+    [CONFIG.board1.id]: { name: 'HCA Out Of State Travel Form', color: '#0073ea' },
+    [CONFIG.board2.id]: { name: 'Reimbursement', color: '#00c875' },
 };
 
 // ─────────────────────────────────────────────
@@ -294,21 +297,22 @@ function buildQueueCard(item) {
 // MODAL
 // ─────────────────────────────────────────────
 function openModal(item) {
-    activeItem = item;
-    window.activeItem = item; // expose for your column-info code
-
-    const meta = BOARD_META[item.boardId] || { name: item.boardName };
-    document.getElementById('modal-board-label').textContent = meta.name;
-    document.getElementById('modal-item-title').textContent = item.name;
-    document.getElementById('modal-comment').value = '';
-
-    // ── PLUG IN YOUR COLUMN VIEWER HERE ──
-    // The slot element is ready. Call your existing function, e.g.:
-    //   renderColumnInfo(document.getElementById('modal-columns-slot'), item);
-    // For now it shows the placeholder defined in HTML.
-
-    document.getElementById('modal-overlay').classList.add('visible');
-    document.body.style.overflow = 'hidden';
+  activeItem = item;
+  window.activeItem = item;
+ 
+  const meta = BOARD_META[item.boardId] || { name: item.boardName };
+  document.getElementById('modal-board-label').textContent = meta.name;
+  document.getElementById('modal-item-title').textContent  = item.name;
+  document.getElementById('modal-comment').value = '';
+ 
+  // Reset to form tab on each open
+  activeModalTab = 'form';
+ 
+  // Render tab bar + panels
+  renderModalTabs(item);
+ 
+  document.getElementById('modal-overlay').classList.add('visible');
+  document.body.style.overflow = 'hidden';
 }
 
 function closeModal() {

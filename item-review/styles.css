@@ -573,3 +573,179 @@ body {
     color: var(--monday-red);
     font-weight: 700;
 }
+
+/* ── Modal tab bar ── */
+.modal-tabs {
+display: flex;
+gap: 0;
+border-bottom: 1px solid var(--monday-border);
+padding: 0 24px;
+background: var(--monday-white);
+flex-shrink: 0;
+}
+
+.modal-tab {
+padding: 11px 18px;
+border: none;
+background: transparent;
+font-family: var(--font);
+font-size: 13px;
+font-weight: 500;
+color: var(--monday-mid);
+cursor: pointer;
+border-bottom: 2px solid transparent;
+margin-bottom: -1px;
+transition: all 0.15s;
+display: flex;
+align-items: center;
+gap: 6px;
+white-space: nowrap;
+}
+.modal-tab:hover { color: var(--monday-dark); }
+.modal-tab.active {
+color: var(--monday-blue);
+border-bottom-color: var(--monday-blue);
+font-weight: 600;
+}
+.modal-tab svg { width: 14px; height: 14px; }
+
+/* ── Tab panels ── */
+.modal-panel { display: none; }
+.modal-panel.active { display: block; }
+
+/* ── Form panel: host the travel form ── */
+.form-panel-wrap {
+padding: 0;
+/* The form's own styles.css handles interior styling.
+    We just need to neutralise the page-level body padding. */
+}
+.form-panel-wrap .save,
+.form-panel-wrap .printButton {
+/* hide the fixed save/print bar inside the modal */
+display: none !important;
+}
+.form-panel-wrap .form-container {
+/* override page-level centering; fill the modal instead */
+max-width: 100%;
+min-width: 0;
+margin: 0;
+border: none;
+box-shadow: none;
+padding: 20px 24px;
+}
+
+/* ── Documents panel ── */
+.docs-panel { padding: 20px 24px; }
+.docs-empty {
+display: flex;
+flex-direction: column;
+align-items: center;
+justify-content: center;
+padding: 48px 20px;
+gap: 10px;
+color: var(--monday-mid);
+text-align: center;
+}
+.docs-empty svg { width: 36px; height: 36px; opacity: 0.4; }
+.docs-empty p { font-size: 13px; }
+
+.docs-grid {
+display: grid;
+grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+gap: 12px;
+}
+
+.doc-card {
+border: 1px solid var(--monday-border);
+border-radius: 8px;
+padding: 14px;
+display: flex;
+flex-direction: column;
+gap: 8px;
+background: var(--monday-lighter);
+transition: border-color 0.15s, box-shadow 0.15s;
+}
+.doc-card:hover {
+border-color: var(--monday-blue);
+box-shadow: 0 2px 8px rgba(0,115,234,0.08);
+}
+.doc-card-icon {
+width: 36px; height: 36px;
+border-radius: 6px;
+display: flex; align-items: center; justify-content: center;
+font-size: 18px;
+background: var(--monday-white);
+border: 1px solid var(--monday-border);
+}
+.doc-card-name {
+font-size: 12px;
+font-weight: 600;
+color: var(--monday-dark);
+word-break: break-word;
+line-height: 1.4;
+}
+.doc-card-meta {
+font-size: 11px;
+color: var(--monday-mid);
+}
+.doc-card-open {
+margin-top: auto;
+display: inline-flex;
+align-items: center;
+gap: 4px;
+font-size: 12px;
+font-weight: 600;
+color: var(--monday-blue);
+text-decoration: none;
+padding: 5px 0;
+}
+.doc-card-open:hover { text-decoration: underline; }
+.doc-card-open svg { width: 12px; height: 12px; }
+
+/* ── Updates panel ── */
+.updates-panel { padding: 20px 24px; display: flex; flex-direction: column; gap: 14px; }
+.updates-empty {
+display: flex;
+flex-direction: column;
+align-items: center;
+padding: 48px 20px;
+gap: 10px;
+color: var(--monday-mid);
+text-align: center;
+}
+.updates-empty svg { width: 32px; height: 32px; opacity: 0.35; }
+.updates-empty p { font-size: 13px; }
+
+.update-card {
+border: 1px solid var(--monday-border);
+border-radius: 8px;
+padding: 14px 16px;
+background: var(--monday-white);
+}
+.update-card-header {
+display: flex;
+align-items: center;
+gap: 10px;
+margin-bottom: 8px;
+}
+.update-avatar {
+width: 28px; height: 28px;
+border-radius: 50%;
+background: var(--monday-blue);
+color: white;
+font-size: 11px;
+font-weight: 700;
+display: flex; align-items: center; justify-content: center;
+flex-shrink: 0;
+}
+.update-author { font-size: 13px; font-weight: 600; color: var(--monday-dark); }
+.update-date   { font-size: 11px; color: var(--monday-mid); margin-left: auto; }
+.update-body   { font-size: 13px; color: var(--monday-dark); line-height: 1.6; white-space: pre-wrap; word-break: break-word; }
+
+/* Loading shimmer for async tabs */
+.tab-loading {
+display: flex; align-items: center; justify-content: center;
+padding: 48px 20px; gap: 10px;
+color: var(--monday-mid); font-size: 13px;
+}
+.tab-loading .spinner-ring { width: 22px; height: 22px; border-width: 2px; }

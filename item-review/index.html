@@ -1,115 +1,138 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Item Review Queue</title>
-  <script src="https://cdn.jsdelivr.net/npm/monday-sdk-js/dist/main.js"></script>
-  <link rel="stylesheet" href="styles.css">
-  <script src="app.js" defer></script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Item Review Queue</title>
+    <script src="https://cdn.jsdelivr.net/npm/monday-sdk-js/dist/main.js"></script>
+    <link rel="stylesheet" href="styles.css">
+    <script src="app.js" defer></script>
 </head>
+
 <body>
-  <!-- Header -->
-  <div class="header">
-    <div class="header-left">
-      <div class="header-icon">
-        <svg viewBox="0 0 20 20"><path d="M10 2a8 8 0 100 16A8 8 0 0010 2zm0 3a1 1 0 011 1v4.586l2.707 2.707a1 1 0 01-1.414 1.414l-3-3A1 1 0 019 11V6a1 1 0 011-1z"/></svg>
-      </div>
-      <div>
-        <h1>Review Queue <span class="badge" id="total-badge">0</span></h1>
-        <div class="header-meta" id="user-label">Loading user…</div>
-      </div>
+    <!-- Header -->
+    <div class="header">
+        <div class="header-left">
+            <div class="header-icon">
+                <svg viewBox="0 0 20 20">
+                    <path
+                        d="M10 2a8 8 0 100 16A8 8 0 0010 2zm0 3a1 1 0 011 1v4.586l2.707 2.707a1 1 0 01-1.414 1.414l-3-3A1 1 0 019 11V6a1 1 0 011-1z" />
+                </svg>
+            </div>
+            <div>
+                <h1>Review Queue <span class="badge" id="total-badge">0</span></h1>
+                <div class="header-meta" id="user-label">Loading user…</div>
+            </div>
+        </div>
+        <button class="refresh-btn" id="refresh-btn" onclick="loadQueue()">
+            <svg viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd"
+                    d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z"
+                    clip-rule="evenodd" />
+            </svg>
+            Refresh
+        </button>
     </div>
-    <button class="refresh-btn" id="refresh-btn" onclick="loadQueue()">
-      <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd"/></svg>
-      Refresh
-    </button>
-  </div>
 
-  <!-- Tabs -->
-  <div class="tabs">
-    <button class="tab active" data-filter="pending" onclick="setFilter('pending')">
-      Pending <span class="tab-count" id="tab-count-pending">0</span>
-    </button>
-    <button class="tab" data-filter="approved" onclick="setFilter('approved')">
-      Approved <span class="tab-count" id="tab-count-approved">0</span>
-    </button>
-    <button class="tab" data-filter="denied" onclick="setFilter('denied')">
-      Denied <span class="tab-count" id="tab-count-denied">0</span>
-    </button>
-    <button class="tab" data-filter="all" onclick="setFilter('all')">
-      All
-    </button>
-  </div>
-
-  <!-- Loading state -->
-  <div class="state visible" id="state-loading">
-    <div class="spinner-ring"></div>
-    <h3>Loading your queue…</h3>
-  </div>
-
-  <!-- Error state -->
-  <div class="state" id="state-error">
-    <div class="state-icon">⚠️</div>
-    <h3>Couldn't load items</h3>
-    <p id="error-msg">An error occurred. Please try refreshing.</p>
-  </div>
-
-  <!-- Empty state -->
-  <div class="state" id="state-empty">
-    <div class="state-icon">🎉</div>
-    <h3>You're all caught up!</h3>
-    <p>No items are waiting for your review right now.</p>
-  </div>
-
-  <!-- Queue list -->
-  <div id="queue-list"></div>
-
-  <!-- Review Modal -->
-  <div class="modal-overlay" id="modal-overlay" onclick="handleOverlayClick(event)">
-    <div class="modal" id="modal">
-      <div class="modal-header">
-        <div class="modal-title-wrap">
-          <div class="modal-board-label" id="modal-board-label">Board</div>
-          <div class="modal-title" id="modal-item-title">Item Name</div>
-        </div>
-        <button class="modal-close" onclick="closeModal()">✕</button>
-      </div>
-
-      <div class="modal-body">
-        <!--
-          ── YOUR COLUMN INFO CODE GOES HERE ──
-          Replace the contents of #modal-columns-slot with your
-          existing column-viewer component. The active item object
-          is available as `window.activeItem`.
-        -->
-        <div id="modal-columns-slot">
-          <em>Column info will render here — plug in your existing component and target this element, using <code>window.activeItem</code> for the item data.</em>
-        </div>
-      </div>
-
-      <div class="modal-footer">
-        <div>
-          <div class="comment-label">Comment (optional)</div>
-          <textarea class="comment-input" id="modal-comment" placeholder="Add a note about your decision…"></textarea>
-        </div>
-        <div class="modal-actions">
-          <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
-          <button class="btn btn-deny" id="btn-deny" onclick="submitReview('denied')">
-            <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
-            Deny
-          </button>
-          <button class="btn btn-approve" id="btn-approve" onclick="submitReview('approved')">
-            <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
-            Approve
-          </button>
-        </div>
-      </div>
+    <!-- Tabs -->
+    <div class="tabs">
+        <button class="tab active" data-filter="pending" onclick="setFilter('pending')">
+            Pending <span class="tab-count" id="tab-count-pending">0</span>
+        </button>
+        <button class="tab" data-filter="approved" onclick="setFilter('approved')">
+            Approved <span class="tab-count" id="tab-count-approved">0</span>
+        </button>
+        <button class="tab" data-filter="denied" onclick="setFilter('denied')">
+            Denied <span class="tab-count" id="tab-count-denied">0</span>
+        </button>
+        <button class="tab" data-filter="all" onclick="setFilter('all')">
+            All
+        </button>
     </div>
-  </div>
 
-  <div id="toast"></div>
+    <!-- Loading state -->
+    <div class="state visible" id="state-loading">
+        <div class="spinner-ring"></div>
+        <h3>Loading your queue…</h3>
+    </div>
 
-  
+    <!-- Error state -->
+    <div class="state" id="state-error">
+        <div class="state-icon">⚠️</div>
+        <h3>Couldn't load items</h3>
+        <p id="error-msg">An error occurred. Please try refreshing.</p>
+    </div>
+
+    <!-- Empty state -->
+    <div class="state" id="state-empty">
+        <div class="state-icon">🎉</div>
+        <h3>You're all caught up!</h3>
+        <p>No items are waiting for your review right now.</p>
+    </div>
+
+    <!-- Queue list -->
+    <div id="queue-list"></div>
+
+    <!-- Review Modal -->
+    <div class="modal-overlay" id="modal-overlay" onclick="handleOverlayClick(event)">
+        <div class="modal" id="modal">
+
+            <!-- Header -->
+            <div class="modal-header">
+                <div class="modal-title-wrap">
+                    <div class="modal-board-label" id="modal-board-label">Board</div>
+                    <div class="modal-title" id="modal-item-title">Item Name</div>
+                </div>
+                <button class="modal-close" onclick="closeModal()">✕</button>
+            </div>
+
+            <!-- Tab bar -->
+            <div class="modal-tabs" id="modal-tabs">
+                <!-- populated by renderModalTabs() -->
+            </div>
+
+            <!-- Tab panels -->
+            <div class="modal-body" id="modal-body">
+                <!-- populated by renderModalTabs() -->
+            </div>
+
+            <!-- Footer: comment + actions -->
+            <div class="modal-footer">
+                <div>
+                    <div class="comment-label">Comment (optional)</div>
+                    <textarea class="comment-input" id="modal-comment"
+                        placeholder="Add a note about your decision…"></textarea>
+                </div>
+                <div class="modal-actions">
+                    <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                    <button class="btn btn-deny" id="btn-deny" onclick="submitReview('denied')">
+                        <svg viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd"
+                                d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                                clip-rule="evenodd" />
+                        </svg>
+                        Deny
+                    </button>
+                    <button class="btn btn-approve" id="btn-approve" onclick="submitReview('approved')">
+                        <svg viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd"
+                                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                clip-rule="evenodd" />
+                        </svg>
+                        Approve
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div id="toast"></div>
+
+    <script src="modal.js"></script>
+
+
 </body>
+
 </html>
