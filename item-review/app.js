@@ -771,7 +771,7 @@ function openMondayFileViewer(assetId, itemId, columnId) {
   });
 }
 
-function docCard(asset) {
+function docCard(asset, item, filesColId) {
     const ext = (asset.file_extension || '').toUpperCase();
     const size = formatFileSize(asset.file_size);
     const emoji = fileEmoji(ext);
@@ -805,7 +805,7 @@ function formatFileSize(bytes) {
 // ── Updates panel ─────────────────────────────────────────────
 
 async function renderUpdatesPanel(panel, item) {
-    panel.innerHTML = `<div class="tab-loading"><div class="spinner-ring"></div> Loading updates…</div>`;
+    panel.innerHTML = `<div class="docs-scroll">${assets.map(a => docCard(a, item, filesColId)).join('')}</div>`;
 
     try {
         const res = await monday.api(`
