@@ -719,7 +719,7 @@ function openFilesTab() {
   const itemName = escHtml(activeItem?.name || 'Files');
 
   const assetBlocks = activePanelAssets.map(asset => {
-    const ext = (asset.file_extension || '').toLowerCase();
+    const ext = (asset.file_extension || '').toLowerCase().replace(/^\./, '');
     const isImage = ['png','jpg','jpeg','gif','webp'].includes(ext);
     const isPdf   = ext === 'pdf';
     const url     = asset.public_url;
