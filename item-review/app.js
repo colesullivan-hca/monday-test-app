@@ -779,12 +779,11 @@ function getPreviewUrl(url, ext) {
 }
 
 function docCard(asset, item, filesColId) {
-    const ext = (asset.file_extension || '').toUpperCase();
+    const ext = (asset.file_extension || '').toLowerCase();
     const size = formatFileSize(asset.file_size);
     const emoji = fileEmoji(ext);
     const date = asset.created_at ? new Date(asset.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : '';
 
-    ext = (asset.file_extension || '').toLowerCase();
     const previewUrl = getPreviewUrl(asset.public_url, ext);
     
     return `
