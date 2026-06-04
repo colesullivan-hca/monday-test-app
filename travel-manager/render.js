@@ -286,7 +286,7 @@ function travelerRequestPaneHTML(trip) {
       ${readField('Misc. Transport',fmt(trip.tr_transport))}
       ${readField('Other Fees',     fmt(trip.tr_fees))}
       ${readField('Airport Parking',fmt(trip.tr_parking))}
-      ${readField('Car Rental',     fmt(trip.tr_carRental))}
+      ${readField('Car Rental',     trip.tr_carRental)}
       ${readField('Per Diem',       fmt(trip.tr_perDiem))}
       ${readField('Meals',          fmt(trip.tr_meals))}
       ${readField('Lodging',        fmt(trip.tr_lodging))}
