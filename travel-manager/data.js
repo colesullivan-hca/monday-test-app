@@ -65,20 +65,54 @@ export const MUTATION_CHANGE_COLUMN = `
 // ---------------------------------------------------------------------------
 
 async function fetchBoard(monday, boardId) {
-  const items = [];
-  let cursor = null;
+  const items  = [];
+  let cursor   = null;
 
   while (true) {
     const query     = !cursor ? INITIAL_QUERY : NEXT_PAGE_QUERY;
     const variables = !cursor ? { boardId, limit: 50 } : { cursor };
-    const res       = await monday.api(query, { variables });
 
-    const page = !cursor
-      ? res.data.boards[0].items_page
-      : res.data.next_items_page;
+    let res;
+    try {
+      res = await monday.api(query, { variables });
+    } catch (err) {
+      console.error(`fetchBoard ${boardId} — API call failed:`, err);
+      break;
+    }
 
-    if (page.items) items.push(...page.items);
-    cursor = page.cursor;
+    // Log the raw response so you can inspect shape in the console if needed
+    // console.debug(`fetchBoard ${boardId} raw:`, JSON.stringify(res).slice(0, 400));
+
+    // The monday SDK can return errors inside res.errors even on HTTP 200
+    if (res?.errors?.length) {
+      console.error(`fetchBoard ${boardId} — GraphQL errors:`, res.errors);
+      break;
+    }
+
+    let page;
+    if (!cursor) {
+      // Initial fetch: res.data.boards is an array; [0] is our board
+      const board = res?.data?.boards?.[0];
+      if (!board) {
+        console.error(
+          `fetchBoard ${boardId} — board not found. ` +
+          `Check BOARDS in config.js. Raw response:`,
+          res
+        );
+        break;
+      }
+      page = board.items_page;
+    } else {
+      page = res?.data?.next_items_page;
+    }
+
+    if (!page) {
+      console.error(`fetchBoard ${boardId} — items_page missing from response`, res);
+      break;
+    }
+
+    if (page.items?.length) items.push(...page.items);
+    cursor = page.cursor || null;
     if (!cursor) break;
   }
 
@@ -86,12 +120,19 @@ async function fetchBoard(monday, boardId) {
 }
 
 export async function fetchAllBoards(monday) {
-  const [travelerItems, hcaItems, reimbItems, isteItems] = await Promise.all([
-    fetchBoard(monday, BOARDS.travelerRequest),
-    fetchBoard(monday, BOARDS.hcaPacket),
-    fetchBoard(monday, BOARDS.travelerReimbursement),
-    fetchBoard(monday, BOARDS.istePacket),
-  ]);
+  // Fetch sequentially so a bad board ID gives a clear per-board error
+  // rather than one cryptic Promise.all failure.
+  const travelerItems = await fetchBoard(monday, BOARDS.travelerRequest);
+  const hcaItems      = await fetchBoard(monday, BOARDS.hcaPacket);
+  const reimbItems    = await fetchBoard(monday, BOARDS.travelerReimbursement);
+  const isteItems     = await fetchBoard(monday, BOARDS.istePacket);
+
+  console.log('Fetched counts —', {
+    travelerRequest:      travelerItems.length,
+    hcaPacket:            hcaItems.length,
+    travelerReimbursement: reimbItems.length,
+    istePacket:           isteItems.length,
+  });
 
   return { travelerItems, hcaItems, reimbItems, isteItems };
 }

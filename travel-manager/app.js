@@ -57,7 +57,10 @@ async function init() {
   const loader = document.getElementById('loader');
 
   try {
-    await monday.get('context');  // validates we're inside monday
+    const context = await monday.get('context');
+    console.log('monday context:', context?.data);
+    // If you see boardId / itemId / accountId here, the SDK is connected.
+    // If context.data is empty, the app isn't running inside a monday view.
 
     const raw  = await fetchAllBoards(monday);
     trips      = assembleTrips(raw);
@@ -75,9 +78,13 @@ async function init() {
     console.error('Init error:', err);
     loader.innerHTML = `
       <div class="error-state">
-        <i class="icon-warning"></i>
         <p>Could not load trip data.</p>
         <p class="error-detail">${err.message}</p>
+        <p class="error-detail">Check the console for details. Common causes:<br>
+          • Board ID in config.js doesn't match an accessible board<br>
+          • App doesn't have permission to read these boards<br>
+          • App is being opened outside of a monday.com view
+        </p>
         <button onclick="location.reload()">Retry</button>
       </div>`;
     return;
