@@ -173,8 +173,8 @@ export const TRAVELER_REIMB_COLS = {
 export const ISTE_PACKET_COLS = {
   tripID:             'text_mm35jsjp',  // Must match travelerRequest.tripID value
   ISTEStatus:         'color_XXXXXXXX', // ← replace
-  travelerApproval:   'color_XXXXXXXX', // ← replace
-  supervisorApproval: 'color_XXXXXXXX', // ← replace
+  // travelerApproval:   'color_XXXXXXXX', // ← replace
+  // supervisorApproval: 'color_XXXXXXXX', // ← replace
   approvedTotal:      'numbers_XXXXXXXX', // ← replace
   // --- Add more columns from Board 4 here ---
   // APNotes: 'text_XXXXXXXX',
