@@ -340,5 +340,7 @@ export function assembleTrips({ travelerItems, hcaItems, reimbItems, isteItems }
     }
   }
 
-  return trips;
+  return Object.fromEntries(
+    Object.entries(trips).filter(([, trip]) => trip.mondayItemId_hca)
+  );
 }
