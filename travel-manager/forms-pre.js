@@ -210,13 +210,13 @@ export function buildPreForm(trip) {
         </tr>
         <tr>
           <td class="hca-label">SUPERVISOR:</td>
-          <td class="${trip.supervisorApproval.trim().toLowerCase()}">
+          <td class="${trip.supervisorApproval.replaceAll(" ", "").toLowerCase()}">
             <select class="hca-select" id="supervisorApproval" ${roSel}>
               ${selectOptions(APPROVAL_OPTIONS, trip.supervisorApproval)}
             </select>
           </td>
           <td class="hca-label">DIVISION:</td>
-          <td class="${trip.divisionApproval.trim().toLowerCase()}">
+          <td class="${trip.divisionApproval.replaceAll(" ", "").toLowerCase()}">
             <select class="hca-select" id="divisionApproval" ${roSel}>
               ${selectOptions(APPROVAL_OPTIONS, trip.divisionApproval)}
             </select>
@@ -224,13 +224,13 @@ export function buildPreForm(trip) {
         </tr>
         <tr>
           <td class="hca-label">ASD BUDGET:</td>
-          <td class="${trip.ASDApproval.trim().toLowerCase()}">
+          <td class="${trip.ASDApproval.replaceAll(" ", "").toLowerCase()}">
             <select class="hca-select" id="ASDApproval" ${roSel}>
               ${selectOptions(APPROVAL_OPTIONS, trip.ASDApproval)}
             </select>
           </td>
           <td class="hca-label">OOS / DEPUTY SEC:</td>
-          <td class="${trip.OOSApproval.trim().toLowerCase()}">
+          <td class="${trip.OOSApproval.replaceAll(" ", "").toLowerCase()}">
             <select class="hca-select" id="OOSApproval" ${roSel}>
               ${selectOptions(APPROVAL_OPTIONS, trip.OOSApproval)}
             </select>
@@ -238,13 +238,13 @@ export function buildPreForm(trip) {
         </tr>
         <tr>
           <td class="hca-label">RENTAL CAR (CFO):</td>
-          <td class="${trip.rentalApproval.trim().toLowerCase()}">
+          <td class="${trip.rentalApproval.replaceAll(" ", "").toLowerCase()}">
             <select class="hca-select" id="rentalApproval" ${roSel}>
               ${selectOptions(APPROVAL_OPTIONS, trip.rentalApproval)}
             </select>
           </td>
           <td class="hca-label">ROOM RATES (CFO):</td>
-          <td class="${trip.roomRatesApproval.trim().toLowerCase()}">
+          <td class="${trip.roomRatesApproval.replaceAll(" ", "").toLowerCase()}">
             <select class="hca-select" id="roomRatesApproval" ${roSel}>
               ${selectOptions(APPROVAL_OPTIONS, trip.roomRatesApproval)}
             </select>
