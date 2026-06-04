@@ -273,8 +273,8 @@ function travelerRequestPaneHTML(trip) {
       <div class="read-section-title">Conference Information</div>
       ${readField('Conference',     trip.tr_conference)}
       ${readField('Destination',    trip.location)}
-      ${readField('Conference Start', trip.confStart)}
-      ${readField('Conference End', trip.confEnd)}
+      ${readField('Conference Start', trip.tr_confStart)}
+      ${readField('Conference End', trip.tr_confEnd)}
 
       <div class="read-section-title">Travel Information</div>
       ${readField('Departure',      trip.startDate)}

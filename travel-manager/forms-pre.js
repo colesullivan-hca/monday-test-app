@@ -203,7 +203,7 @@ export function buildPreForm(trip) {
         <tr>
           <td class="hca-label">PACKET STATUS:</td>
           <td colspan="3">
-            <select class="hca-select" id="packetStatus" ${roSel}>
+            <select class="hca-select ${trip.packetStatus.trim().toLowerCase()}" id="packetStatus" ${roSel}>
               ${selectOptions(PACKET_STATUS_OPTIONS, trip.packetStatus)}
             </select>
           </td>
@@ -211,13 +211,13 @@ export function buildPreForm(trip) {
         <tr>
           <td class="hca-label">SUPERVISOR:</td>
           <td>
-            <select class="hca-select" id="supervisorApproval" ${roSel}>
+            <select class="hca-select ${trip.packetStatus.trim().toLowerCase()}" id="supervisorApproval" ${roSel}>
               ${selectOptions(APPROVAL_OPTIONS, trip.supervisorApproval)}
             </select>
           </td>
           <td class="hca-label">DIVISION:</td>
           <td>
-            <select class="hca-select" id="divisionApproval" ${roSel}>
+            <select class="hca-select ${trip.packetStatus.toLowerCase()}" id="divisionApproval" ${roSel}>
               ${selectOptions(APPROVAL_OPTIONS, trip.divisionApproval)}
             </select>
           </td>
@@ -225,13 +225,13 @@ export function buildPreForm(trip) {
         <tr>
           <td class="hca-label">ASD BUDGET:</td>
           <td>
-            <select class="hca-select" id="ASDApproval" ${roSel}>
+            <select class="hca-select ${trip.packetStatus.trim().toLowerCase()}" id="ASDApproval" ${roSel}>
               ${selectOptions(APPROVAL_OPTIONS, trip.ASDApproval)}
             </select>
           </td>
           <td class="hca-label">OOS / DEPUTY SEC:</td>
           <td>
-            <select class="hca-select" id="OOSApproval" ${roSel}>
+            <select class="hca-select ${trip.packetStatus.trim().toLowerCase()}" id="OOSApproval" ${roSel}>
               ${selectOptions(APPROVAL_OPTIONS, trip.OOSApproval)}
             </select>
           </td>
@@ -239,13 +239,13 @@ export function buildPreForm(trip) {
         <tr>
           <td class="hca-label">RENTAL CAR (CFO):</td>
           <td>
-            <select class="hca-select" id="rentalApproval" ${roSel}>
+            <select class="hca-select ${trip.packetStatus.trim().toLowerCase()}" id="rentalApproval" ${roSel}>
               ${selectOptions(APPROVAL_OPTIONS, trip.rentalApproval)}
             </select>
           </td>
           <td class="hca-label">ROOM RATES (CFO):</td>
           <td>
-            <select class="hca-select" id="roomRatesApproval" ${roSel}>
+            <select class="hca-select ${trip.packetStatus.trim().toLowerCase()}" id="roomRatesApproval" ${roSel}>
               ${selectOptions(APPROVAL_OPTIONS, trip.roomRatesApproval)}
             </select>
           </td>

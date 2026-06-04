@@ -966,6 +966,18 @@ html, body {
   background-repeat: no-repeat;
   background-position: right 2px center;
   padding-right: 14px;
+  &.approved {
+    background-color: var(--mn-green);
+    color: white;
+  }
+  &.denied {
+    background-color: var(--mn-red);
+    color: white;
+  }
+  &.awaitingreview {
+    background-color: var(--mn-orange);
+    color: white;
+  }
 }
 
 .hca-select:focus { background-color: #f0f7ff; }
