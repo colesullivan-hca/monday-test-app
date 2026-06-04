@@ -971,15 +971,15 @@ html, body {
 td {
   &.approved {
     background-color: var(--mn-green);
-    color: white !important;
+    & select.hca-select {color: white;}
   }
   &.denied {
     background-color: var(--mn-red);
-    color: white !important;
+    & select.hca-select {color: white;}
   }
   &.awaitingreview {
     background-color: var(--mn-orange);
-    color: white !important;
+    & select.hca-select {color: white;}
   }
 }
 
