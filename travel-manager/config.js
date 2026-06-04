@@ -39,7 +39,7 @@ export const TRAVELER_REQUEST_COLS = {
   tr_supervisorEmail:'email_mm21a3sq',
   
   // Traveler info
-  traveler:         'text_mm2vn25f',
+  traveler:         '',
   tr_email:         'email_mm2xq18k',
   tr_division:      'color_mm36hm34',
   tr_position:      'text_mm21ecb6',

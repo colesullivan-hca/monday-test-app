@@ -260,7 +260,7 @@ function travelerRequestPaneHTML(trip) {
       ${readField('Supervisor',     trip.tr_supervisor)}
 
       <div class="read-section-title">Traveler Information</div>
-      ${readField('Traveler',       trip.tr_traveler)}
+      ${readField('Traveler',       trip.hca_traveler)}
       ${readField('SHARE ID',       trip.tr_shareId)}
       ${readField('Position/Title', trip.tr_position)}
       ${readField('Division',       trip.tr_division)}
