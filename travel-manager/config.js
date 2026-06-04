@@ -13,13 +13,13 @@
 // ---------------------------------------------------------------------------
 export const BOARDS = {
   // Board 1: Traveler submits initial out-of-state travel request
-  travelerRequest:      18412077420,
+  travelerRequest:      18412077417,
 
   // Board 2: Travel team builds the official HCA packet for approvals
-  hcaPacket:            18412077421,   // ← replace with your real board ID
+  hcaPacket:            18412077420, 
 
   // Board 3: Traveler submits reimbursement form + receipts after travel
-  travelerReimbursement: 18412077422,  // ← replace with your real board ID
+  travelerReimbursement: 18412077422,  
 
   // Board 4: Travel team builds the ISTE statement for AP processing
   istePacket:           18412077425,
@@ -43,8 +43,7 @@ export const TRAVELER_REQUEST_COLS = {
   tr_supervisorEmail:'email_mm21a3sq',
   
   // Traveler info
-  tr_firstName:     'text_mm2149yj',
-  tr_lastName:      'text_mm214zhc',
+  traveler:         'text_mm2vn25f',
   tr_email:         'email_mm2xq18k',
   tr_division:      'color_mm36hm34',
   tr_position:      'text_mm21ecb6',
