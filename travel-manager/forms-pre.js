@@ -203,49 +203,49 @@ export function buildPreForm(trip) {
         <tr>
           <td class="hca-label">PACKET STATUS:</td>
           <td colspan="3">
-            <select class="hca-select ${trip.packetStatus.trim().toLowerCase()}" id="packetStatus" ${roSel}>
+            <select class="hca-select" id="packetStatus" ${roSel}>
               ${selectOptions(PACKET_STATUS_OPTIONS, trip.packetStatus)}
             </select>
           </td>
         </tr>
         <tr>
           <td class="hca-label">SUPERVISOR:</td>
-          <td>
-            <select class="hca-select ${trip.supervisorApproval.trim().toLowerCase()}" id="supervisorApproval" ${roSel}>
+          <td class="${trip.supervisorApproval.trim().toLowerCase()}">
+            <select class="hca-select" id="supervisorApproval" ${roSel}>
               ${selectOptions(APPROVAL_OPTIONS, trip.supervisorApproval)}
             </select>
           </td>
           <td class="hca-label">DIVISION:</td>
-          <td>
-            <select class="hca-select ${trip.divisionApproval.trim().toLowerCase()}" id="divisionApproval" ${roSel}>
+          <td class="${trip.divisionApproval.trim().toLowerCase()}">
+            <select class="hca-select" id="divisionApproval" ${roSel}>
               ${selectOptions(APPROVAL_OPTIONS, trip.divisionApproval)}
             </select>
           </td>
         </tr>
         <tr>
           <td class="hca-label">ASD BUDGET:</td>
-          <td>
-            <select class="hca-select ${trip.ASDApproval.trim().toLowerCase()}" id="ASDApproval" ${roSel}>
+          <td class="${trip.ASDApproval.trim().toLowerCase()}">
+            <select class="hca-select" id="ASDApproval" ${roSel}>
               ${selectOptions(APPROVAL_OPTIONS, trip.ASDApproval)}
             </select>
           </td>
           <td class="hca-label">OOS / DEPUTY SEC:</td>
-          <td>
-            <select class="hca-select ${trip.OOSApproval.trim().toLowerCase()}" id="OOSApproval" ${roSel}>
+          <td class="${trip.OOSApproval.trim().toLowerCase()}">
+            <select class="hca-select" id="OOSApproval" ${roSel}>
               ${selectOptions(APPROVAL_OPTIONS, trip.OOSApproval)}
             </select>
           </td>
         </tr>
         <tr>
           <td class="hca-label">RENTAL CAR (CFO):</td>
-          <td>
-            <select class="hca-select ${trip.rentalApproval.trim().toLowerCase()}" id="rentalApproval" ${roSel}>
+          <td class="${trip.rentalApproval.trim().toLowerCase()}">
+            <select class="hca-select" id="rentalApproval" ${roSel}>
               ${selectOptions(APPROVAL_OPTIONS, trip.rentalApproval)}
             </select>
           </td>
           <td class="hca-label">ROOM RATES (CFO):</td>
-          <td>
-            <select class="hca-select ${trip.roomRatesApproval.trim().toLowerCase()}" id="roomRatesApproval" ${roSel}>
+          <td class="${trip.roomRatesApproval.trim().toLowerCase()}">
+            <select class="hca-select" id="roomRatesApproval" ${roSel}>
               ${selectOptions(APPROVAL_OPTIONS, trip.roomRatesApproval)}
             </select>
           </td>
