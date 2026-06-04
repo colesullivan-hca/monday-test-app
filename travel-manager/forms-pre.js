@@ -13,7 +13,7 @@
 //  read-only (matching your original standalone app behavior).
 // =============================================================================
 
-const APPROVAL_OPTIONS      = ['', 'Pending', 'Approved', 'Denied', 'Not Applicable'];
+const APPROVAL_OPTIONS      = ['', 'Awaiting Review', 'Approved', 'Denied', 'Not Applicable'];
 const PACKET_STATUS_OPTIONS = ['', 'In Preparation', 'Ready For Approvals', 'On Hold'];
 
 
