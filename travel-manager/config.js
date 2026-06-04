@@ -37,32 +37,57 @@ export const TRAVELER_REQUEST_COLS = {
   // Trip identity
   title:            'text_mm2vj6tf',   // Conference name
   location:         'text_mm2vk860',   // Destination
-  startDate:        'date_mm2vze0a',
-  endDate:          'date_mm2vnvrc',
-
+  
+  // Supervisor info
+  tr_supervisor:    'text_mm21ej4y',
+  tr_supervisorEmail:'email_mm21a3sq',
+  
   // Traveler info
-  tr_traveler:      'text_mm2vn25f',
-  tr_shareId:       'text_mm2vh585',
-  tr_positionTitle: 'text_mm2vc3h',
-  tr_division:      'color_mm2vy7r8',
+  tr_firstName:     'text_mm2149yj',
+  tr_lastName:      'text_mm214zhc',
+  tr_email:         'email_mm2xq18k',
+  tr_division:      'color_mm36hm34',
+  tr_position:      'text_mm21ecb6',
+  tr_phone:         'phone_mm21zr34',
+  tr_workCity:      'text_mm3862bq',
+  tr_workState:     'color_mm38vtg3',
+  tr_homeCity:      'text_mm3850m6',
+  tr_homeState:     'color_mm38qytg',
+  tr_shareId:       'numeric_mm21n98s',
+  tr_w9:            'file_mm21bca5',
+  
+  // Conference info
+  tr_conference:    'text_mm21b390',
+  tr_confCity:      'text_mm21bfng',
+  tr_confState:     'text_mm216p86',
+  tr_confStart:     'date_mm21qkrj',
+  tr_confEnd:       'date_mm214633',
+  tr_justification: 'text_mm21v5he',
+  tr_confFee:       'numeric_mm21245w',
+  
+  // Transportation info
+  tr_prefAirline:   'text_mm216ynn',
+  startDate:        'date_mm218snw',
+  tr_outboundTime:  'dropdown_mm2xg3my',
+  endDate:          'date_mm217077',
+  tr_returnTime:    'dropdown_mm2xnf5s',
+  tr_bagFee:        '',
+  tr_bagFeeQuote:   'file0vnbcr0i',
+  tr_parkingFee:    '',
+  tr_parkingQuote:  'fileiktemkxs',
+  tr_carRental:     'color_mm212v99',
+  tr_carRentalExpl: 'long_text_mm21zaf2',
+  tr_comments:      'long_text_mm21nd8m',
 
-  // Cost estimates (traveler's original numbers — for reference)
-  tr_airfare:       'numeric_mm2vt4x6',
-  tr_mileage:       'numeric_mm2v1d3j',
-  tr_transport:     'numeric_mm2vsqsd',
-  tr_fees:          'numeric_mm2v651g',
-  tr_parking:       'numeric_mm2v3q9x',
-  tr_carRental:     'numeric_mm2vs9mf',
-  tr_perDiem:       'numeric_mm2vsfjf',
-  tr_meals:         'numeric_mm2vg56f',
-  tr_lodging:       'numeric_mm2vt4ft',
-  tr_confFees:      'numeric_mm2v4vtt',
-  tr_otherExp:      'numeric_mm2vncda',
-
-  // Justification
-  tr_justification: 'long_text_mm2vd845',
-
-  // --- Add more Board 1 columns here ---
+  // Lodging info
+  tr_hotel:         'text_mm215drm',
+  tr_checkin:       'date_mm21h786',
+  tr_checkout:      'date_mm216s6e',
+  tr_nights:        'numeric_mm21zqv2',
+  tr_hotelCost:     'numeric_mm21td8',
+  tr_roomRates:     'numeric_mm21ryww',
+  tr_350Expl:       'long_text_mm21gvq',
+  
 };
 
 

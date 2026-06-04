@@ -256,15 +256,27 @@ function travelerRequestPaneHTML(trip) {
 
     <div class="read-fields">
 
+      <div class="read-section-title">Supervisor Information</div>
+      ${readField('Supervisor',     trip.tr_supervisor)}
+
       <div class="read-section-title">Traveler Information</div>
       ${readField('Traveler',       trip.tr_traveler)}
       ${readField('SHARE ID',       trip.tr_shareId)}
-      ${readField('Position/Title', trip.tr_positionTitle)}
+      ${readField('Position/Title', trip.tr_position)}
       ${readField('Division',       trip.tr_division)}
+      ${readField('Work Phone',     trip.tr_phone)}
+      ${readField('Work City',      trip.tr_workCity)}
+      ${readField('Work State',     trip.tr_workState)}
+      ${readField('Home City',      trip.tr_homeCity)}
+      ${readField('Home State',     trip.tr_homeState)}
 
-      <div class="read-section-title">Trip Information</div>
-      ${readField('Conference',     trip.title)}
+      <div class="read-section-title">Conference Information</div>
+      ${readField('Conference',     trip.tr_conference)}
       ${readField('Destination',    trip.location)}
+      ${readField('Conference Start', trip.confStart)}
+      ${readField('Conference End', trip.confEnd)}
+
+      <div class="read-section-title">Travel Information</div>
       ${readField('Departure',      trip.startDate)}
       ${readField('Return',         trip.endDate)}
 
