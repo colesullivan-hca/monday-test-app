@@ -109,7 +109,17 @@ function extract(map, colDefs) {
   const result = {};
   for (const [key, colId] of Object.entries(colDefs)) {
     if (key === 'tripID') continue;
-    result[key] = map[colId]?.text || '';
+    const col = map[colId];
+    if (!col) { result[key] = ''; continue; }
+
+    // long_text columns store content in value JSON, not .text
+    if (col.type === 'long_text') {
+      try { result[key] = JSON.parse(col.value)?.text || ''; }
+      catch { result[key] = col.text || ''; }
+    // numeric columns: .text is already the number string
+    } else {
+      result[key] = col.text || '';
+    }
   }
   return result;
 }
@@ -228,7 +238,7 @@ export function assembleTrips({ travelerItems, hcaItems, reimbItems, isteItems }
     const trip   = slot(tripId);
 
     trip.mondayItemId_reimb = item.id;
-    trip.isteUrl            = item.url;
+    trip.reimbUrl           = item.url;
     trip.reimbAssets        = item.assets || [];
 
     Object.assign(trip, extract(map, TRAVELER_REIMB_COLS));
@@ -249,7 +259,7 @@ export function assembleTrips({ travelerItems, hcaItems, reimbItems, isteItems }
   // --- Compute pipelines, progress, state for every trip ---
   for (const trip of Object.values(trips)) {
     trip.preTravelSteps  = resolveSteps(PRE_TRAVEL_STEPS,  trip, null);
-    trip.postTravelSteps = resolveSteps(POST_TRAVEL_STEPS, trip, trip.isteUrl);
+    trip.postTravelSteps = resolveSteps(POST_TRAVEL_STEPS, trip, trip.reimbUrl);
 
     trip.preProgress  = pct(trip.preTravelSteps);
     trip.postProgress = pct(trip.postTravelSteps);

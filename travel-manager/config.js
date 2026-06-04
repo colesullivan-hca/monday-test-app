@@ -16,10 +16,10 @@ export const BOARDS = {
   travelerRequest:      18412077420,
 
   // Board 2: Travel team builds the official HCA packet for approvals
-  hcaPacket:            18412077420,  
+  hcaPacket:            18412077421,   // ← replace with your real board ID
 
   // Board 3: Traveler submits reimbursement form + receipts after travel
-  travelerReimbursement: 18412077424,  
+  travelerReimbursement: 18412077422,  // ← replace with your real board ID
 
   // Board 4: Travel team builds the ISTE statement for AP processing
   istePacket:           18412077425,
@@ -27,27 +27,53 @@ export const BOARDS = {
 
 
 // ---------------------------------------------------------------------------
-//  COLUMN IDs  —  Board 1: Traveler Request
+//  COLUMN IDs  —  Board 1: Traveler Request (read-only in the left pane)
+//  These are what the traveler submitted. Column IDs match the traveler's
+//  standalone request form. The travel team sees these but cannot edit them.
 // ---------------------------------------------------------------------------
 export const TRAVELER_REQUEST_COLS = {
-  tripID:       'text_mm35sbdp',   // Shared key that links all 4 boards
-  title:        'text_mm2vj6tf',
-  location:     'text_mm2vk860',
-  startDate:    'date_mm2vze0a',
-  endDate:      'date_mm2vnvrc',
-  // --- Add more columns from Board 1 here ---
-  // purpose:   'text_XXXXXXXX',
-  // estimatedCost: 'numbers_XXXXXXXX',
-  // rentalCar: 'color_XXXXXXXX',
-  // roomRates: 'color_XXXXXXXX',
+  tripID:           'text_mm35sbdp',   // Shared key that links all 4 boards
+
+  // Trip identity
+  title:            'text_mm2vj6tf',   // Conference name
+  location:         'text_mm2vk860',   // Destination
+  startDate:        'date_mm2vze0a',
+  endDate:          'date_mm2vnvrc',
+
+  // Traveler info
+  tr_traveler:      'text_mm2vn25f',
+  tr_shareId:       'text_mm2vh585',
+  tr_positionTitle: 'text_mm2vc3h',
+  tr_division:      'color_mm2vy7r8',
+
+  // Cost estimates (traveler's original numbers — for reference)
+  tr_airfare:       'numeric_mm2vt4x6',
+  tr_mileage:       'numeric_mm2v1d3j',
+  tr_transport:     'numeric_mm2vsqsd',
+  tr_fees:          'numeric_mm2v651g',
+  tr_parking:       'numeric_mm2v3q9x',
+  tr_carRental:     'numeric_mm2vs9mf',
+  tr_perDiem:       'numeric_mm2vsfjf',
+  tr_meals:         'numeric_mm2vg56f',
+  tr_lodging:       'numeric_mm2vt4ft',
+  tr_confFees:      'numeric_mm2v4vtt',
+  tr_otherExp:      'numeric_mm2vncda',
+
+  // Justification
+  tr_justification: 'long_text_mm2vd845',
+
+  // --- Add more Board 1 columns here ---
 };
 
 
 // ---------------------------------------------------------------------------
 //  COLUMN IDs  —  Board 2: HCA Travel Packet (travel team editable)
+//  All IDs sourced from the HCA Travel Request standalone app (app.js).
 // ---------------------------------------------------------------------------
 export const HCA_PACKET_COLS = {
   tripID:             'text_mm35jsjp',  // Must match travelerRequest.tripID value
+
+  // ── Approval status columns (color/status type) ──────────────────────────
   packetStatus:       'color_mm2xe9t',
   supervisorApproval: 'color_mm2x5q1s',
   divisionApproval:   'color_mm2xnfbh',
@@ -55,8 +81,52 @@ export const HCA_PACKET_COLS = {
   OOSApproval:        'color_mm2xerea',
   rentalApproval:     'color_mm3seyds',
   roomRatesApproval:  'color_mm3s84rd',
-  // --- Add more columns from Board 2 here ---
-  // internalNotes: 'text_XXXXXXXX',
+
+  // ── Header ───────────────────────────────────────────────────────────────
+  hca_division:       'color_mm2vy7r8',  // readonly — pulled from traveler board
+  hca_date:           'date_mm2yy6cp',
+
+  // ── Section 1: Traveler Information ──────────────────────────────────────
+  hca_traveler:       'text_mm2vn25f',
+  hca_shareId:        'text_mm2vh585',
+  hca_title:          'text_mm2vc3h',
+
+  // ── Section 2: Trip Information (mirrors Board 1 — travel team can update)
+  hca_destination:    'text_mm2vk860',
+  hca_conferenceName: 'text_mm2vj6tf',
+  hca_departureDate:  'date_mm2vze0a',
+  hca_returnDate:     'date_mm2vnvrc',
+
+  // ── Section 3: Cost — Amounts ─────────────────────────────────────────────
+  hca_airfare:        'numeric_mm2vt4x6',
+  hca_mileage:        'numeric_mm2v1d3j',
+  hca_transport:      'numeric_mm2vsqsd',
+  hca_fees:           'numeric_mm2v651g',
+  hca_parking:        'numeric_mm2v3q9x',
+  hca_carRental:      'numeric_mm2vs9mf',
+  hca_perDiem:        'numeric_mm2vsfjf',
+  hca_meals:          'numeric_mm2vg56f',
+  hca_lodging:        'numeric_mm2vt4ft',
+  hca_confFees:       'numeric_mm2v4vtt',
+  hca_otherExp:       'numeric_mm2vncda',
+
+  // ── Section 3: Cost — PO Reimbursement Amounts ───────────────────────────
+  hca_airfarePO:      'numeric_mm2vx6wy',
+  hca_mileagePO:      'numeric_mm2vqaak',
+  hca_transportPO:    'numeric_mm2vr1m5',
+  hca_feesPO:         'numeric_mm2vcjps',
+  hca_parkingPO:      'numeric_mm2vjmz',
+  hca_carRentalPO:    'numeric_mm2vm1be',
+  hca_perDiemPO:      'numeric_mm2vnekg',
+  hca_mealsPO:        'numeric_mm2vrj5n',
+  hca_lodgingPO:      'numeric_mm2vwf01',
+  hca_confFeesPO:     'numeric_mm2v1ef6',
+  hca_otherExpPO:     'numeric_mm2vd6bx',
+
+  // ── Section 4: Justification ──────────────────────────────────────────────
+  hca_justification:  'long_text_mm2vd845',
+
+  // --- Add more Board 2 columns here ---
 };
 
 

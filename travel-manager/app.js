@@ -20,6 +20,39 @@ let activeTab = 'pre'; // 'pre' | 'post'
 //  Boot
 // ---------------------------------------------------------------------------
 
+
+// ---------------------------------------------------------------------------
+//  serializeColumnValue(colId, value)
+//  Converts a form value to the JSON string monday's API expects.
+//  monday type detection is based on column ID prefix conventions:
+//    color_*      → status/color  → { "label": "Approved" }
+//    date_*       → date          → { "date": "YYYY-MM-DD" }
+//    long_text_*  → long text     → { "text": "..." }
+//    numeric_*    → number        → raw number string
+//    text_*       → short text    → raw string
+// ---------------------------------------------------------------------------
+function serializeColumnValue(colId, value) {
+  // Already an object (caller built the shape) — just stringify
+  if (typeof value === 'object' && value !== null) {
+    return JSON.stringify(value);
+  }
+
+  const prefix = colId.split('_')[0];
+  switch (prefix) {
+    case 'color':
+      return JSON.stringify({ label: String(value) });
+    case 'date':
+      return value ? JSON.stringify({ date: String(value) }) : '""';
+    case 'long':       // long_text_*
+      return JSON.stringify({ text: String(value) });
+    case 'numeric':
+    case 'numbers':
+      return JSON.stringify(String(parseFloat(value) || 0));
+    default:           // text_* and anything else
+      return JSON.stringify(String(value));
+  }
+}
+
 async function init() {
   const loader = document.getElementById('loader');
 
@@ -93,19 +126,19 @@ async function onSavePre(formData) {
 
     for (const [fieldKey, value] of Object.entries(formData)) {
       const colId = HCA_PACKET_COLS[fieldKey];
-      if (!colId) continue;
+      if (!colId || value === undefined) continue;
 
       await monday.api(MUTATION_CHANGE_COLUMN, {
         variables: {
           boardId:  String(BOARDS.hcaPacket),
           itemId:   String(trip.mondayItemId_hca),
           columnId: colId,
-          value:    JSON.stringify(value),
+          value:    serializeColumnValue(colId, value),
         },
       });
 
       // Keep local state current so pipeline re-renders correctly
-      trip[fieldKey] = typeof value === 'object' ? value.label : value;
+      trip[fieldKey] = typeof value === 'object' ? (value.label ?? value.date ?? '') : value;
     }
 
     // Re-assemble trip pipelines with updated values
@@ -138,18 +171,18 @@ async function onSavePost(formData) {
 
     for (const [fieldKey, value] of Object.entries(formData)) {
       const colId = ISTE_PACKET_COLS[fieldKey];
-      if (!colId) continue;
+      if (!colId || value === undefined) continue;
 
       await monday.api(MUTATION_CHANGE_COLUMN, {
         variables: {
           boardId:  String(BOARDS.istePacket),
           itemId:   String(trip.mondayItemId_iste),
           columnId: colId,
-          value:    JSON.stringify(value),
+          value:    serializeColumnValue(colId, value),
         },
       });
 
-      trip[fieldKey] = typeof value === 'object' ? value.label : value;
+      trip[fieldKey] = typeof value === 'object' ? (value.label ?? value.date ?? '') : value;
     }
 
     rehydrateTrip(trip);
@@ -196,7 +229,7 @@ function resolveSteps(stepDefs, data, isteUrl) {
 
 function rehydrateTrip(trip) {
   trip.preTravelSteps  = resolveSteps(PRE_TRAVEL_STEPS,  trip, null);
-  trip.postTravelSteps = resolveSteps(POST_TRAVEL_STEPS, trip, trip.isteUrl);
+  trip.postTravelSteps = resolveSteps(POST_TRAVEL_STEPS, trip, trip.reimbUrl);
   trip.preProgress     = Math.round(trip.preTravelSteps.filter(s => s.state === 'done').length / trip.preTravelSteps.length * 100);
   trip.postProgress    = Math.round(trip.postTravelSteps.filter(s => s.state === 'done').length / trip.postTravelSteps.length * 100);
 }

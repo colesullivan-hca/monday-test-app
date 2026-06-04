@@ -5,7 +5,7 @@
 //    forms-post.js  (Board 4 — ISTE reimbursement fields)
 // =============================================================================
 
-import { buildPreForm, collectPreFormData }   from './forms-pre.js';
+import { buildPreForm, collectPreFormData, initPreFormListeners }   from './forms-pre.js';
 import { buildPostForm, collectPostFormData } from './forms-post.js';
 
 
@@ -101,7 +101,7 @@ export function renderDetail(trip, activeTab, { onSavePre, onSavePost, onTabSwit
       <div id="save-status" class="save-status hidden"></div>
       <div class="footer-links">
         ${trip.requestUrl    ? `<a href="${trip.requestUrl}" target="_blank" class="footer-link">Request form ↗</a>` : ''}
-        ${trip.isteUrl       ? `<a href="${trip.isteUrl}" target="_blank" class="footer-link">ISTE form ↗</a>` : ''}
+        ${trip.reimbUrl      ? `<a href="${trip.reimbUrl}" target="_blank" class="footer-link">Reimb. form ↗</a>` : ''}
         ${trip.hcaUrl        ? `<a href="${trip.hcaUrl}" target="_blank" class="footer-link">HCA packet ↗</a>` : ''}
         ${trip.istePacketUrl ? `<a href="${trip.istePacketUrl}" target="_blank" class="footer-link">ISTE packet ↗</a>` : ''}
       </div>
@@ -116,6 +116,7 @@ export function renderDetail(trip, activeTab, { onSavePre, onSavePost, onTabSwit
       travelerRequestPaneHTML(trip),
       buildPreForm(trip)
     );
+    initPreFormListeners();  // wire live cost totals after HTML is in DOM
   } else {
     tabContent.innerHTML = splitPaneHTML(
       travelerReimbPaneHTML(trip),
@@ -237,33 +238,58 @@ function splitPaneHTML(leftHTML, rightHTML) {
 
 // ---------------------------------------------------------------------------
 //  Left pane: Traveler's original request (Board 1, read-only)
+//  Shows all fields the traveler submitted, mirroring the HCA form sections
+//  so the travel team can compare side-by-side while filling Board 2.
 // ---------------------------------------------------------------------------
 
 function travelerRequestPaneHTML(trip) {
+  const fmt = v => (v && v !== '0') ? `$${parseFloat(v).toFixed(2)}` : '—';
+
   return `
     <div class="pane-header">
       <span class="pane-header__icon">${formIcon()}</span>
       <div>
-        <div class="pane-header__title">Traveler Request</div>
+        <div class="pane-header__title">Traveler's Submitted Request</div>
         <div class="pane-header__sub">Board 1 · Read-only</div>
       </div>
     </div>
 
-    <!-- ── TRAVELER REQUEST FIELDS ──────────────────────────────────────
-         Add more read-only fields below by duplicating .read-field rows.
-         Source data comes from TRAVELER_REQUEST_COLS in config.js.
-    ────────────────────────────────────────────────────────────────── -->
-
     <div class="read-fields">
-      ${readField('Title',       trip.title)}
-      ${readField('Location',    trip.location)}
-      ${readField('Dates',       trip.dates)}
-      ${readField('Start date',  trip.startDate)}
-      ${readField('End date',    trip.endDate)}
-      <!-- Add more here:  ${readField('Purpose', trip.purpose)}  -->
+
+      <div class="read-section-title">Traveler Information</div>
+      ${readField('Traveler',       trip.tr_traveler)}
+      ${readField('SHARE ID',       trip.tr_shareId)}
+      ${readField('Position/Title', trip.tr_positionTitle)}
+      ${readField('Division',       trip.tr_division)}
+
+      <div class="read-section-title">Trip Information</div>
+      ${readField('Conference',     trip.title)}
+      ${readField('Destination',    trip.location)}
+      ${readField('Departure',      trip.startDate)}
+      ${readField('Return',         trip.endDate)}
+
+      <div class="read-section-title">Estimated Costs</div>
+      ${readField('Airfare',        fmt(trip.tr_airfare))}
+      ${readField('Mileage',        fmt(trip.tr_mileage))}
+      ${readField('Misc. Transport',fmt(trip.tr_transport))}
+      ${readField('Other Fees',     fmt(trip.tr_fees))}
+      ${readField('Airport Parking',fmt(trip.tr_parking))}
+      ${readField('Car Rental',     fmt(trip.tr_carRental))}
+      ${readField('Per Diem',       fmt(trip.tr_perDiem))}
+      ${readField('Meals',          fmt(trip.tr_meals))}
+      ${readField('Lodging',        fmt(trip.tr_lodging))}
+      ${readField('Conference Fees',fmt(trip.tr_confFees))}
+      ${readField('Other Expenses', fmt(trip.tr_otherExp))}
+
+      <div class="read-section-title">Justification</div>
+      ${readField('', trip.tr_justification)}
+
     </div>
 
     ${attachmentsHTML(trip.requestAssets, 'Traveler attachments')}
+
+    <!-- Add more read-only fields here by duplicating readField() calls above.
+         Field keys come from TRAVELER_REQUEST_COLS in config.js. -->
   `;
 }
 
@@ -273,25 +299,43 @@ function travelerRequestPaneHTML(trip) {
 // ---------------------------------------------------------------------------
 
 function travelerReimbPaneHTML(trip) {
+  const fmt = v => (v && v !== '0') ? `$${parseFloat(v).toFixed(2)}` : '—';
+
+  // Show a prompt if Board 3 IDs haven't been configured yet
+  const notConfigured = !trip.mondayItemId_reimb;
+
   return `
     <div class="pane-header">
       <span class="pane-header__icon">${receiptIcon()}</span>
       <div>
-        <div class="pane-header__title">Reimbursement Submission</div>
+        <div class="pane-header__title">Traveler's Reimbursement Form</div>
         <div class="pane-header__sub">Board 3 · Read-only</div>
       </div>
     </div>
 
-    <!-- ── REIMBURSEMENT FIELDS ─────────────────────────────────────────
-         Add more read-only fields below.
-         Source data comes from TRAVELER_REIMB_COLS in config.js.
-    ────────────────────────────────────────────────────────────────── -->
+    ${notConfigured ? `
+      <div class="pane-notice">
+        Board 3 column IDs not yet configured.
+        Add them to <code>TRAVELER_REIMB_COLS</code> in <code>config.js</code>.
+      </div>
+    ` : ''}
 
     <div class="read-fields">
-      ${readField('Total claimed', trip.totalClaimed)}
-      ${readField('Per diem days', trip.perDiemDays)}
-      ${readField('Mileage',       trip.mileage)}
-      <!-- Add more here: ${readField('Notes', trip.receiptsNotes)} -->
+
+      <div class="read-section-title">Claimed Expenses</div>
+      ${readField('Total claimed',   fmt(trip.totalClaimed))}
+      ${readField('Per diem days',   trip.perDiemDays)}
+      ${readField('Mileage',         fmt(trip.tr_reimb_mileage))}
+
+      <!-- ── ADD MORE FIELDS HERE ────────────────────────────────────────
+           1. Add the column ID to TRAVELER_REIMB_COLS in config.js
+           2. Add a readField() line here using the key name you chose
+           Example:
+             ${readField('Airfare', fmt(trip.tr_reimb_airfare))}
+             ${readField('Lodging', fmt(trip.tr_reimb_lodging))}
+             ${readField('Notes',   trip.tr_reimb_notes)}
+      ─────────────────────────────────────────────────────────────── -->
+
     </div>
 
     ${attachmentsHTML(trip.reimbAssets, 'Submitted receipts')}
