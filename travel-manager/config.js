@@ -33,10 +33,6 @@ export const BOARDS = {
 // ---------------------------------------------------------------------------
 export const TRAVELER_REQUEST_COLS = {
   tripID:           'text_mm35sbdp',   // Shared key that links all 4 boards
-
-  // Trip identity
-  title:            'text_mm2vj6tf',   // Conference name
-  location:         'text_mm2vk860',   // Destination
   
   // Supervisor info
   tr_supervisor:    'text_mm21ej4y',
@@ -96,6 +92,10 @@ export const TRAVELER_REQUEST_COLS = {
 // ---------------------------------------------------------------------------
 export const HCA_PACKET_COLS = {
   tripID:             'text_mm35sbdp',  // Must match travelerRequest.tripID value
+
+  // Trip identity
+  title:            'text_mm2vj6tf',   // Conference name
+  location:         'text_mm2vk860',   // Destination
 
   // ── Approval status columns (color/status type) ──────────────────────────
   packetStatus:       'color_mm2xe9t',
