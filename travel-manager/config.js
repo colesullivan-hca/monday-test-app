@@ -95,7 +95,7 @@ export const TRAVELER_REQUEST_COLS = {
 //  All IDs sourced from the HCA Travel Request standalone app (app.js).
 // ---------------------------------------------------------------------------
 export const HCA_PACKET_COLS = {
-  tripID:             'text_mm35jsjp',  // Must match travelerRequest.tripID value
+  tripID:             'text_mm35sbdp',  // Must match travelerRequest.tripID value
 
   // ── Approval status columns (color/status type) ──────────────────────────
   packetStatus:       'color_mm2xe9t',
@@ -158,7 +158,7 @@ export const HCA_PACKET_COLS = {
 //  COLUMN IDs  —  Board 3: Traveler Reimbursement Submission
 // ---------------------------------------------------------------------------
 export const TRAVELER_REIMB_COLS = {
-  tripID:       'text_XXXXXXXX',   // ← replace
+  tripID:       'text_mm35kp5n',   // ← replace
   totalClaimed: 'numbers_XXXXXXXX', // ← replace
   perDiemDays:  'numbers_XXXXXXXX', // ← replace
   mileage:      'numbers_XXXXXXXX', // ← replace
