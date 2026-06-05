@@ -209,7 +209,7 @@ export function buildPreForm(trip) {
         <tr><td class="hca-section">Attachments</td></tr>
         <tr>
           <td>
-            ${attachmentsHTML(trip.hcaAssets, 'Traveler attachments', trip.mondayItemId_hca, 'file_mm21bca5')}
+            ${attachmentsHTML(trip.hcaAssets, 'Traveler attachments', trip.mondayItemId_hca, 'file_mm2vqvz3')}
           </td>
         </tr>
       </table>
@@ -415,6 +415,7 @@ function fileUpload(itemId, columnId) {
       </svg>
       <span class="attachment__name">Add Attachment</span>
       <span class="attachment__ext"></span>
+      <input type="file" id="file-upload-input" style="display:none">
     </div>
   `;
 }

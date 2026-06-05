@@ -260,8 +260,34 @@ function showSaveStatus(msg, type) {
 }
 
 // ---------------------------------------------------------------------------
-//  File Dialog
+//  Files
 // ---------------------------------------------------------------------------
+async function uploadFileToMonday(file, itemId, columnId) {
+  const query = `
+    mutation ($file: File!) {
+      add_file_to_column(
+        item_id: ${itemId}
+        column_id: "${columnId}"
+        file: $file
+      ) { id }
+    }
+  `;
+
+  const formData = new FormData();
+  formData.append('query', query);
+  formData.append('variables[file]', file, file.name);
+
+  const token = (await monday.get('sessionToken')).data;
+
+  const response = await fetch('https://api.monday.com/v2/file', {
+    method: 'POST',
+    headers: { Authorization: token },
+    body: formData,
+  });
+
+  return response.json();
+}
+
 function initFileDialogListeners() {
   document.querySelectorAll('.monday-file-btn').forEach(el => {
     el.addEventListener('click', () => {
@@ -275,11 +301,21 @@ function initFileDialogListeners() {
   });
   document.querySelectorAll('.monday-upload-btn').forEach(el => {
     el.addEventListener('click', () => {
-      monday.execute('triggerFilesUpload', {
-        boardId:  BOARDS.hcaPacket,
-        itemId:   el.dataset.itemId,
-        columnId: el.dataset.columnId,
-      });
+      const input = document.getElementById('file-upload-input');
+      input.onchange = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        try {
+          showSaveStatus('Uploading…', 'saving');
+          await uploadFileToMonday(file, parseInt(el.dataset.itemId), el.dataset.columnId);
+          showSaveStatus('Uploaded', 'saved');
+        } catch (err) {
+          console.error('Upload error:', err);
+          showSaveStatus('Upload failed — check console', 'error');
+        }
+        input.value = '';
+      };
+      input.click();
     });
   });
 }
