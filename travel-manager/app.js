@@ -103,11 +103,13 @@ function onSelect(tripId) {
   activeTab = 'pre';   // always open on pre-travel tab
   renderDetail(trips[tripId], activeTab, { onSavePre, onSavePost, onTabSwitch });
   highlightSidebarItem(tripId);
+  initFileDialogListeners();
 }
 
 function onTabSwitch(tab) {
   activeTab = tab;
   renderDetail(trips[activeId], tab, { onSavePre, onSavePost, onTabSwitch });
+  initFileDialogListeners();
 }
 
 function highlightSidebarItem(tripId) {
@@ -255,6 +257,31 @@ function showSaveStatus(msg, type) {
   if (type === 'saved') {
     setTimeout(() => el.classList.add('hidden'), 2500);
   }
+}
+
+// ---------------------------------------------------------------------------
+//  File Dialog
+// ---------------------------------------------------------------------------
+function initFileDialogListeners() {
+  document.querySelectorAll('.monday-file-btn').forEach(el => {
+    el.addEventListener('click', () => {
+      monday.execute('openFilesDialog', {
+        boardId:  BOARDS.hcaPacket,
+        itemId:   el.dataset.itemId,
+        columnId: el.dataset.columnId,
+        ...(el.dataset.assetId ? { assetId: el.dataset.assetId } : {}),
+      });
+    });
+  });
+  document.querySelectorAll('.monday-upload-btn').forEach(el => {
+    el.addEventListener('click', () => {
+      monday.execute('triggerFilesUpload', {
+        boardId:  BOARDS.hcaPacket,
+        itemId:   el.dataset.itemId,
+        columnId: el.dataset.columnId,
+      });
+    });
+  });
 }
 
 

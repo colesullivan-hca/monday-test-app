@@ -8,6 +8,14 @@
 //
 // =============================================================================
 
+
+// ---------------------------------------------------------------------------
+//  APPLICATION MODE
+// ---------------------------------------------------------------------------
+// export const MODE = 'test'
+// export const MODE = 'dev'
+export const MODE = 'prod'
+
 // ---------------------------------------------------------------------------
 //  BOARD IDs
 // ---------------------------------------------------------------------------
@@ -40,6 +48,8 @@ export const TRAVELER_REQUEST_COLS = {
   
   // Traveler info
   traveler:         '',
+  tr_firstName:     'text_mm2149yj',
+  tr_lastName:      'text_mm214zhc',
   tr_email:         'email_mm2xq18k',
   tr_division:      'color_mm36hm34',
   tr_position:      'text_mm21ecb6',
@@ -48,7 +58,7 @@ export const TRAVELER_REQUEST_COLS = {
   tr_workState:     'color_mm38vtg3',
   tr_homeCity:      'text_mm3850m6',
   tr_homeState:     'color_mm38qytg',
-  tr_shareId:       'numeric_mm21n98s',
+  tr_vendorId:       'numeric_mm21n98s',
   tr_w9:            'file_mm21bca5',
   
   // Conference info
@@ -58,17 +68,18 @@ export const TRAVELER_REQUEST_COLS = {
   tr_confStart:     'date_mm21qkrj',
   tr_confEnd:       'date_mm214633',
   tr_justification: 'text_mm21v5he',
-  tr_confFee:       'numeric_mm21245w',
+  tr_confFee:       'color_mm21y3cg',
+  tr_confFeeAmount: 'numeric_mm21245w',
   
   // Transportation info
   tr_prefAirline:   'text_mm216ynn',
-  startDate:        'date_mm218snw',
+  tr_outboundDate:  'date_mm218snw',
   tr_outboundTime:  'dropdown_mm2xg3my',
-  endDate:          'date_mm217077',
+  tr_returnDate:    'date_mm217077',
   tr_returnTime:    'dropdown_mm2xnf5s',
-  tr_bagFee:        '',
+  tr_bagFee:        'color_mm21h3bk',
   tr_bagFeeQuote:   'file0vnbcr0i',
-  tr_parkingFee:    '',
+  tr_parkingFee:    'color_mm219wwd',
   tr_parkingQuote:  'fileiktemkxs',
   tr_carRental:     'color_mm212v99',
   tr_carRentalExpl: 'long_text_mm21zaf2',
@@ -83,6 +94,9 @@ export const TRAVELER_REQUEST_COLS = {
   tr_roomRates:     'numeric_mm21ryww',
   tr_350Expl:       'long_text_mm21gvq',
   
+  // Reimbursement
+  tr_reimburseType: 'color_mm35r4bb',
+
 };
 
 
@@ -118,6 +132,8 @@ export const HCA_PACKET_COLS = {
   // ── Section 2: Trip Information (mirrors Board 1 — travel team can update)
   hca_destination:    'text_mm2vk860',
   hca_conferenceName: 'text_mm2vj6tf',
+  startDate:          'date_mm2vze0a',
+  endDate:            'date_mm2vnvrc',
   hca_departureDate:  'date_mm2vze0a',
   hca_returnDate:     'date_mm2vnvrc',
 

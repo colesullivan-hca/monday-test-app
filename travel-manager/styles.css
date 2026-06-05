@@ -524,6 +524,14 @@ html, body {
   align-items: flex-start;
   gap: 10px;
   margin-bottom: 16px;
+  position: sticky;
+  top: -16px;
+  background-color: var(--surface-app);
+  padding: 10px 0;
+}
+
+.pane-header__container{
+  flex: 1;
 }
 
 .pane-header__icon {
@@ -608,6 +616,9 @@ html, body {
 
 .attachments {
   margin-top: 20px;
+  &.hca {
+    margin-top: 0;
+  }
 }
 
 .attachments__label {
@@ -631,6 +642,13 @@ html, body {
   color: var(--text-primary);
   background: var(--surface-card);
   transition: border-color .1s, background .1s;
+  &.hca {
+    min-width: 0;
+    justify-content: center;
+  }
+  &.upload {
+    margin-top: 10px;
+  }
 }
 
 .attachment:hover {
@@ -650,6 +668,9 @@ html, body {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  .upload & {
+    flex: 0 0 fit-content;
+  }
 }
 
 .attachment__ext {
@@ -692,6 +713,9 @@ html, body {
   display: grid;
   grid-template-columns: 1fr;
   gap: 10px;
+  &.attachments {
+    row-gap: 0;
+  }
 }
 
 .form-row--2col {
@@ -700,6 +724,10 @@ html, body {
 
 .form-row--3col {
   grid-template-columns: 1fr 1fr 1fr;
+}
+
+.form-row--4col {
+  grid-template-columns: 1fr 1fr 1fr 1fr;
 }
 
 /* A single label + input pair */
@@ -763,6 +791,21 @@ html, body {
   padding-right: 28px;
   transition: border-color .15s, box-shadow .15s;
 }
+
+/* .form-select {
+  &.readyforapprovals {
+    color: var(--mn-green);
+  }
+  &.inpreperation {
+    color: var(--mn-orange);
+  }
+  &.onhold {
+    color: var(--mn-red);
+  }
+  &.readyforapprovals option {
+    color: var(--text-primary);
+  }
+} */
 
 .form-select:hover { border-color: var(--mn-blue); }
 .form-select:focus { border-color: var(--mn-blue); box-shadow: 0 0 0 2px var(--mn-blue-light); }
@@ -902,10 +945,11 @@ html, body {
 }
 
 .hca-section {
-  background: #dfe3e8;
+  background: #dfe3e8 !important;
   font-weight: bold;
   text-transform: uppercase;
   font-size: 12px;
+  text-align: center;
 }
 
 .hca-label {
@@ -966,24 +1010,35 @@ html, body {
   background-repeat: no-repeat;
   background-position: right 2px center;
   padding-right: 14px;
+
+  & option {
+    background-color: white;
+    color: var(--text-primary)
+  }
 }
 
 td {
   &.approved {
     background-color: var(--mn-green);
-    & select.hca-select {color: white;}
+    & select.hca-select {
+      color: black;
+    }
   }
   &.denied {
     background-color: var(--mn-red);
-    & select.hca-select {color: white;}
+    & select.hca-select {
+      color: black;
+    }
   }
   &.awaitingreview {
     background-color: var(--mn-orange);
-    & select.hca-select {color: white;}
+    & select.hca-select {
+      color: black;
+    }
   }
 }
 
-.hca-select:focus { background-color: #f0f7ff; }
+/* .hca-select:focus { background-color: #f0f7ff; } */
 .hca-select:disabled { cursor: default; color: var(--text-secondary); }
 
 /* Locked state badge */

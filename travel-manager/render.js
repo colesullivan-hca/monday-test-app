@@ -257,44 +257,65 @@ function travelerRequestPaneHTML(trip) {
     <div class="read-fields">
 
       <div class="read-section-title">Supervisor Information</div>
-      ${readField('Supervisor',     trip.tr_supervisor)}
+      <div class="form-row form-row--2col">
+        ${readField('Supervisor',     trip.tr_supervisor)}
+        ${readField('Supervisor Email',trip.tr_supervisorEmail)}
+      </div>
 
       <div class="read-section-title">Traveler Information</div>
-      ${readField('Traveler',       trip.hca_traveler)}
-      ${readField('SHARE ID',       trip.tr_shareId)}
-      ${readField('Position/Title', trip.tr_position)}
-      ${readField('Division',       trip.tr_division)}
-      ${readField('Work Phone',     trip.tr_phone)}
-      ${readField('Work City',      trip.tr_workCity)}
-      ${readField('Work State',     trip.tr_workState)}
-      ${readField('Home City',      trip.tr_homeCity)}
-      ${readField('Home State',     trip.tr_homeState)}
+      ${readField('Division',        trip.tr_division)}
+      <div class="form-row form-row--2col">
+        ${readField('First Name',      trip.tr_firstName)}
+        ${readField('Last Name',       trip.tr_lastName)}
+      </div>
+      <div class="form-row form-row--2col">
+        ${readField('Email',          trip.tr_email)}
+        ${readField('Work Phone',     trip.tr_phone)}
+      </div>
+      <div class="form-row form-row--2col">
+        ${readField('Position/Title', trip.tr_position)}
+        ${readField('Vendor/Supplier ID',      trip.tr_vendorId)}
+      </div>
+      <div class="form-row form-row--2col">
+        ${readField('Work City',      trip.tr_workCity)}
+        ${readField('Work State',     trip.tr_workState)}
+        ${readField('Home City',      trip.tr_homeCity)}
+        ${readField('Home State',     trip.tr_homeState)}
+      </div>
 
       <div class="read-section-title">Conference Information</div>
       ${readField('Conference',     trip.tr_conference)}
-      ${readField('Destination',    trip.location)}
+      ${readField('City',           trip.tr_confCity)}
+      ${readField('State',          trip.tr_confState)}
       ${readField('Conference Start', trip.tr_confStart)}
       ${readField('Conference End', trip.tr_confEnd)}
+      ${readField('Trip Justification', trip.tr_justification)}
+      ${readField('Conference Fee', trip.tr_confFee)}
+      ${readField('Conference Fee Amount', fmt(trip.tr_confFeeAmount))}
 
       <div class="read-section-title">Travel Information</div>
-      ${readField('Departure',      trip.startDate)}
-      ${readField('Return',         trip.endDate)}
+      ${readField('Preferred Airline', trip.tr_prefAirline)}
+      ${readField('Preferred Outbound Departure Date', trip.tr_outboundDate)}
+      ${readField('Preferred Outbound Departure Times', trip.tr_outboundTime)}
+      ${readField('Preferred Return Departure Date',   trip.tr_returnDate)}
+      ${readField('Preferred Return Departure Times', trip.tr_returnTime)}
+      ${readField('Do you anticipate baggage fees?', trip.tr_bagFee)}
+      ${readField('Do you anticipate airport parking fees?', trip.tr_parkingFee)}
+      ${readField('Do you need a rental car?', trip.tr_carRental)}
+      ${readField('Rental car explanation', trip.tr_carRentalExpl)}
+      ${readField('Comments', trip.tr_comments)}
 
-      <div class="read-section-title">Estimated Costs</div>
-      ${readField('Airfare',        fmt(trip.tr_airfare))}
-      ${readField('Mileage',        fmt(trip.tr_mileage))}
-      ${readField('Misc. Transport',fmt(trip.tr_transport))}
-      ${readField('Other Fees',     fmt(trip.tr_fees))}
-      ${readField('Airport Parking',fmt(trip.tr_parking))}
-      ${readField('Car Rental',     trip.tr_carRental)}
-      ${readField('Per Diem',       fmt(trip.tr_perDiem))}
-      ${readField('Meals',          fmt(trip.tr_meals))}
-      ${readField('Lodging',        fmt(trip.tr_lodging))}
-      ${readField('Conference Fees',fmt(trip.tr_confFees))}
-      ${readField('Other Expenses', fmt(trip.tr_otherExp))}
+      <div class="read-section-title">Lodging Information</div>
+      ${readField('Hotel', trip.tr_hotel)}
+      ${readField('Check-In Date', trip.tr_checkin)}
+      ${readField('Check-Out Date', trip.tr_checkout)}
+      ${readField('Number of Nights', trip.tr_nights)}
+      ${readField('Estimated Cost for Full Stay', fmt(trip.tr_hotelCost))}
+      ${readField('Room Rates', fmt(trip.tr_roomRates))}
+      ${readField('Justification for $350+ Room Rates', trip.tr_350Expl)}
 
-      <div class="read-section-title">Justification</div>
-      ${readField('', trip.tr_justification)}
+      <div class="read-section-title">Reimbursement</div>
+      ${readField('How would you like to be reimbursed?', trip.tr_reimburseType)}
 
     </div>
 

@@ -32,10 +32,17 @@ export function buildPreForm(trip) {
   return `
     <div class="pane-header">
       <span class="pane-header__icon">${editIcon()}</span>
-      <div>
-        <div class="pane-header__title">HCA Travel Packet</div>
-        <div class="pane-header__sub">Board 2 · Editable — saves to monday
-          ${locked ? '<span class="locked-badge">Locked — Ready for Approvals</span>' : ''}
+      <div class="form-row form-row--2col pane-header__container">
+        <div>
+          <div class="pane-header__title">HCA Travel Packet</div>
+          <div class="pane-header__sub">Board 2 · Editable — saves to monday
+          </div>
+        </div>
+        <div class="form-field">
+            <label class="form-label" for="packetStatus_pre">Pre-Travel Status</label>
+            <select class="form-select ${trip.packetStatus.replaceAll(" ", "").toLowerCase()}" id="packetStatus_pre">
+              ${selectOptions(PACKET_STATUS_OPTIONS, trip.packetStatus)}
+            </select>
         </div>
       </div>
     </div>
@@ -197,17 +204,19 @@ export function buildPreForm(trip) {
         </tr>
       </table>
 
+      <!-- ── Section 4: Attachments ──────────────────────────────── -->
+      <table class="hca-table">
+        <tr><td class="hca-section">Attachments</td></tr>
+        <tr>
+          <td>
+            ${attachmentsHTML(trip.hcaAssets, 'Traveler attachments', trip.mondayItemId_hca, 'file_mm21bca5')}
+          </td>
+        </tr>
+      </table>
+
       <!-- ── Section 5: Approval Status (travel team manages) ──────── -->
       <table class="hca-table">
         <tr><td colspan="4" class="hca-section">Section 5. APPROVALS</td></tr>
-        <tr>
-          <td class="hca-label">PACKET STATUS:</td>
-          <td colspan="3">
-            <select class="hca-select" id="packetStatus" ${roSel}>
-              ${selectOptions(PACKET_STATUS_OPTIONS, trip.packetStatus)}
-            </select>
-          </td>
-        </tr>
         <tr>
           <td class="hca-label">SUPERVISOR:</td>
           <td class="${trip.supervisorApproval.replaceAll(" ", "").toLowerCase()}">
@@ -377,9 +386,49 @@ export function collectPreFormData() {
 //  Helpers
 // ---------------------------------------------------------------------------
 
+function attachmentsHTML(assets = [], label = 'Attachments', itemId, columnId) {
+  if (!assets.length) return '';
+
+  return `
+    <div class="hca attachments form-row form-row--3col">
+      ${assets.map(a => `
+        <div class="hca attachment monday-file-btn"
+             data-asset-id="${a.id}"
+             data-item-id="${itemId}"
+             data-column-id="${columnId}"
+             style="cursor:pointer">
+          ${attachIcon(a.file_extension)}
+          <span class="attachment__name">${a.name}</span>
+          <span class="attachment__ext">${a.file_extension?.toUpperCase() || ''}</span>
+        </div>
+      `).join('')}
+    </div>
+    ${fileUpload(itemId, columnId)}
+  `;
+}
+
+function fileUpload(itemId, columnId) {
+  return `
+    <div class="monday-upload-btn hca upload attachment" data-item-id="${itemId}" data-column-id="${columnId}" style="cursor:pointer">
+      <svg class="attachment__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M12 5v14M5 12h14" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span class="attachment__name">Add Attachment</span>
+      <span class="attachment__ext"></span>
+    </div>
+  `;
+}
+
+function attachIcon(ext) {
+  const isPdf = ext?.toLowerCase() === 'pdf';
+  return isPdf
+    ? `<svg class="attachment__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/></svg>`
+    : `<svg class="attachment__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M13 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V9z"/><polyline points="13 2 13 9 20 9"/></svg>`;
+}
+
 function selectOptions(opts, current) {
   return opts.map(o =>
-    `<option value="${o}" ${o === current ? 'selected' : ''}>${o || '— select —'}</option>`
+    `<option value="${o}" ${o === current ? 'selected' : ''}>${o || ''}</option>`
   ).join('');
 }
 

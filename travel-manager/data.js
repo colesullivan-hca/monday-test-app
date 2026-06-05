@@ -4,6 +4,7 @@
 // =============================================================================
 
 import {
+  MODE,
   BOARDS,
   TRAVELER_REQUEST_COLS,
   HCA_PACKET_COLS,
@@ -74,7 +75,23 @@ async function fetchBoard(monday, boardId) {
 
     let res;
     try {
-      res = await monday.api(query, { variables });
+      if (MODE === 'dev') {
+        const response = await fetch("http://127.0.0.1:5000/get-monday-data", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ query, variables })
+        });
+        res = await response.json();
+      }
+      else if (MODE === 'test') {
+        const response = await fetch(`./demo-queries/${boardId}.json`);
+        res = await response.json();
+      }
+      else {
+        res = await monday.api(query, { variables });
+      }
     } catch (err) {
       console.error(`fetchBoard ${boardId} — API call failed:`, err);
       break;
@@ -112,6 +129,12 @@ async function fetchBoard(monday, boardId) {
     }
 
     if (page.items?.length) items.push(...page.items);
+
+    // If testing locally with a single static file, force break the loop 
+    // to prevent infinite loops from static cursor data.
+    if (typeof MODE !== 'undefined' && MODE === 'test') {
+      break; 
+    }
     cursor = page.cursor || null;
     if (!cursor) break;
   }
@@ -253,23 +276,23 @@ export function assembleTrips({ travelerItems, hcaItems, reimbItems, isteItems }
     trip.requestAssets        = item.assets || [];
 
     Object.assign(trip, extract(map, TRAVELER_REQUEST_COLS));
-
-    trip.dates = `${formatDate(trip.startDate)} – ${formatDate(trip.endDate)}`;
-    trip.startDateRaw = map[TRAVELER_REQUEST_COLS.startDate]?.text || '';
-    trip.endDateRaw   = map[TRAVELER_REQUEST_COLS.endDate]?.text   || '';
   }
-
+  
   // --- Board 2: HCA packet ---
   for (const item of hcaItems) {
     const map    = colMap(item);
     const tripId = map[HCA_PACKET_COLS.tripID]?.text || item.id;
     const trip   = slot(tripId);
-
+    
     trip.mondayItemId_hca = item.id;
     trip.hcaUrl           = item.url;
     trip.hcaAssets        = item.assets || [];
-
+    
     Object.assign(trip, extract(map, HCA_PACKET_COLS));
+    
+    trip.dates = `${formatDate(trip.startDate)} – ${formatDate(trip.endDate)}`;
+    trip.startDateRaw = map[HCA_PACKET_COLS.startDate]?.text || '';
+    trip.endDateRaw   = map[HCA_PACKET_COLS.endDate]?.text   || '';
   }
 
   // --- Board 3: Traveler reimbursement ---
