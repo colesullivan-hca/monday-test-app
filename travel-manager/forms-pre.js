@@ -415,7 +415,6 @@ function fileUpload(itemId, columnId) {
       </svg>
       <span class="attachment__name">Add Attachment</span>
       <span class="attachment__ext"></span>
-      <input type="file" id="file-upload-input" style="display:none">
     </div>
   `;
 }

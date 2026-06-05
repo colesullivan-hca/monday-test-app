@@ -145,10 +145,20 @@ async function fetchBoard(monday, boardId) {
 export async function fetchAllBoards(monday) {
   // Fetch sequentially so a bad board ID gives a clear per-board error
   // rather than one cryptic Promise.all failure.
-  const travelerItems = await fetchBoard(monday, BOARDS.travelerRequest);
-  const hcaItems      = await fetchBoard(monday, BOARDS.hcaPacket);
-  const reimbItems    = await fetchBoard(monday, BOARDS.travelerReimbursement);
-  const isteItems     = await fetchBoard(monday, BOARDS.istePacket);
+  const [travelerItems, hcaItems, reimbItems, isteItems] = await Promise.all([
+    fetchBoard(monday, BOARDS.travelerRequest).catch(err => {
+      console.error('travelerRequest fetch failed:', err); return [];
+    }),
+    fetchBoard(monday, BOARDS.hcaPacket).catch(err => {
+      console.error('hcaPacket fetch failed:', err); return [];
+    }),
+    fetchBoard(monday, BOARDS.travelerReimbursement).catch(err => {
+      console.error('travelerReimbursement fetch failed:', err); return [];
+    }),
+    fetchBoard(monday, BOARDS.istePacket).catch(err => {
+      console.error('istePacket fetch failed:', err); return [];
+    }),
+  ]);
 
   console.log('Fetched counts —', {
     travelerRequest:      travelerItems.length,
