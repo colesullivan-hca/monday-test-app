@@ -71,7 +71,7 @@ async function fetchBoard(monday, boardId) {
 
   while (true) {
     const query     = !cursor ? INITIAL_QUERY : NEXT_PAGE_QUERY;
-    const variables = !cursor ? { boardId, limit: 50 } : { cursor };
+    const variables = !cursor ? { boardId, limit: 200 } : { cursor };
 
     let res;
     try {
