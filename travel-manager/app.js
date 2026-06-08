@@ -343,7 +343,7 @@ function initFileDialogListeners() {
   });
   document.querySelectorAll('.monday-upload-btn').forEach(el => {
     el.addEventListener('click', () => {
-      monday.execute("openItemCard", { itemId: el.id, kind: 'columns' });
+      monday.execute("openItemCard", { itemId: el.id, kind: 'updates' });
       console.log('clicked')
       // const payload = {
       //   boardId:  BOARDS.hcaPacket,
