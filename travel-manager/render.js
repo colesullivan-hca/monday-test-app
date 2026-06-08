@@ -6,7 +6,7 @@
 // =============================================================================
 
 import { buildPreForm, collectPreFormData, initPreFormListeners }   from './forms-pre.js';
-import { buildPostForm, collectPostFormData } from './forms-post.js';
+import { buildPostForm, collectPostFormData, initPostFormListeners } from './forms-post.js';
 
 
 // ---------------------------------------------------------------------------
@@ -55,7 +55,7 @@ function sidebarTripHTML(trip) {
   const progress = trip.state === 'postTravel' ? trip.postProgress : trip.preProgress;
 
   return `
-    <div class="sidebar-trip" data-trip-id="${trip.tripID}">
+    <div class="sidebar-trip ${trip.statusClass}" data-trip-id="${trip.tripID}">
       <div class="sidebar-trip__name">${trip.title || trip.tripID}</div>
       <div class="sidebar-trip__meta">${trip.location || ''} · ${trip.dates || ''}</div>
       <div class="sidebar-trip__footer">
@@ -89,7 +89,7 @@ export function renderEmptyState() {
 //  Detail panel
 // ---------------------------------------------------------------------------
 
-export function renderDetail(trip, activeTab, { onSavePre, onSavePost, onTabSwitch }) {
+export function renderDetail(trip, activeTab, { onSavePre, onSavePost, onTabSwitch, onNotifyTraveler }) {
   const panel = document.getElementById('detail-panel');
 
   panel.innerHTML = `
@@ -114,14 +114,17 @@ export function renderDetail(trip, activeTab, { onSavePre, onSavePost, onTabSwit
   if (activeTab === 'pre') {
     tabContent.innerHTML = splitPaneHTML(
       travelerRequestPaneHTML(trip),
-      buildPreForm(trip)
+      buildPreForm(trip),
+      'pre'
     );
     initPreFormListeners();  // wire live cost totals after HTML is in DOM
   } else {
     tabContent.innerHTML = splitPaneHTML(
       travelerReimbPaneHTML(trip),
-      buildPostForm(trip)
+      buildPostForm(trip),
+      'post'
     );
+    initPostFormListeners((notifyData) => onNotifyTraveler(notifyData));
   }
 
   // Wire tab switches
@@ -221,9 +224,9 @@ function tabsHTML(activeTab) {
 //  Split pane wrapper
 // ---------------------------------------------------------------------------
 
-function splitPaneHTML(leftHTML, rightHTML) {
+function splitPaneHTML(leftHTML, rightHTML, layout = 'pre') {
   return `
-    <div class="split-pane">
+    <div class="split-pane" data-layout="${layout}">
       <div class="split-pane__left">
         ${leftHTML}
       </div>

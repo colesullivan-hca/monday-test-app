@@ -392,19 +392,32 @@ function attachmentsHTML(assets = [], label = 'Attachments', itemId, columnId) {
   return `
     <div class="hca attachments form-row form-row--3col">
       ${assets.map(a => `
-        <div class="hca attachment monday-file-btn"
-             data-asset-id="${a.id}"
-             data-item-id="${itemId}"
-             data-column-id="${columnId}"
-             style="cursor:pointer">
+        <a href="${a.public_url}" target="_blank" class="hca attachment monday-file-btn">
           ${attachIcon(a.file_extension)}
           <span class="attachment__name">${a.name}</span>
           <span class="attachment__ext">${a.file_extension?.toUpperCase() || ''}</span>
-        </div>
+        </a>
       `).join('')}
     </div>
     ${fileUpload(itemId, columnId)}
   `;
+
+  // return `
+  //   <div class="hca attachments form-row form-row--3col">
+  //     ${assets.map(a => `
+  //       <div class="hca attachment monday-file-btn"
+  //            data-asset-id="${a.id}"
+  //            data-item-id="${itemId}"
+  //            data-column-id="${columnId}"
+  //            style="cursor:pointer">
+  //         ${attachIcon(a.file_extension)}
+  //         <span class="attachment__name">${a.name}</span>
+  //         <span class="attachment__ext">${a.file_extension?.toUpperCase() || ''}</span>
+  //       </div>
+  //     `).join('')}
+  //   </div>
+  //   ${fileUpload(itemId, columnId)}
+  // `;
 }
 
 function fileUpload(itemId, columnId) {
@@ -413,7 +426,7 @@ function fileUpload(itemId, columnId) {
       <svg class="attachment__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
           <path d="M12 5v14M5 12h14" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
-      <span class="attachment__name">Add Attachment</span>
+      <span class="attachment__name">Add / View Attachments</span>
       <span class="attachment__ext"></span>
     </div>
   `;

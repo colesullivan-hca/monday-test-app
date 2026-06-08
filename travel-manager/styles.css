@@ -213,6 +213,10 @@ html, body {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+
+  .status-denied & {
+    color: var(--mn-red);
+  }
 }
 
 .sidebar-trip__meta {
@@ -498,9 +502,17 @@ html, body {
 .split-pane__left,
 .split-pane__right {
   flex: 1;
-  overflow-y: auto;
+  overflow-y: auto;     /* each pane scrolls independently */
+  overflow-x: auto;     /* wide tables (ISTE) scroll horizontally instead of compressing */
   padding: 16px 20px;
   min-width: 0;
+}
+
+/* Give the right pane a minimum width so the ISTE table columns never get
+   squeezed — it will push the left pane and trigger the stacking breakpoint
+   before things become unreadable. Adjust if your table needs more room. */
+.split-pane__right {
+  min-width: 420px;
 }
 
 .split-pane__left::-webkit-scrollbar,
@@ -881,19 +893,84 @@ html, body {
 
 
 /* ---------------------------------------------------------------------------
-   Responsive: narrow monday.com views (< 700px)
+   Responsive — split pane stacking
+   
+   The post-travel tab has a wide ISTE table (~800px min).
+   The pre-travel tab is narrower (~500px each side is fine).
+   
+   render.js sets data-layout="post" on the split pane for the
+   post-travel tab and data-layout="pre" for the pre-travel tab,
+   so each tab can have its own breakpoint independently.
 --------------------------------------------------------------------------- */
 
+/* Pre-travel: stack below 960px total panel width */
+@media (max-width: 960px) {
+  .split-pane[data-layout="pre"] {
+    flex-direction: column;
+    overflow: hidden;    /* the panes themselves scroll, not the wrapper */
+  }
+
+  /* Each pane takes half the available height and scrolls independently */
+  .split-pane[data-layout="pre"] .split-pane__left,
+  .split-pane[data-layout="pre"] .split-pane__right {
+    flex: 1;             /* equal halves */
+    min-height: 0;       /* required for flex children to respect overflow */
+    overflow-y: auto;
+    overflow-x: auto;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .split-pane[data-layout="pre"] .split-pane__divider {
+    width: 100%; height: 1px;
+    flex-shrink: 0;
+  }
+}
+
+/* Post-travel: stack below 1100px — ISTE table needs more horizontal room */
+@media (max-width: 1300px) {
+  .split-pane[data-layout="post"] {
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .split-pane[data-layout="post"] .split-pane__left,
+  .split-pane[data-layout="post"] .split-pane__right {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: auto;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .split-pane[data-layout="post"] .split-pane__divider {
+    width: 100%; height: 1px;
+    flex-shrink: 0;
+  }
+}
+
+.iste-table {
+  /* display: block; */
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  /* min-width keeps columns at a readable size before scrolling kicks in */
+  min-width: 100%;
+  width: 100%;
+}
+
+/* ISTE itemized table always scrolls horizontally — both side-by-side and stacked */
+.iste-table.itemized {
+  display: block;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  /* min-width keeps columns at a readable size before scrolling kicks in */
+  min-width: 700px;
+}
+
+/* Sidebar: hide below 700px */
 @media (max-width: 700px) {
   .sidebar { display: none; }
-
-  .split-pane {
-    flex-direction: column;
-  }
-
-  .split-pane__divider {
-    width: auto; height: 1px;
-  }
 
   .form-row--2col,
   .form-row--3col { grid-template-columns: 1fr; }
@@ -1081,4 +1158,233 @@ td {
   background: rgba(0,0,0,.06);
   padding: 1px 4px;
   border-radius: 3px;
+}
+
+
+/********
+ISTE FORM STYLES
+********/
+
+.iste-form {
+  font-family: "Times New Roman", "Georgia", serif;
+}
+
+.iste-title {
+  text-align: center;
+  font-size: 15px;
+  font-weight: bold;
+  margin-bottom: 14px;
+  letter-spacing: 0.3px;
+  color: var(--text-primary);
+}
+
+.iste-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 14px;
+  table-layout: fixed;
+}
+
+.iste-table td,
+.iste-table th {
+  border: 1px solid #000;
+  padding: 5px 7px;
+  font-size: 12px;
+}
+
+.iste-table td {
+  background: white;
+}
+
+.iste-th {
+  background: #f1f1f1;
+  font-weight: bold;
+  font-size: 12px;
+  border: 1px solid #000;
+  padding: 5px 7px;
+}
+
+.iste-section {
+  background: #dfe3e8 !important;
+  font-weight: bold;
+  text-transform: uppercase;
+  font-size: 12px;
+  text-align: center;
+}
+
+.iste-label {
+  font-weight: bold;
+  font-size: 12px;
+}
+
+.iste-center { text-align: center; }
+.iste-right  { text-align: right; }
+
+/* Inputs inside the ISTE form — borderless, transparent, fills the cell */
+.iste-input {
+  width: 100%;
+  border: none;
+  background: transparent;
+  font-family: inherit;
+  font-size: 12px;
+  padding: 0;
+  color: var(--text-primary);
+  outline: none;
+}
+
+.iste-input:focus {
+  background: #f0f7ff;
+  outline: none;
+}
+
+.iste-input[readonly] {
+  color: var(--text-secondary);
+  cursor: default;
+}
+
+.iste-cost {
+  text-align: right;
+}
+
+.iste-textarea {
+  min-height: 90px;
+  resize: vertical;
+  padding: 4px 0;
+  line-height: 1.5;
+}
+
+/* Approval selects inside the ISTE table */
+.iste-select {
+  width: 100%;
+  border: none;
+  background: transparent;
+  font-family: inherit;
+  font-size: 12px;
+  padding: 0;
+  color: var(--text-primary);
+  cursor: pointer;
+  outline: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%239699a6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 2px center;
+  padding-right: 14px;
+}
+
+.iste-select option {
+  background-color: white;
+  color: var(--text-primary);
+}
+
+.iste-select:disabled { 
+  cursor: default; 
+  color: var(--text-secondary); 
+}
+
+/* Dynamic Approval Status Colors (using your logic scheme from the template strings) */
+td.approved {
+  background-color: var(--mn-green);
+}
+td.approved select.iste-select {
+  color: black;
+}
+
+td.denied {
+  background-color: var(--mn-red);
+}
+td.denied select.iste-select {
+  color: black;
+}
+
+td.awaitingreview {
+  background-color: var(--mn-orange);
+}
+td.awaitingreview select.iste-select {
+  color: black;
+}
+
+/* Locked components state rules */
+.iste-input.locked-field,
+.iste-select.locked-field {
+  color: var(--text-muted);
+  cursor: not-allowed;
+}
+
+/* Specific alignment rules for the footer rows */
+.iste-table tfoot th {
+  font-size: 12px;
+  background: white;
+}
+
+.iste-table .mergeleft {
+  border-left: none;
+}
+
+.iste-table .mergeright {
+  border-right: none;
+}
+
+/* =============================================================================
+   ISTE itemized row fixes
+============================================================================= */
+
+/* Numeric total cell in each row */
+.iste-num {
+  text-align: right;
+  white-space: nowrap;
+  font-size: 12px;
+}
+
+.iste-row-total {
+  font-size: 12px;
+}
+
+/* Right-align numeric inputs inside iste table */
+.iste-input.iste-cost,
+.iste-input.iste-miles {
+  text-align: right;
+}
+
+/* Inputs inside iste-table rows should not get the monday form-input border treatment */
+.iste-table input.form-input {
+  border: none;
+  background: transparent;
+  box-shadow: none;
+  border-radius: 0;
+  padding: 0;
+  font-size: 12px;
+  font-family: "Times New Roman", "Georgia", serif;
+}
+
+.iste-table input.form-input:focus {
+  border: none;
+  box-shadow: none;
+  background: #f0f7ff;
+}
+
+/* Pane header with right-side status select — flex alignment fix */
+.pane-header__container {
+  flex: 1;
+  align-items: center;
+}
+
+/* Waiting/notice state with centered icon */
+.pane-notice--waiting {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 40px 20px;
+  text-align: center;
+  font-size: var(--font-size-md);
+  color: var(--text-secondary);
+  background: var(--surface-hover);
+  border-radius: var(--radius-lg);
+  margin: 20px;
+  border: 1px dashed var(--border-strong);
+}
+
+.pane-notice--waiting svg {
+  color: var(--mn-orange);
+  opacity: 0.8;
 }

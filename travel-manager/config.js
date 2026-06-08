@@ -186,14 +186,36 @@ export const TRAVELER_REIMB_COLS = {
 // ---------------------------------------------------------------------------
 //  COLUMN IDs  —  Board 4: ISTE Reimbursement Packet (travel team editable)
 // ---------------------------------------------------------------------------
+// Add alongside ISTE_PACKET_COLS:
+export const ISTE_SUBITEM_COLS = {
+  date:        'date0',            // ← replace with your actual subitem column IDs
+  departTime:  'text_mm33semp',
+  arriveTime:  'text_mm33g5ts',
+  destination: 'text_mm33vyy2',
+  odometer:    'text_mm33rqhh',
+  miles:       'numeric_mm33psy1',
+  mileage:     'numeric_mm33fqwj',
+  perdiem:     'numeric_mm334bhr',
+  other:       'numeric_mm33d33d',
+};
+
+// And add header fields to ISTE_PACKET_COLS:
 export const ISTE_PACKET_COLS = {
-  tripID:             'text_mm35jsjp',  // Must match travelerRequest.tripID value
-  ISTEStatus:         'color_XXXXXXXX', // ← replace
-  // travelerApproval:   'color_XXXXXXXX', // ← replace
-  // supervisorApproval: 'color_XXXXXXXX', // ← replace
-  approvedTotal:      'numbers_XXXXXXXX', // ← replace
-  // --- Add more columns from Board 4 here ---
-  // APNotes: 'text_XXXXXXXX',
+  tripID:             'text_mm35jsjp',
+  ISTEStatus:         'color_XXXXXXXX',
+  approvedTotal:      'numbers_XXXXXXXX',
+  iste_agencyName:    'text_XXXXXXXX',     // ← replace
+  iste_businessUnit:  'text_XXXXXXXX',
+  iste_voucherNumber: 'text_XXXXXXXX',
+  iste_supplierName:  'text_XXXXXXXX',
+  iste_supplierId:    'text_XXXXXXXX',
+  iste_postOfDuty:    'text_XXXXXXXX',
+  iste_residence:     'text_XXXXXXXX',
+  iste_licensePlate:  'text_XXXXXXXX',
+  iste_vehicleModel:  'text_XXXXXXXX',
+  iste_vehicleType:   'color_XXXXXXXX',
+  iste_advance:       'numeric_XXXXXXXX',
+  iste_perDiemBasis:  'text_XXXXXXXX',
 };
 
 

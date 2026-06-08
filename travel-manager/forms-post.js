@@ -1,102 +1,205 @@
 // =============================================================================
-//  forms-post.js  —  Travel team's editable form for the ISTE reimbursement.
-//
-//  THIS IS WHERE YOU PLUG IN YOUR PDF-MATCHED HTML (post-travel version).
-//
-//  Same structure as forms-pre.js — see that file for full instructions.
-//  This one maps to Board 4 (ISTE packet) via ISTE_PACKET_COLS in config.js.
+//  forms-post.js  —  ISTE Itemized Schedule of Travel Expenses (Board 4)
 // =============================================================================
 
-const APPROVAL_OPTIONS = ['', 'Approved', 'Denied', 'Pending'];
+const APPROVAL_OPTIONS   = ['', 'Approved', 'Denied', 'Pending'];
 const ISTE_STATUS_OPTIONS = ['', 'In Preparation', 'Ready For Approvals', 'Submitted to AP'];
+const VEHICLE_TYPE_OPTIONS = ['', 'POV', 'State Vehicle', 'Rental'];
+const BOARD_ATTENDANCE_OPTIONS = ['', 'Yes', 'No'];
+const BOARD_LENGTH_OPTIONS = ['', 'Yes', 'No'];
+const MEETING_LENGTH_OPTIONS = ['', 'Half Day', 'Full Day'];
 
-
-// ---------------------------------------------------------------------------
-//  buildPostForm(trip)
-//
-//  ╔══════════════════════════════════════════════════════════════════════╗
-//  ║  REPLACE EVERYTHING INSIDE THE "YOUR PDF FORM HTML" COMMENT BLOCK  ║
-//  ║  with your own HTML. Keep the outer .edit-form wrapper.             ║
-//  ╚══════════════════════════════════════════════════════════════════════╝
-// ---------------------------------------------------------------------------
 
 export function buildPostForm(trip) {
+  // If reimbursement form not submitted yet, show the waiting state
+  if (!trip.mondayItemId_reimb) {
+    return buildWaitingState(trip);
+  }
+
+  const locked = trip.packetStatus === 'Ready For Approvals';
+  const ro     = locked ? 'readonly' : '';
+  const roSel  = locked ? 'disabled' : '';
+
+  const t = trip; // shorthand
+
   return `
     <div class="pane-header">
       <span class="pane-header__icon">${editIcon()}</span>
-      <div>
-        <div class="pane-header__title">ISTE Reimbursement</div>
-        <div class="pane-header__sub">Board 4 · Editable — saves to monday</div>
+      <div class="form-row form-row--2col pane-header__container">
+        <div>
+          <div class="pane-header__title">ISTE Reimbursement</div>
+          <div class="pane-header__sub">Board 4 · Editable — saves to monday</div>
+        </div>
+        <div class="form-field">
+          <label class="form-label" for="ISTEStatus">Statement status</label>
+          <select class="form-select ${(t.ISTEStatus || '').replaceAll(" ", "").toLowerCase()}" id="ISTEStatus">
+            ${selectOptions(ISTE_STATUS_OPTIONS, t.ISTEStatus)}
+          </select>
+        </div>
       </div>
     </div>
 
-    <div class="edit-form" id="post-travel-form">
+    <div class="iste-form" id="post-travel-form">
 
-      <!-- ═══════════════════════════════════════════════════════════════
-           YOUR PDF FORM HTML GOES HERE (Post-Travel / ISTE version)
-           ───────────────────────────────────────────────────────────────
-           Same rules as forms-pre.js.
-           ═══════════════════════════════════════════════════════════════ -->
+      <h2 class="iste-title">STATE OF NM ITEMIZED SCHEDULE OF TRAVEL EXPENSES</h2>
 
-      <!-- SECTION: ISTE Status -->
-      <div class="form-section">
-        <div class="form-section__title">ISTE Status</div>
-        <div class="form-row">
-          <div class="form-field">
-            <label class="form-label" for="ISTEStatus">Statement status</label>
-            <select class="form-select" id="ISTEStatus">
-              ${selectOptions(ISTE_STATUS_OPTIONS, trip.ISTEStatus)}
+      <table class="iste-table">
+        <tr>
+          <td class="iste-label">AGENCY NAME:</td>
+          <td><input class="iste-input" id="iste_agencyName" ${ro} value="${esc(t.iste_agencyName)}" readonly></td>
+          
+          <td class="iste-label">BUSINESS UNIT:</td>
+          <td><input class="iste-input" id="iste_businessUnit" ${ro} value="${esc(t.iste_businessUnit)}"></td>
+          
+          <td class="iste-label">VOUCHER NUMBER:</td>
+          <td><input class="iste-input" id="iste_voucherNumber" ${ro} value="${esc(t.iste_voucherNumber)}"></td>
+          
+          <td class="iste-label" style="white-space: nowrap;">
+            <input type="checkbox" id="iste_isPrepaid" ${t.iste_isPrepaid ? 'checked' : ''} ${roSel}> PREPAID VOUCHER
+          </td>
+          <td class="iste-label" style="white-space: nowrap;">
+            <input type="checkbox" id="iste_isFinal" ${t.iste_isFinal ? 'checked' : ''} ${roSel}> FINAL VOUCHER
+          </td>
+        </tr>
+      </table>
+      
+      <table class="iste-table">
+        <tr>
+          <td class="iste-label">SUPPLIER NAME:</td>
+          <td><input class="iste-input" id="iste_supplierName" ${ro} value="${esc(t.iste_supplierName)}"></td>
+          
+          <td class="iste-label">SUPPLIER ID:</td>
+          <td><input class="iste-input" id="iste_supplierId" ${ro} value="${esc(t.iste_supplierId)}"></td>
+          
+          <td class="iste-label">POST OF DUTY:</td>
+          <td><input class="iste-input" id="iste_postOfDuty" ${ro} value="${esc(t.iste_postOfDuty)}"></td>
+          
+          <td class="iste-label">RESIDENCE:</td>
+          <td><input class="iste-input" id="iste_residence" ${ro} value="${esc(t.iste_residence)}"></td>
+        </tr>
+        <tr>
+          <td class="iste-label">VEHICLE LICENSE PLATE:</td>
+          <td><input class="iste-input" id="iste_licensePlate" ${ro} value="${esc(t.iste_licensePlate)}"></td>
+          
+          <td class="iste-label">VEHICLE MODEL &amp; YEAR:</td>
+          <td><input class="iste-input" id="iste_vehicleModel" ${ro} value="${esc(t.iste_vehicleModel)}"></td>
+          
+          <td class="iste-label">VEHICLE TYPE:</td>
+          <td colspan="3">
+            <select class="iste-select" id="iste_vehicleType" ${roSel}>
+              ${selectOptions(VEHICLE_TYPE_OPTIONS, t.iste_vehicleType)}
             </select>
-          </div>
-
-          <div class="form-field">
-            <label class="form-label" for="approvedTotal">Approved total ($)</label>
-            <input class="form-input" type="number" step="0.01" id="approvedTotal"
-              value="${trip.approvedTotal || ''}" placeholder="0.00" />
-          </div>
-        </div>
-      </div>
-
-      <!-- SECTION: Approvals -->
-      <div class="form-section">
-        <div class="form-section__title">Approvals</div>
-        <div class="form-row form-row--2col">
-          <div class="form-field">
-            <label class="form-label" for="travelerApproval">Traveler</label>
-            <select class="form-select" id="travelerApproval">
-              ${selectOptions(APPROVAL_OPTIONS, trip.travelerApproval)}
+          </td>
+        </tr>
+      </table>
+      
+      <table class="iste-table">
+        <tr>
+          <td class="iste-label">BOARD/COMMISSION ATTENDANCE:</td>
+          <td>
+            <select class="iste-select" id="iste_boardAttendance" ${roSel}>
+              ${selectOptions(BOARD_ATTENDANCE_OPTIONS || [], t.iste_boardAttendance)}
             </select>
-          </div>
-
-          <div class="form-field">
-            <label class="form-label" for="supervisorApproval_post">Supervisor</label>
-            <select class="form-select" id="supervisorApproval_post">
-              ${selectOptions(APPROVAL_OPTIONS, trip.supervisorApproval)}
+          </td>
+          <td class="iste-label">LENGTH OF BOARD/COMMISSION MEETING:</td>
+          <td>
+            <select class="iste-select" id="iste_boardMeetingLength" ${roSel}>
+              ${selectOptions(BOARD_LENGTH_OPTIONS || [], t.iste_boardMeetingLength)}
             </select>
-          </div>
-        </div>
-      </div>
+          </td>
+        </tr>
+      </table>
 
-      <!-- ─────────────────────────────────────────────────────────────
-           ADD YOUR CUSTOM ISTE SECTIONS BELOW THIS LINE
-           e.g. itemized expense lines, per diem calculation table, etc.
-           ───────────────────────────────────────────────────────────── -->
+      <table class="iste-table itemized">
+        <colgroup>
+          <col style="width: 100px;">
+          <col style="width: 70px;">
+          <col style="width: 70px;">
+          <col style="width: 27%;">
+        </colgroup>
+        <tr>
+          <td colspan="10" class="iste-section header-title" style="text-align: center; font-weight: bold;">ITEMIZED COSTS BY DAY</td>
+        </tr>
+        <tr>
+          <th></th>
+          <th colspan="2" style="text-align: center;">Time: AM or PM</th>
+          <th>Nature of Expense</th>
+          <th colspan="2" style="text-align: center;">Odometer Readings</th>
+          <th colspan="4" style="text-align: center;">Amounts</th>
+        </tr>
+        <tr>
+          <th style="font-size: 11px;">DATE</th>
+          <th style="font-size: 11px;">DEPARTURE TIME</th>
+          <th style="font-size: 11px;">ARRIVAL TIME</th>
+          <th style="font-size: 11px;">DESTINATION AND NATURE OF BUSINESS</th>
+          <th style="font-size: 11px;">ODOMETER START AND FINISH</th>
+          <th style="font-size: 11px;">NO OF MILES</th>
+          <th style="font-size: 11px;">MILEAGE</th>
+          <th style="font-size: 11px;">PER DIEM</th>
+          <th style="font-size: 11px;">OTHER</th>
+          <th style="font-size: 11px;">TOTALS</th>
+        </tr>
+        
+        <tbody id="iste-rows">
+          ${(t.isteSubitems || Array(15).fill({})).map((row, i) => isteRowHTML(row, i)).join('')}
+        </tbody>
+        
+        <tfoot>
+          <tr>
+            <th colspan="5" style="text-align: right; padding: 6px;">TOTALS</th>
+            <td class="iste-right"><span id="iste_milesTotal">0.00</span></td>
+            <td class="iste-right"><span id="iste_mileageTotal">0.00</span></td>
+            <td class="iste-right"><span id="iste_perdiemTotal">0.00</span></td>
+            <td class="iste-right"><span id="iste_otherTotal">0.00</span></td>
+            <td class="iste-right"><strong><span id="iste_grandTotal">$0.00</span></strong></td>
+          </tr>
+          <tr>
+            <th class="mergeright" colspan="5" style="text-align: right; padding: 6px;">ADVANCE AMOUNT @ 80%</th>
+            <th class="mergeleft" colspan="4"></th>
+            <td>
+              <input class="iste-input iste-right" type="text" id="iste_advance" ${ro} value="${esc(t.iste_advance)}" placeholder="0.00">
+            </td>
+          </tr>
+          <tr>
+            <th class="mergeright" colspan="5" style="text-align: right; padding: 6px;">ADJUSTED REIMBURSEMENT</th>
+            <th class="mergeleft" colspan="4"></th>
+            <td class="iste-right"><strong><span id="iste_adjTotal">$0.00</span></strong></td>
+          </tr>
+        </tfoot>
+      </table>
 
-      <!--
-      <div class="form-section">
-        <div class="form-section__title">Expense breakdown</div>
-        <div class="form-row form-row--2col">
-          <div class="form-field">
-            <label class="form-label" for="flightCost">Airfare</label>
-            <input class="form-input" type="number" id="flightCost" value="${'${trip.flightCost || \"\"}'}" />
-          </div>
-          <div class="form-field">
-            <label class="form-label" for="hotelCost">Lodging</label>
-            <input class="form-input" type="number" id="hotelCost" value="${'${trip.hotelCost || \"\"}'}" />
-          </div>
-        </div>
-      </div>
-      -->
+      <table class="iste-table">
+        <tr>
+        <colgroup> <col style="width: 33.33%;"> <col style="width: 33.33%;"> <col style="width: 33.33%;"> </colgroup>
+          <td class="iste-label" style="width: 150px;">PER DIEM BASED ON:</td>
+          <td class="iste-label" style="width: 120px;">
+            <input type="radio" name="iste_perDiemBasis" id="iste_perDiemActual" value="Actual" 
+              ${t.iste_perDiemBasis === 'Actual' ? 'checked' : ''} ${roSel} /> ACTUAL
+          </td>
+          <td class="iste-label">
+            <input type="radio" name="iste_perDiemBasis" id="iste_perDiemApproved" value="Approved Rates" 
+              ${t.iste_perDiemBasis === 'Approved Rates' ? 'checked' : ''} ${roSel} /> APPROVED RATES
+          </td>
+        </tr>
+      </table>
+
+      <table class="iste-table">
+        <tr><td colspan="4" class="iste-section">APPROVALS</td></tr>
+        <tr>
+          <td class="iste-label">TRAVELER:</td>
+          <td class="${(t.travelerApproval || '').replaceAll(" ", "").toLowerCase()}">
+            <select class="iste-select" id="travelerApproval" ${roSel}>
+              ${selectOptions(APPROVAL_OPTIONS, t.travelerApproval)}
+            </select>
+          </td>
+          <td class="iste-label">SUPERVISOR:</td>
+          <td class="${(t.supervisorApproval || '').replaceAll(" ", "").toLowerCase()}">
+            <select class="iste-select" id="supervisorApproval_post" ${roSel}>
+              ${selectOptions(APPROVAL_OPTIONS, t.supervisorApproval)}
+            </select>
+          </td>
+        </tr>
+      </table>
 
     </div>
   `;
@@ -104,26 +207,163 @@ export function buildPostForm(trip) {
 
 
 // ---------------------------------------------------------------------------
+//  Waiting state — shown when reimbursement form not yet submitted
+// ---------------------------------------------------------------------------
+
+function buildWaitingState(trip) {
+  return `
+    <div class="pane-header">
+      <span class="pane-header__icon">${editIcon()}</span>
+      <div>
+        <div class="pane-header__title">ISTE Reimbursement</div>
+        <div class="pane-header__sub">Board 4 · Waiting on traveler</div>
+      </div>
+    </div>
+    <div class="pane-notice pane-notice--waiting">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="32" height="32">
+        <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+      </svg>
+      <p>The traveler hasn't submitted their reimbursement form yet.</p>
+      <button class="btn btn--primary" id="notify-traveler-btn"
+        data-email="${trip.tr_email || ''}"
+        data-name="${esc(trip.tr_firstName || trip.hca_traveler || 'Traveler')}"
+        data-trip="${esc(trip.title || trip.tripID)}">
+        Notify Traveler
+      </button>
+    </div>
+  `;
+}
+
+
+// ---------------------------------------------------------------------------
+//  Single itemized row
+// ---------------------------------------------------------------------------
+
+function isteRowHTML(row, i) {
+  // data-subitem-id is set when the row comes from an existing monday subitem;
+  // blank rows (new) have no subitem ID yet — set on save.
+  const sid = row.subitemId ? `data-subitem-id="${row.subitemId}"` : '';
+  return `
+    <tr class="iste-row" data-row="${i}" ${sid}>
+      <td><input class="iste-input" type="date"   data-iste-col="date"        value="${esc(row.date        || '')}" /></td>
+      <td><input class="iste-input"               data-iste-col="departTime"  value="${esc(row.departTime  || '')}" placeholder="AM/PM" /></td>
+      <td><input class="iste-input"               data-iste-col="arriveTime"  value="${esc(row.arriveTime  || '')}" placeholder="AM/PM" /></td>
+      <td><input class="iste-input"               data-iste-col="destination" value="${esc(row.destination || '')}" /></td>
+      <td><input class="iste-input"               data-iste-col="odometer"    value="${esc(row.odometer    || '')}" /></td>
+      <td><input class="iste-input iste-miles"    data-iste-col="miles"       type="number" value="${esc(row.miles    || '')}" /></td>
+      <td><input class="iste-input iste-cost"     data-iste-col="mileage"     type="number" value="${esc(row.mileage  || '')}" /></td>
+      <td><input class="iste-input iste-cost"     data-iste-col="perdiem"     type="number" value="${esc(row.perdiem  || '')}" /></td>
+      <td><input class="iste-input iste-cost"     data-iste-col="other"       type="number" value="${esc(row.other    || '')}" /></td>
+      <td class="iste-num"><span class="iste-row-total">0.00</span></td>
+    </tr>
+  `;
+}
+
+
+// ---------------------------------------------------------------------------
+//  initPostFormListeners()
+//  Call after buildPostForm() HTML is in the DOM.
+// ---------------------------------------------------------------------------
+
+export function initPostFormListeners(onNotify) {
+  calculateIsteTotals();
+
+  document.querySelectorAll('.iste-cost, .iste-miles, #iste_advance').forEach(input => {
+    input.addEventListener('input', calculateIsteTotals);
+  });
+
+  // Notify traveler button
+  const notifyBtn = document.getElementById('notify-traveler-btn');
+  if (notifyBtn) {
+    notifyBtn.addEventListener('click', () => onNotify({
+      email: notifyBtn.dataset.email,
+      name:  notifyBtn.dataset.name,
+      trip:  notifyBtn.dataset.trip,
+    }));
+  }
+}
+
+function calculateIsteTotals() {
+  const n = el => parseFloat(el?.value) || 0;
+
+  let milesSum = 0, mileageSum = 0, perdiemSum = 0, otherSum = 0;
+
+  document.querySelectorAll('.iste-row').forEach(row => {
+    const miles   = n(row.querySelector('[data-iste-col="miles"]'));
+    const mileage = n(row.querySelector('[data-iste-col="mileage"]'));
+    const perdiem = n(row.querySelector('[data-iste-col="perdiem"]'));
+    const other   = n(row.querySelector('[data-iste-col="other"]'));
+    const rowTotal = mileage + perdiem + other;
+
+    row.querySelector('.iste-row-total').textContent = rowTotal.toFixed(2);
+    milesSum   += miles;
+    mileageSum += mileage;
+    perdiemSum += perdiem;
+    otherSum   += other;
+  });
+
+  const grandTotal = mileageSum + perdiemSum + otherSum;
+  const advance    = parseFloat(document.getElementById('iste_advance')?.value) || 0;
+
+  const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v.toFixed(2); };
+  set('iste_milesTotal',   milesSum);
+  set('iste_mileageTotal', mileageSum);
+  set('iste_perdiemTotal', perdiemSum);
+  set('iste_otherTotal',   otherSum);
+  set('iste_grandTotal',   grandTotal);
+  set('iste_adjTotal',     grandTotal - advance);
+}
+
+
+// ---------------------------------------------------------------------------
 //  collectPostFormData()
-//  Returns { fieldKey: value } — keys must match ISTE_PACKET_COLS in config.js.
 // ---------------------------------------------------------------------------
 
 export function collectPostFormData() {
-  const get    = id => document.getElementById(id);
-  const status = id => ({ label: get(id)?.value || '' });
-  const num    = id => parseFloat(get(id)?.value) || 0;
+  const val    = id => document.getElementById(id)?.value ?? '';
+  const status = id => ({ label: val(id) });
+  const num    = id => parseFloat(val(id)) || 0;
+
+  // Collect subitem rows
+  const rows = [];
+  document.querySelectorAll('.iste-row').forEach(row => {
+    const get = col => row.querySelector(`[data-iste-col="${col}"]`)?.value || '';
+    rows.push({
+      date:        get('date'),
+      departTime:  get('departTime'),
+      arriveTime:  get('arriveTime'),
+      destination: get('destination'),
+      odometer:    get('odometer'),
+      miles:       parseFloat(get('miles'))   || 0,
+      mileage:     parseFloat(get('mileage')) || 0,
+      perdiem:     parseFloat(get('perdiem')) || 0,
+      other:       parseFloat(get('other'))   || 0,
+    });
+  });
+
+  // Per diem basis from radio buttons
+  const perDiemBasis = document.querySelector('input[name="iste_perDiemBasis"]:checked')?.value || '';
 
   return {
     ISTEStatus:         status('ISTEStatus'),
     travelerApproval:   status('travelerApproval'),
     supervisorApproval: status('supervisorApproval_post'),
+    approvedTotal:      num('approvedTotal'),
 
-    // Number columns → raw number
-    approvedTotal: num('approvedTotal'),
+    iste_agencyName:    val('iste_agencyName'),
+    iste_businessUnit:  val('iste_businessUnit'),
+    iste_voucherNumber: val('iste_voucherNumber'),
+    iste_supplierName:  val('iste_supplierName'),
+    iste_supplierId:    val('iste_supplierId'),
+    iste_postOfDuty:    val('iste_postOfDuty'),
+    iste_residence:     val('iste_residence'),
+    iste_licensePlate:  val('iste_licensePlate'),
+    iste_vehicleModel:  val('iste_vehicleModel'),
+    iste_vehicleType:   status('iste_vehicleType'),
+    iste_advance:       num('iste_advance'),
+    iste_perDiemBasis:  perDiemBasis,
 
-    // Add more:
-    // flightCost: num('flightCost'),
-    // hotelCost:  num('hotelCost'),
+    isteRows: rows,  // handled separately in onSavePost
   };
 }
 
@@ -136,6 +376,10 @@ function selectOptions(options, currentValue) {
   return options.map(opt =>
     `<option value="${opt}" ${opt === currentValue ? 'selected' : ''}>${opt || '— select —'}</option>`
   ).join('');
+}
+
+function esc(v) {
+  return (v ?? '').toString().replace(/"/g, '&quot;').replace(/</g, '&lt;');
 }
 
 function editIcon() {

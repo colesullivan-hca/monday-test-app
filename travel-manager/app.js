@@ -5,7 +5,7 @@
 // =============================================================================
 
 import { fetchAllBoards, assembleTrips, MUTATION_CHANGE_COLUMN } from './data.js';
-import { BOARDS, HCA_PACKET_COLS, ISTE_PACKET_COLS } from './config.js';
+import { BOARDS, HCA_PACKET_COLS, ISTE_PACKET_COLS, ISTE_SUBITEM_COLS } from './config.js';
 import { renderSidebar, renderDetail, renderEmptyState } from './render.js';
 import { collectPreFormData, initPreFormListeners } from './forms-pre.js';
 import { collectPostFormData } from './forms-post.js';
@@ -107,7 +107,7 @@ async function onSelect(tripId) {
   isDirty  = false;
   activeId  = tripId;
   activeTab = 'pre';
-  renderDetail(trips[tripId], activeTab, { onSavePre, onSavePost, onTabSwitch });
+  renderDetail(trips[tripId], activeTab, { onSavePre, onSavePost, onTabSwitch, onNotifyTraveler });
   highlightSidebarItem(tripId);
   initFileDialogListeners();
   snapshotAndWatch('pre');
@@ -117,9 +117,23 @@ async function onTabSwitch(tab) {
   if (isDirty && !(await confirmDiscard())) return;
   isDirty   = false;
   activeTab = tab;
-  renderDetail(trips[activeId], tab, { onSavePre, onSavePost, onTabSwitch });
+  renderDetail(trips[activeId], tab, { onSavePre, onSavePost, onTabSwitch, onNotifyTraveler });
   initFileDialogListeners();
   snapshotAndWatch(tab);
+}
+
+async function onNotifyTraveler({ email, name, trip }) {
+  if (!email) {
+    monday.execute('notice', { message: 'No email on file for this traveler.', type: 'error' });
+    return;
+  }
+  // monday.execute('sendNotification') requires a userId, not an email.
+  // The cleanest option here is to open a pre-filled mailto link.
+  const subject = encodeURIComponent(`Reimbursement form needed — ${trip}`);
+  const body    = encodeURIComponent(
+    `Hi ${name},\n\nWe're ready to process your reimbursement for "${trip}" but haven't received your completed form yet.\n\nPlease submit it at your earliest convenience.\n\nThank you`
+  );
+  window.open(`mailto:${email}?subject=${subject}&body=${body}`);
 }
 
 function highlightSidebarItem(tripId) {
@@ -204,7 +218,7 @@ async function onSavePre(formData) {
     }
 
     rehydrateTrip(trip);
-    renderDetail(trip, activeTab, { onSavePre, onSavePost, onTabSwitch });
+    renderDetail(trip, activeTab, { onSavePre, onSavePost, onTabSwitch, onNotifyTraveler });
     renderSidebar(trips, { onSelect });
     highlightSidebarItem(activeId);
     originalFormData = formData;
@@ -244,12 +258,13 @@ async function onSavePost(formData) {
     }
 
     for (const [fieldKey, value] of Object.entries(changed)) {
+      if (fieldKey === 'isteRows') continue;  // handled separately below
       const colId = ISTE_PACKET_COLS[fieldKey];
       if (!colId || value === undefined) continue;
 
       await monday.api(MUTATION_CHANGE_COLUMN, {
         variables: {
-          boardId:  String(BOARDS.hcaPacket),
+          boardId:  String(BOARDS.istePacket),
           itemId:   String(trip.mondayItemId_iste),
           columnId: colId,
           value:    serializeColumnValue(colId, value),
@@ -259,8 +274,13 @@ async function onSavePost(formData) {
       trip[fieldKey] = typeof value === 'object' ? (value.label ?? value.date ?? '') : value;
     }
 
+    // ── Save subitem rows ────────────────────────────────────────────────────
+    if (formData.isteRows) {
+      await saveIsteSubitems(trip, formData.isteRows);
+    }
+
     rehydrateTrip(trip);
-    renderDetail(trip, activeTab, { onSavePre, onSavePost, onTabSwitch });
+    renderDetail(trip, activeTab, { onSavePre, onSavePost, onTabSwitch, onNotifyTraveler });
     renderSidebar(trips, { onSelect });
     highlightSidebarItem(activeId);
     originalFormData = formData;
@@ -273,6 +293,96 @@ async function onSavePost(formData) {
   }
 }
 
+
+
+// ---------------------------------------------------------------------------
+//  saveIsteSubitems(trip, rows)
+//  Saves the ISTE itemized cost rows as monday subitems on Board 4.
+//
+//  Each row is one subitem. Logic:
+//    - Row has subitemId + has data  → update existing subitem columns
+//    - Row has no subitemId + has data → create new subitem, then set columns
+//    - Row is blank (no date + no destination + all zeros) → skip
+//
+//  Column IDs for subitems come from ISTE_SUBITEM_COLS in config.js.
+// ---------------------------------------------------------------------------
+
+const MUTATION_CHANGE_SUBITEM_COLS = `
+  mutation ($subitemId: ID!, $boardId: ID!, $columnValues: JSON!) {
+    change_multiple_column_values(
+      item_id: $subitemId
+      board_id: $boardId
+      column_values: $columnValues
+    ) { id }
+  }
+`;
+
+const MUTATION_CREATE_SUBITEM = `
+  mutation ($parentId: ID!, $name: String!, $columnValues: JSON!) {
+    create_subitem(
+      parent_item_id: $parentId
+      item_name: $name
+      column_values: $columnValues
+    ) { id }
+  }
+`;
+
+async function saveIsteSubitems(trip, rows) {
+  for (const row of rows) {
+    // Skip blank rows
+    const hasData = row.date || row.destination ||
+                    row.miles || row.mileage || row.perdiem || row.other;
+    if (!hasData) continue;
+
+    // Build column values object for this row
+    const colVals = {};
+    const addCol = (colId, value, type) => {
+      if (!colId || colId.includes('XXXXXXXX')) return;
+      if (type === 'date')    colVals[colId] = value ? { date: value } : null;
+      else if (type === 'num') colVals[colId] = String(parseFloat(value) || 0);
+      else                    colVals[colId] = String(value || '');
+    };
+
+    addCol(ISTE_SUBITEM_COLS.date,        row.date,        'date');
+    addCol(ISTE_SUBITEM_COLS.departTime,  row.departTime,  'text');
+    addCol(ISTE_SUBITEM_COLS.arriveTime,  row.arriveTime,  'text');
+    addCol(ISTE_SUBITEM_COLS.destination, row.destination, 'text');
+    addCol(ISTE_SUBITEM_COLS.odometer,    row.odometer,    'text');
+    addCol(ISTE_SUBITEM_COLS.miles,       row.miles,       'num');
+    addCol(ISTE_SUBITEM_COLS.mileage,     row.mileage,     'num');
+    addCol(ISTE_SUBITEM_COLS.perdiem,     row.perdiem,     'num');
+    addCol(ISTE_SUBITEM_COLS.other,       row.other,       'num');
+
+    // Remove null values
+    Object.keys(colVals).forEach(k => colVals[k] === null && delete colVals[k]);
+
+    try {
+      if (row.subitemId) {
+        // Update existing subitem
+        await monday.api(MUTATION_CHANGE_SUBITEM_COLS, {
+          variables: {
+            subitemId:    String(row.subitemId),
+            boardId:      String(BOARDS.istePacket),
+            columnValues: JSON.stringify(colVals),
+          },
+        });
+      } else {
+        // Create new subitem — use date as the item name, or "New row"
+        const name = row.date || row.destination || 'Row';
+        await monday.api(MUTATION_CREATE_SUBITEM, {
+          variables: {
+            parentId:     String(trip.mondayItemId_iste),
+            name,
+            columnValues: JSON.stringify(colVals),
+          },
+        });
+      }
+    } catch (err) {
+      console.error('Subitem save error for row', row, err);
+      // Continue saving other rows even if one fails
+    }
+  }
+}
 
 // ---------------------------------------------------------------------------
 //  Rehydrate pipeline after local edits
@@ -331,20 +441,27 @@ function showSaveStatus(msg, type) {
 //  File Dialog
 // ---------------------------------------------------------------------------
 function initFileDialogListeners() {
-  document.querySelectorAll('.monday-file-btn').forEach(el => {
-    el.addEventListener('click', () => {
-      monday.execute('openFilesDialog', {
-        boardId:  BOARDS.hcaPacket,
-        itemId:   el.dataset.itemId,
-        columnId: el.dataset.columnId,
-        ...(el.dataset.assetId ? { assetId: el.dataset.assetId } : {}),
-      });
-    });
-  });
+  // document.querySelectorAll('.monday-file-btn').forEach(el => {
+  //   el.addEventListener('click', () => {
+  //     monday.execute('openFilesDialog', {
+  //       boardId:  BOARDS.hcaPacket,
+  //       itemId:   el.dataset.itemId,
+  //       columnId: el.dataset.columnId,
+  //       ...(el.dataset.assetId ? { assetId: el.dataset.assetId } : {}),
+  //     });
+  //   });
+  // });
   document.querySelectorAll('.monday-upload-btn').forEach(el => {
     el.addEventListener('click', () => {
-      monday.execute("openItemCard", { itemId: el.id, kind: 'updates' });
-      console.log('clicked')
+      monday.execute("openAppFeatureModal", {
+        url: "https://nmhca.monday.com/boards/18412077420/views/256095973/pulses/11979846987",
+        urlParams: { tab: "notifications" },
+        width: "600px",
+        height: "700px",
+        returnToPreviousModal: true
+      }).then((res) => {
+        // only triggered when a user closes the dialog
+      });
       // const payload = {
       //   boardId:  BOARDS.hcaPacket,
       //   itemId:   parseInt(el.dataset.itemId),

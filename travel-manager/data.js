@@ -9,6 +9,7 @@ import {
   TRAVELER_REQUEST_COLS,
   HCA_PACKET_COLS,
   TRAVELER_REIMB_COLS,
+  ISTE_SUBITEM_COLS,
   ISTE_PACKET_COLS,
   STATUS_LABELS,
   PRE_TRAVEL_STEPS,
@@ -29,6 +30,10 @@ const INITIAL_QUERY = `
           id name url
           assets { id name public_url file_extension }
           column_values { id type text value }
+          subitems {
+            id
+            column_values { id type text value }
+          }
         }
       }
     }
@@ -43,6 +48,10 @@ const NEXT_PAGE_QUERY = `
         id name url
         assets { id name public_url file_extension }
         column_values { id type text value }
+        subitems {
+          id
+          column_values { id type text value }
+        }
       }
     }
   }
@@ -328,6 +337,24 @@ export function assembleTrips({ travelerItems, hcaItems, reimbItems, isteItems }
     trip.istePacketUrl     = item.url;
 
     Object.assign(trip, extract(map, ISTE_PACKET_COLS));
+
+    // Map subitems → row data for the itemized table
+    trip.isteSubitems = (item.subitems || []).map(sub => {
+      const sm = colMap(sub);
+      const sv = colId => sm[colId]?.text || '';
+      return {
+        subitemId:   sub.id,
+        date:        sv(ISTE_SUBITEM_COLS.date),
+        departTime:  sv(ISTE_SUBITEM_COLS.departTime),
+        arriveTime:  sv(ISTE_SUBITEM_COLS.arriveTime),
+        destination: sv(ISTE_SUBITEM_COLS.destination),
+        odometer:    sv(ISTE_SUBITEM_COLS.odometer),
+        miles:       sv(ISTE_SUBITEM_COLS.miles),
+        mileage:     sv(ISTE_SUBITEM_COLS.mileage),
+        perdiem:     sv(ISTE_SUBITEM_COLS.perdiem),
+        other:       sv(ISTE_SUBITEM_COLS.other),
+      };
+    });
   }
 
   // --- Compute pipelines, progress, state for every trip ---
