@@ -8,7 +8,7 @@ import { fetchAllBoards, assembleTrips, MUTATION_CHANGE_COLUMN } from './data.js
 import { BOARDS, HCA_PACKET_COLS, ISTE_PACKET_COLS, ISTE_SUBITEM_COLS } from './config.js';
 import { renderSidebar, renderDetail, renderEmptyState } from './render.js';
 import { collectPreFormData, initPreFormListeners } from './forms-pre.js';
-import { collectPostFormData } from './forms-post.js';
+import { collectPostFormData, initPostFormListeners, ensureIsteSubitems } from './forms-post.js';
 
 const monday = window.mondaySdk();
 
@@ -123,6 +123,15 @@ async function onTabSwitch(tab) {
   if (isDirty && !(await confirmDiscard())) return;
   isDirty   = false;
   activeTab = tab;
+
+  if (tab === 'post') {
+    const trip = trips[activeId];
+    if (trip?.mondayItemId_iste) {
+      const ready = await ensureIsteSubitems(trip, monday);
+      if (!ready) return;
+    }
+  }
+
   renderDetail(trips[activeId], tab, { onSavePre, onSavePost, onTabSwitch, onNotifyTraveler });
   initFileDialogListeners();
   snapshotAndWatch(tab);
@@ -250,21 +259,28 @@ async function onSavePost(formData) {
   }
 
   try {
-    showSaveStatus('Saving…', 'info');
+    const { isteRows, ...columnData } = formData;
+    const { isteRows: origRows, ...origColumnData } = originalFormData || {};
 
-    const changed = Object.fromEntries(
-      Object.entries(formData).filter(([k, v]) =>
-        JSON.stringify(v) !== JSON.stringify(originalFormData?.[k])
+    const changedColumns = Object.fromEntries(
+      Object.entries(columnData).filter(([k, v]) =>
+        JSON.stringify(v) !== JSON.stringify(origColumnData?.[k])
       )
     );
 
-    if (!Object.keys(changed).length) {
+    const changedRows = (isteRows || []).filter((row, i) =>
+      JSON.stringify(row) !== JSON.stringify(origRows?.[i])
+    );
+
+    if (!Object.keys(changedColumns).length && !changedRows.length) {
       showSaveStatus('No changes to save', 'success');
       return;
     }
 
-    for (const [fieldKey, value] of Object.entries(changed)) {
-      if (fieldKey === 'isteRows') continue;  // handled separately below
+    showSaveStatus('Saving…', 'info');
+
+    // Save column fields
+    for (const [fieldKey, value] of Object.entries(changedColumns)) {
       const colId = ISTE_PACKET_COLS[fieldKey];
       if (!colId || value === undefined) continue;
 
@@ -284,9 +300,17 @@ async function onSavePost(formData) {
           : value;
     }
 
-    // ── Save subitem rows ────────────────────────────────────────────────────
+    // Save subitem rows
+    if (changedRows.length) {
+      await saveIsteSubitems(trip, isteRows, origRows);
+    }
+
     if (formData.isteRows) {
-      await saveIsteSubitems(trip, formData.isteRows);
+      formData.isteRows.forEach((row, i) => {
+        if (trip.isteSubitems?.[i]) {
+          Object.assign(trip.isteSubitems[i], row);
+        }
+      });
     }
 
     rehydrateTrip(trip);
@@ -337,61 +361,73 @@ const MUTATION_CREATE_SUBITEM = `
   }
 `;
 
-async function saveIsteSubitems(trip, rows) {
-  for (const row of rows) {
-    // Skip blank rows
+async function saveIsteSubitems(trip, rows, originalRows) {
+  // We need the subitem board ID — stored on trip from data.js
+  const subitemBoardId = trip.isteSubitemBoardId;
+  if (!subitemBoardId) {
+    console.error('No subitem board ID on trip — cannot save rows');
+    return;
+  }
+
+  const requests = [];
+
+  rows.forEach((row, i) => {
+    // Skip if unchanged
+    const orig = originalRows?.[i];
+    if (orig && JSON.stringify(row) === JSON.stringify(orig)) return;
+
+    // Skip completely blank rows with no subitemId
     const hasData = row.date || row.destination ||
                     row.miles || row.mileage || row.perdiem || row.other;
-    if (!hasData) continue;
+    if (!hasData && !row.subitemId) return;
 
-    // Build column values object for this row
     const colVals = {};
-    const addCol = (colId, value, type) => {
-      if (!colId || colId.includes('XXXXXXXX')) return;
-      if (type === 'date')    colVals[colId] = value ? { date: value } : null;
-      else if (type === 'num') colVals[colId] = String(parseFloat(value) || 0);
-      else                    colVals[colId] = String(value || '');
-    };
+    const s = ISTE_SUBITEM_COLS;
+    if (s.date        && row.date        !== orig?.date)
+      colVals[s.date]        = row.date ? { date: row.date } : '';
+    if (s.departTime  && row.departTime  !== orig?.departTime)
+      colVals[s.departTime]  = row.departTime;
+    if (s.arriveTime  && row.arriveTime  !== orig?.arriveTime)
+      colVals[s.arriveTime]  = row.arriveTime;
+    if (s.destination && row.destination !== orig?.destination)
+      colVals[s.destination] = row.destination;
+    if (s.odometer    && row.odometer    !== orig?.odometer)
+      colVals[s.odometer]    = row.odometer;
+    if (s.miles       && row.miles       !== orig?.miles)
+      colVals[s.miles]       = String(row.miles);
+    if (s.mileage     && row.mileage     !== orig?.mileage)
+      colVals[s.mileage]     = String(row.mileage);
+    if (s.perdiem     && row.perdiem     !== orig?.perdiem)
+      colVals[s.perdiem]     = String(row.perdiem);
+    if (s.other       && row.other       !== orig?.other)
+      colVals[s.other]       = String(row.other);
 
-    addCol(ISTE_SUBITEM_COLS.date,        row.date,        'date');
-    addCol(ISTE_SUBITEM_COLS.departTime,  row.departTime,  'text');
-    addCol(ISTE_SUBITEM_COLS.arriveTime,  row.arriveTime,  'text');
-    addCol(ISTE_SUBITEM_COLS.destination, row.destination, 'text');
-    addCol(ISTE_SUBITEM_COLS.odometer,    row.odometer,    'text');
-    addCol(ISTE_SUBITEM_COLS.miles,       row.miles,       'num');
-    addCol(ISTE_SUBITEM_COLS.mileage,     row.mileage,     'num');
-    addCol(ISTE_SUBITEM_COLS.perdiem,     row.perdiem,     'num');
-    addCol(ISTE_SUBITEM_COLS.other,       row.other,       'num');
+    if (!Object.keys(colVals).length) return;
 
-    // Remove null values
-    Object.keys(colVals).forEach(k => colVals[k] === null && delete colVals[k]);
-
-    try {
-      if (row.subitemId) {
-        // Update existing subitem
-        await monday.api(MUTATION_CHANGE_SUBITEM_COLS, {
+    if (row.subitemId) {
+      requests.push(
+        monday.api(MUTATION_CHANGE_SUBITEM_COLS, {
           variables: {
             subitemId:    String(row.subitemId),
-            boardId:      String(BOARDS.istePacket),
+            boardId:      String(subitemBoardId),  // subitem's own board, not parent
             columnValues: JSON.stringify(colVals),
           },
-        });
-      } else {
-        // Create new subitem — use date as the item name, or "New row"
-        const name = row.date || row.destination || 'Row';
-        await monday.api(MUTATION_CREATE_SUBITEM, {
+        }).catch(err => console.error('Subitem update error row', i, err))
+      );
+    } else if (hasData) {
+      requests.push(
+        monday.api(MUTATION_CREATE_SUBITEM, {
           variables: {
             parentId:     String(trip.mondayItemId_iste),
-            name,
+            name:         row.date || row.destination || `Row ${i + 1}`,
             columnValues: JSON.stringify(colVals),
           },
-        });
-      }
-    } catch (err) {
-      console.error('Subitem save error for row', row, err);
-      // Continue saving other rows even if one fails
+        }).catch(err => console.error('Subitem create error row', i, err))
+      );
     }
-  }
+  });
+
+  if (requests.length) await Promise.all(requests);
 }
 
 // ---------------------------------------------------------------------------

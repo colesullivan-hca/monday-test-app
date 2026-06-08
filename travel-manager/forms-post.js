@@ -2,12 +2,11 @@
 //  forms-post.js  —  ISTE Itemized Schedule of Travel Expenses (Board 4)
 // =============================================================================
 
-const APPROVAL_OPTIONS   = ['', 'Approved', 'Denied', 'Pending'];
-const ISTE_STATUS_OPTIONS = ['', 'In Preparation', 'Ready For Approvals', 'Submitted to AP'];
-const VEHICLE_TYPE_OPTIONS = ['', 'POV', 'State Vehicle', 'Rental'];
-const BOARD_ATTENDANCE_OPTIONS = ['', 'Yes', 'No'];
-const BOARD_LENGTH_OPTIONS = ['', 'Yes', 'No'];
-const MEETING_LENGTH_OPTIONS = ['', 'Half Day', 'Full Day'];
+const APPROVAL_OPTIONS         = ['', 'Awaiting Review', 'Approved', 'Denied'];
+const ISTE_STATUS_OPTIONS      = ['', 'In Preparation', 'Ready For Approvals', 'Reimbursement Complete'];
+const VEHICLE_TYPE_OPTIONS     = ['', 'Personal Vehicle', 'State Vehicle']; 
+const BOARD_ATTENDANCE_OPTIONS = ['', 'Not a Board Member', 'Physical Attendance', 'Virtual Attendance'];
+const BOARD_LENGTH_OPTIONS     = ['', 'Not Applicable', '4 Hours or Longer', 'Less than 4 hours'];  
 
 
 export function buildPostForm(trip) {
@@ -100,13 +99,13 @@ export function buildPostForm(trip) {
           <td class="iste-label">BOARD/COMMISSION ATTENDANCE:</td>
           <td>
             <select class="iste-select" id="iste_boardAttendance" ${roSel}>
-              ${selectOptions(BOARD_ATTENDANCE_OPTIONS || [], t.iste_boardAttendance)}
+              ${selectOptions(BOARD_ATTENDANCE_OPTIONS, t.iste_attendance)}
             </select>
           </td>
           <td class="iste-label">LENGTH OF BOARD/COMMISSION MEETING:</td>
           <td>
             <select class="iste-select" id="iste_boardMeetingLength" ${roSel}>
-              ${selectOptions(BOARD_LENGTH_OPTIONS || [], t.iste_boardMeetingLength)}
+              ${selectOptions(BOARD_LENGTH_OPTIONS, t.iste_lengthOfBoard)}
             </select>
           </td>
         </tr>
@@ -159,7 +158,7 @@ export function buildPostForm(trip) {
             <th class="mergeright" colspan="5" style="text-align: right; padding: 6px;">ADVANCE AMOUNT @ 80%</th>
             <th class="mergeleft" colspan="4"></th>
             <td>
-              <input class="iste-input iste-right" type="text" id="iste_advance" ${ro} value="${esc(t.iste_advance)}" placeholder="0.00">
+              <input class="iste-input iste-right" type="text" id="iste_advance" ${ro} value="${esc(t.iste_advanceAmount)}" placeholder="0.00">
             </td>
           </tr>
           <tr>
@@ -236,6 +235,62 @@ function buildWaitingState(trip) {
   `;
 }
 
+// ---------------------------------------------------------------------------
+//  Make sure there are exactly 15 itemized costs rows
+// ---------------------------------------------------------------------------
+export async function ensureIsteSubitems(trip, monday) {
+  const REQUIRED = 15;
+  const current = trip.isteSubitems?.length || 0;
+
+  if (current > REQUIRED) {
+    monday.execute('notice', {
+      message: `This ISTE item has ${current} subitems but only ${REQUIRED} are supported. Please remove the extras in monday and reload.`,
+      type: 'error',
+    });
+    return false;
+  }
+
+  if (current < REQUIRED) {
+    monday.execute('notice', { message: 'Setting up itemized cost rows…', type: 'info' });
+
+    const needed = REQUIRED - current;
+    const createMutation = `
+      mutation ($parentId: ID!, $name: String!) {
+        create_subitem(parent_item_id: $parentId, item_name: $name) {
+          id board { id }
+        }
+      }
+    `;
+
+    const results = await Promise.all(
+      Array.from({ length: needed }, () =>
+        monday.api(createMutation, {
+          variables: {
+            parentId: String(trip.mondayItemId_iste),
+            name: 'Itemized Cost',
+          }
+        })
+      )
+    );
+
+    // Add the new subitems to the local trip so isteRowHTML gets their IDs
+    results.forEach(res => {
+      const sub = res?.data?.create_subitem;
+      if (!sub) return;
+      if (!trip.isteSubitemBoardId) trip.isteSubitemBoardId = sub.board?.id;
+      trip.isteSubitems.push({
+        subitemId:   sub.id,
+        date: '', departTime: '', arriveTime: '', destination: '',
+        odometer: '', miles: 0, mileage: 0, perdiem: 0, other: 0,
+      });
+    });
+
+    monday.execute('notice', { message: 'Ready!', type: 'success' });
+  }
+
+  return true;
+}
+
 
 // ---------------------------------------------------------------------------
 //  Single itemized row
@@ -248,8 +303,8 @@ function isteRowHTML(row, i) {
   return `
     <tr class="iste-row" data-row="${i}" ${sid}>
       <td><input class="iste-input" type="date"   data-iste-col="date"        value="${esc(row.date        || '')}" /></td>
-      <td><input class="iste-input"               data-iste-col="departTime"  value="${esc(row.departTime  || '')}" placeholder="AM/PM" /></td>
-      <td><input class="iste-input"               data-iste-col="arriveTime"  value="${esc(row.arriveTime  || '')}" placeholder="AM/PM" /></td>
+      <td><input class="iste-input"               data-iste-col="departTime"  value="${esc(row.departTime  || '')}" /></td>
+      <td><input class="iste-input"               data-iste-col="arriveTime"  value="${esc(row.arriveTime  || '')}" /></td>
       <td><input class="iste-input"               data-iste-col="destination" value="${esc(row.destination || '')}" /></td>
       <td><input class="iste-input"               data-iste-col="odometer"    value="${esc(row.odometer    || '')}" /></td>
       <td><input class="iste-input iste-miles"    data-iste-col="miles"       type="number" value="${esc(row.miles    || '')}" /></td>
@@ -331,6 +386,7 @@ export function collectPostFormData() {
   document.querySelectorAll('.iste-row').forEach(row => {
     const get = col => row.querySelector(`[data-iste-col="${col}"]`)?.value || '';
     rows.push({
+      subitemId:   row.dataset.subitemId || null,
       date:        get('date'),
       departTime:  get('departTime'),
       arriveTime:  get('arriveTime'),
@@ -378,7 +434,7 @@ export function collectPostFormData() {
 
 function selectOptions(options, currentValue) {
   return options.map(opt =>
-    `<option value="${opt}" ${opt === currentValue ? 'selected' : ''}>${opt || '— select —'}</option>`
+    `<option value="${opt}" ${opt === currentValue ? 'selected' : ''}>${opt || ''}</option>`
   ).join('');
 }
 

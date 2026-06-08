@@ -32,6 +32,7 @@ const INITIAL_QUERY = `
           column_values { id type text value }
           subitems {
             id
+            board { id }
             column_values { id type text value }
           }
         }
@@ -50,6 +51,7 @@ const NEXT_PAGE_QUERY = `
         column_values { id type text value }
         subitems {
           id
+          board { id }
           column_values { id type text value }
         }
       }
@@ -336,6 +338,8 @@ export function assembleTrips({ travelerItems, hcaItems, reimbItems, isteItems }
     trip.mondayItemId_iste = item.id;
     trip.istePacketUrl     = item.url;
 
+    trip.isteSubitemBoardId  = item.subitems?.[0]?.board?.id || null;
+
     Object.assign(trip, extract(map, ISTE_PACKET_COLS));
 
     // Map subitems → row data for the itemized table
@@ -349,10 +353,10 @@ export function assembleTrips({ travelerItems, hcaItems, reimbItems, isteItems }
         arriveTime:  sv(ISTE_SUBITEM_COLS.arriveTime),
         destination: sv(ISTE_SUBITEM_COLS.destination),
         odometer:    sv(ISTE_SUBITEM_COLS.odometer),
-        miles:       sv(ISTE_SUBITEM_COLS.miles),
-        mileage:     sv(ISTE_SUBITEM_COLS.mileage),
-        perdiem:     sv(ISTE_SUBITEM_COLS.perdiem),
-        other:       sv(ISTE_SUBITEM_COLS.other),
+        miles:       parseFloat(sv(ISTE_SUBITEM_COLS.miles))   || 0,  // ← parse
+        mileage:     parseFloat(sv(ISTE_SUBITEM_COLS.mileage)) || 0,
+        perdiem:     parseFloat(sv(ISTE_SUBITEM_COLS.perdiem)) || 0,
+        other:       parseFloat(sv(ISTE_SUBITEM_COLS.other))   || 0,
       };
     });
   }
