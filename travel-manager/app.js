@@ -7,13 +7,17 @@
 import { fetchAllBoards, assembleTrips, MUTATION_CHANGE_COLUMN } from './data.js';
 import { BOARDS, HCA_PACKET_COLS, ISTE_PACKET_COLS } from './config.js';
 import { renderSidebar, renderDetail, renderEmptyState } from './render.js';
+import { collectPreFormData, initPreFormListeners } from './forms-pre.js';
+import { collectPostFormData } from './forms-post.js';
 
 const monday = window.mondaySdk();
 
 // App state
-let trips     = {};
-let activeId  = null;
-let activeTab = 'pre'; // 'pre' | 'post'
+let trips            = {};
+let activeId         = null;
+let activeTab        = 'pre'; // 'pre' | 'post'
+let originalFormData = null;
+let isDirty          = false;
 
 
 // ---------------------------------------------------------------------------
@@ -98,24 +102,63 @@ async function init() {
 //  Navigation
 // ---------------------------------------------------------------------------
 
-function onSelect(tripId) {
+async function onSelect(tripId) {
+  if (isDirty && !(await confirmDiscard())) return;
+  isDirty  = false;
   activeId  = tripId;
-  activeTab = 'pre';   // always open on pre-travel tab
+  activeTab = 'pre';
   renderDetail(trips[tripId], activeTab, { onSavePre, onSavePost, onTabSwitch });
   highlightSidebarItem(tripId);
   initFileDialogListeners();
+  snapshotAndWatch('pre');
 }
 
-function onTabSwitch(tab) {
+async function onTabSwitch(tab) {
+  if (isDirty && !(await confirmDiscard())) return;
+  isDirty   = false;
   activeTab = tab;
   renderDetail(trips[activeId], tab, { onSavePre, onSavePost, onTabSwitch });
   initFileDialogListeners();
+  snapshotAndWatch(tab);
 }
 
 function highlightSidebarItem(tripId) {
   document.querySelectorAll('.sidebar-trip').forEach(el => {
     el.classList.toggle('active', el.dataset.tripId === tripId);
   });
+}
+
+// ---------------------------------------------------------------------------
+//  Dirty tracking
+// ---------------------------------------------------------------------------
+
+function snapshotAndWatch(tab) {
+  // Snapshot must happen after the DOM is rendered
+  originalFormData = tab === 'pre' ? collectPreFormData() : collectPostFormData();
+  isDirty = false;
+
+  const formId = tab === 'pre' ? 'pre-travel-form' : 'post-travel-form';
+  const form   = document.getElementById(formId);
+  if (!form) return;
+
+  const handler = () => {
+    const current = tab === 'pre' ? collectPreFormData() : collectPostFormData();
+    isDirty = Object.keys(current).some(
+      k => JSON.stringify(current[k]) !== JSON.stringify(originalFormData[k])
+    );
+  };
+  form.addEventListener('input',  handler);
+  form.addEventListener('change', handler);
+}
+
+async function confirmDiscard() {
+  const res = await monday.execute('confirm', {
+    message:     'You have unsaved changes. Discard them?',
+    confirmText: 'Discard',
+    cancelText:  'Keep editing',
+    severity:    'danger',
+  });
+  return res?.data?.confirm === true;
 }
 
 
@@ -131,9 +174,20 @@ async function onSavePre(formData) {
   }
 
   try {
-    showSaveStatus('Saving…', 'saving');
+    showSaveStatus('Saving…', 'info');
 
-    for (const [fieldKey, value] of Object.entries(formData)) {
+    const changed = Object.fromEntries(
+      Object.entries(formData).filter(([k, v]) =>
+        JSON.stringify(v) !== JSON.stringify(originalFormData?.[k])
+      )
+    );
+
+    if (!Object.keys(changed).length) {
+      showSaveStatus('No changes to save', 'success');
+      return;
+    }
+
+    for (const [fieldKey, value] of Object.entries(changed)) {
       const colId = HCA_PACKET_COLS[fieldKey];
       if (!colId || value === undefined) continue;
 
@@ -146,16 +200,16 @@ async function onSavePre(formData) {
         },
       });
 
-      // Keep local state current so pipeline re-renders correctly
       trip[fieldKey] = typeof value === 'object' ? (value.label ?? value.date ?? '') : value;
     }
 
-    // Re-assemble trip pipelines with updated values
     rehydrateTrip(trip);
     renderDetail(trip, activeTab, { onSavePre, onSavePost, onTabSwitch });
     renderSidebar(trips, { onSelect });
     highlightSidebarItem(activeId);
-    showSaveStatus('Saved', 'saved');
+    originalFormData = formData;
+    isDirty = false;
+    showSaveStatus('Saved', 'success');
 
   } catch (err) {
     console.error('Save error:', err);
@@ -176,15 +230,26 @@ async function onSavePost(formData) {
   }
 
   try {
-    showSaveStatus('Saving…', 'saving');
+    showSaveStatus('Saving…', 'info');
 
-    for (const [fieldKey, value] of Object.entries(formData)) {
+    const changed = Object.fromEntries(
+      Object.entries(formData).filter(([k, v]) =>
+        JSON.stringify(v) !== JSON.stringify(originalFormData?.[k])
+      )
+    );
+
+    if (!Object.keys(changed).length) {
+      showSaveStatus('No changes to save', 'success');
+      return;
+    }
+
+    for (const [fieldKey, value] of Object.entries(changed)) {
       const colId = ISTE_PACKET_COLS[fieldKey];
       if (!colId || value === undefined) continue;
 
       await monday.api(MUTATION_CHANGE_COLUMN, {
         variables: {
-          boardId:  String(BOARDS.istePacket),
+          boardId:  String(BOARDS.hcaPacket),
           itemId:   String(trip.mondayItemId_iste),
           columnId: colId,
           value:    serializeColumnValue(colId, value),
@@ -198,7 +263,9 @@ async function onSavePost(formData) {
     renderDetail(trip, activeTab, { onSavePre, onSavePost, onTabSwitch });
     renderSidebar(trips, { onSelect });
     highlightSidebarItem(activeId);
-    showSaveStatus('Saved', 'saved');
+    originalFormData = formData;
+    isDirty = false;
+    showSaveStatus('Saved', 'success');
 
   } catch (err) {
     console.error('Save error:', err);
@@ -254,7 +321,8 @@ function showSaveStatus(msg, type) {
   el.textContent = msg;
   el.className   = `save-status save-status--${type}`;
   el.classList.remove('hidden');
-  if (type === 'saved') {
+  monday.execute('notice', { message: msg, type: type, timeout: 2500}); 
+  if (type === 'success') {
     setTimeout(() => el.classList.add('hidden'), 2500);
   }
 }
@@ -275,13 +343,14 @@ function initFileDialogListeners() {
   });
   document.querySelectorAll('.monday-upload-btn').forEach(el => {
     el.addEventListener('click', () => {
-      const payload = {
-        boardId:  BOARDS.hcaPacket,
-        itemId:   parseInt(el.dataset.itemId),
-        columnId: String(el.dataset.columnId),
-      };
-      console.log('triggerFilesUpload payload:', payload);
-      monday.execute('triggerFilesUpload', payload);
+      monday.execute("openItemCard", { itemId: el.id});
+      // const payload = {
+      //   boardId:  BOARDS.hcaPacket,
+      //   itemId:   parseInt(el.dataset.itemId),
+      //   columnId: String(el.dataset.columnId),
+      // };
+      // console.log('triggerFilesUpload payload:', payload);
+      // monday.execute('triggerFilesUpload', payload);
     });
   });
 }

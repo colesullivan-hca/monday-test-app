@@ -100,8 +100,8 @@ export function renderDetail(trip, activeTab, { onSavePre, onSavePost, onTabSwit
     <div class="detail-footer">
       <div id="save-status" class="save-status hidden"></div>
       <div class="footer-links">
-        ${trip.requestUrl    ? `<a href="${trip.requestUrl}" target="_blank" class="footer-link">Request form ↗</a>` : ''}
-        ${trip.reimbUrl      ? `<a href="${trip.reimbUrl}" target="_blank" class="footer-link">Reimb. form ↗</a>` : ''}
+        ${trip.requestUrl    ? `<a href="${trip.requestUrl}" target="_blank" class="footer-link">Request intake ↗</a>` : ''}
+        ${trip.reimbUrl      ? `<a href="${trip.reimbUrl}" target="_blank" class="footer-link">Reimb. intake ↗</a>` : ''}
         ${trip.hcaUrl        ? `<a href="${trip.hcaUrl}" target="_blank" class="footer-link">HCA packet ↗</a>` : ''}
         ${trip.istePacketUrl ? `<a href="${trip.istePacketUrl}" target="_blank" class="footer-link">ISTE packet ↗</a>` : ''}
       </div>

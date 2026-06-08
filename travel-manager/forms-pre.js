@@ -371,7 +371,7 @@ export function collectPreFormData() {
     hca_justification:  val('hca_justification'),
 
     // ── Section 5: Approvals (status/color columns) ───────────────────
-    packetStatus:       status('packetStatus'),
+    packetStatus:       status('packetStatus_pre'),
     supervisorApproval: status('supervisorApproval'),
     divisionApproval:   status('divisionApproval'),
     ASDApproval:        status('ASDApproval'),
