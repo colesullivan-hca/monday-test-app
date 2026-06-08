@@ -36,9 +36,13 @@ let isDirty          = false;
 //    text_*       → short text    → raw string
 // ---------------------------------------------------------------------------
 function serializeColumnValue(colId, value) {
-  // Already an object (caller built the shape) — just stringify
   if (typeof value === 'object' && value !== null) {
     return JSON.stringify(value);
+  }
+
+  // Boolean columns
+  if (typeof value === 'boolean') {
+    return JSON.stringify({ checked: value ? 'true' : 'false' });
   }
 
   const prefix = colId.split('_')[0];
@@ -47,12 +51,14 @@ function serializeColumnValue(colId, value) {
       return JSON.stringify({ label: String(value) });
     case 'date':
       return value ? JSON.stringify({ date: String(value) }) : '""';
-    case 'long':       // long_text_*
+    case 'long':
       return JSON.stringify({ text: String(value) });
     case 'numeric':
     case 'numbers':
       return JSON.stringify(String(parseFloat(value) || 0));
-    default:           // text_* and anything else
+    case 'boolean':                                          // ← add this
+      return JSON.stringify({ checked: value ? 'true' : 'false' });
+    default:
       return JSON.stringify(String(value));
   }
 }
@@ -271,7 +277,11 @@ async function onSavePost(formData) {
         },
       });
 
-      trip[fieldKey] = typeof value === 'object' ? (value.label ?? value.date ?? '') : value;
+      trip[fieldKey] = typeof value === 'boolean'
+        ? (value ? 'v' : '')
+        : typeof value === 'object'
+          ? (value.label ?? value.date ?? '')
+          : value;
     }
 
     // ── Save subitem rows ────────────────────────────────────────────────────

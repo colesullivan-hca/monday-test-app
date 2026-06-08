@@ -54,11 +54,13 @@ export function buildPostForm(trip) {
           <td class="iste-label">VOUCHER NUMBER:</td>
           <td><input class="iste-input" id="iste_voucherNumber" ${ro} value="${esc(t.iste_voucherNumber)}"></td>
           
-          <td class="iste-label" style="white-space: nowrap;">
-            <input type="checkbox" id="iste_isPrepaid" ${t.iste_isPrepaid ? 'checked' : ''} ${roSel}> PREPAID VOUCHER
+          <td class="iste-label">
+            <input type="radio" name="iste_voucherBasis" id="iste_isPrepaid" value="Prepaid Voucher" 
+              ${t.iste_prepaidVoucher === 'v' ? 'checked' : ''} ${roSel} /> PREPAID VOUCHER
           </td>
-          <td class="iste-label" style="white-space: nowrap;">
-            <input type="checkbox" id="iste_isFinal" ${t.iste_isFinal ? 'checked' : ''} ${roSel}> FINAL VOUCHER
+          <td class="iste-label">
+            <input type="radio" name="iste_voucherBasis" id="iste_isFinal" value="Final Voucher" 
+              ${t.iste_finalVoucher === 'v' ? 'checked' : ''} ${roSel} /> FINAL VOUCHER
           </td>
         </tr>
       </table>
@@ -173,12 +175,12 @@ export function buildPostForm(trip) {
         <colgroup> <col style="width: 33.33%;"> <col style="width: 33.33%;"> <col style="width: 33.33%;"> </colgroup>
           <td class="iste-label" style="width: 150px;">PER DIEM BASED ON:</td>
           <td class="iste-label" style="width: 120px;">
-            <input type="radio" name="iste_perDiemBasis" id="iste_perDiemActual" value="Actual" 
-              ${t.iste_perDiemBasis === 'Actual' ? 'checked' : ''} ${roSel} /> ACTUAL
+            <input type="radio" name="iste_perDiemBasis" id="iste_actual" value="Actual" 
+              ${t.iste_actual === 'v' ? 'checked' : ''} ${roSel} /> ACTUAL
           </td>
           <td class="iste-label">
-            <input type="radio" name="iste_perDiemBasis" id="iste_perDiemApproved" value="Approved Rates" 
-              ${t.iste_perDiemBasis === 'Approved Rates' ? 'checked' : ''} ${roSel} /> APPROVED RATES
+            <input type="radio" name="iste_perDiemBasis" id="iste_approvedRates" value="Approved Rates" 
+              ${t.iste_approvedRates === 'v' ? 'checked' : ''} ${roSel} /> APPROVED RATES
           </td>
         </tr>
       </table>
@@ -187,15 +189,15 @@ export function buildPostForm(trip) {
         <tr><td colspan="4" class="iste-section">APPROVALS</td></tr>
         <tr>
           <td class="iste-label">TRAVELER:</td>
-          <td class="${(t.travelerApproval || '').replaceAll(" ", "").toLowerCase()}">
-            <select class="iste-select" id="travelerApproval" ${roSel}>
-              ${selectOptions(APPROVAL_OPTIONS, t.travelerApproval)}
+          <td class="${(t.travelerApproval_post || '').replaceAll(" ", "").toLowerCase()}">
+            <select class="iste-select" id="travelerApproval_post" ${roSel}>
+              ${selectOptions(APPROVAL_OPTIONS, t.travelerApproval_post)}
             </select>
           </td>
           <td class="iste-label">SUPERVISOR:</td>
-          <td class="${(t.supervisorApproval || '').replaceAll(" ", "").toLowerCase()}">
+          <td class="${(t.supervisorApproval_post || '').replaceAll(" ", "").toLowerCase()}">
             <select class="iste-select" id="supervisorApproval_post" ${roSel}>
-              ${selectOptions(APPROVAL_OPTIONS, t.supervisorApproval)}
+              ${selectOptions(APPROVAL_OPTIONS, t.supervisorApproval_post)}
             </select>
           </td>
         </tr>
@@ -320,11 +322,11 @@ function calculateIsteTotals() {
 // ---------------------------------------------------------------------------
 
 export function collectPostFormData() {
-  const val    = id => document.getElementById(id)?.value ?? '';
-  const status = id => ({ label: val(id) });
-  const num    = id => parseFloat(val(id)) || 0;
+  const val     = id => document.getElementById(id)?.value ?? '';
+  const checked = id => document.getElementById(id)?.checked ?? false;
+  const status  = id => ({ label: val(id) });
+  const num     = id => parseFloat(val(id)) || 0;
 
-  // Collect subitem rows
   const rows = [];
   document.querySelectorAll('.iste-row').forEach(row => {
     const get = col => row.querySelector(`[data-iste-col="${col}"]`)?.value || '';
@@ -341,29 +343,31 @@ export function collectPostFormData() {
     });
   });
 
-  // Per diem basis from radio buttons
-  const perDiemBasis = document.querySelector('input[name="iste_perDiemBasis"]:checked')?.value || '';
-
   return {
-    ISTEStatus:         status('ISTEStatus'),
-    travelerApproval:   status('travelerApproval'),
-    supervisorApproval: status('supervisorApproval_post'),
-    approvedTotal:      num('approvedTotal'),
+    ISTEStatus:              status('ISTEStatus'),
+    travelerApproval_post:   status('travelerApproval_post'),   // was 'travelerApproval'
+    supervisorApproval_post: status('supervisorApproval_post'),
 
-    iste_agencyName:    val('iste_agencyName'),
-    iste_businessUnit:  val('iste_businessUnit'),
-    iste_voucherNumber: val('iste_voucherNumber'),
-    iste_supplierName:  val('iste_supplierName'),
-    iste_supplierId:    val('iste_supplierId'),
-    iste_postOfDuty:    val('iste_postOfDuty'),
-    iste_residence:     val('iste_residence'),
-    iste_licensePlate:  val('iste_licensePlate'),
-    iste_vehicleModel:  val('iste_vehicleModel'),
-    iste_vehicleType:   status('iste_vehicleType'),
-    iste_advance:       num('iste_advance'),
-    iste_perDiemBasis:  perDiemBasis,
+    iste_agencyName:         val('iste_agencyName'),
+    iste_businessUnit:       val('iste_businessUnit'),
+    iste_voucherNumber:      val('iste_voucherNumber'),
+    iste_supplierName:       val('iste_supplierName'),
+    iste_supplierId:         val('iste_supplierId'),
+    iste_postOfDuty:         val('iste_postOfDuty'),
+    iste_residence:          val('iste_residence'),
+    iste_licensePlate:       val('iste_licensePlate'),
+    iste_vehicleModel:       val('iste_vehicleModel'),
+    iste_vehicleType:        status('iste_vehicleType'),
+    iste_attendance:         status('iste_boardAttendance'),    // was 'iste_attendance'
+    iste_lengthOfBoard:      status('iste_boardMeetingLength'), // was 'iste_lengthOfBoard'
+    iste_advanceAmount:      num('iste_advance'),
 
-    isteRows: rows,  // handled separately in onSavePost
+    iste_prepaidVoucher:     checked('iste_isPrepaid'),         // was 'iste_prepaidVoucher'
+    iste_finalVoucher:       checked('iste_isFinal'),           // was 'iste_finalVoucher'
+    iste_actual:             checked('iste_actual'),            // was 'iste_perDiemActual'
+    iste_approvedRates:      checked('iste_approvedRates'),     // was 'iste_perDiemApproved'
+
+    isteRows: rows,
   };
 }
 
