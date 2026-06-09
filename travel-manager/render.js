@@ -102,8 +102,8 @@ export function renderDetail(trip, activeTab, { onSavePre, onSavePost, onTabSwit
       <div class="footer-links">
         ${trip.requestUrl    ? `<a href="${trip.requestUrl}" target="_blank" class="footer-link">Request intake ↗</a>` : ''}
         ${trip.reimbUrl      ? `<a href="${trip.reimbUrl}" target="_blank" class="footer-link">Reimb. intake ↗</a>` : ''}
-        ${trip.hcaUrl        ? `<a href="${trip.hcaUrl}" target="_blank" class="footer-link">HCA packet ↗</a>` : ''}
-        ${trip.istePacketUrl ? `<a href="${trip.istePacketUrl}" target="_blank" class="footer-link">ISTE packet ↗</a>` : ''}
+        ${trip.hcaUrl        ? `<a href="${trip.hcaUrl}" target="_blank" class="footer-link">Request packet ↗</a>` : ''}
+        ${trip.istePacketUrl ? `<a href="${trip.istePacketUrl}" target="_blank" class="footer-link">Reimb. packet ↗</a>` : ''}
       </div>
       <button id="save-btn" class="btn btn--primary">Save to monday</button>
     </div>
@@ -335,9 +335,6 @@ function travelerRequestPaneHTML(trip) {
 // ---------------------------------------------------------------------------
 
 function travelerReimbPaneHTML(trip) {
-  const fmt = v => (v && v !== '0') ? `$${parseFloat(v).toFixed(2)}` : '—';
-
-  // Show a prompt if Board 3 IDs haven't been configured yet
   const notConfigured = !trip.mondayItemId_reimb;
 
   return `
@@ -358,25 +355,57 @@ function travelerReimbPaneHTML(trip) {
 
     <div class="read-fields">
 
-      <div class="read-section-title">Claimed Expenses</div>
-      ${readField('Total claimed',   fmt(trip.totalClaimed))}
-      ${readField('Per diem days',   trip.perDiemDays)}
-      ${readField('Mileage',         fmt(trip.tr_reimb_mileage))}
+      <div class="read-section-title">Traveler Information</div>
+      ${readField('Division',                          trip.reimb_division)}
+      ${readField('Traveler',                          trip.reimb_name)}
+      ${readField('Supplier ID',                       trip.reimb_supplierID)}
 
-      <!-- ── ADD MORE FIELDS HERE ────────────────────────────────────────
-           1. Add the column ID to TRAVELER_REIMB_COLS in config.js
-           2. Add a readField() line here using the key name you chose
-           Example:
-             ${readField('Airfare', fmt(trip.tr_reimb_airfare))}
-             ${readField('Lodging', fmt(trip.tr_reimb_lodging))}
-             ${readField('Notes',   trip.tr_reimb_notes)}
-      ─────────────────────────────────────────────────────────────── -->
+      <div class="read-section-title">Travel Information</div>
+      ${readField('Actual / Approved Rates',           trip.reimb_rates)}
+      ${readField('Actual Departure From Home Date',   trip.reimb_departureDate)}
+      ${readField('Actual Departure From Home Time',   trip.reimb_departureTime)}
+      ${readField('Actual Arrival To Home Date',       trip.reimb_arrivalDate)}
+      ${readField('Actual Arrival To Home Time',       trip.reimb_arrivalTime)}
+      ${readField('Mileage From Home To Airport',      trip.reimb_mileageToAirport)}
+
+      <div class="read-section-title">Vehicle Information</div>
+      ${readField('Vehicle License Plate',             trip.reimb_licensePlate)}
+      ${readField('Vehicle Model/Year',                trip.reimb_carModel)}
+      ${readField('State/Personal Vehicle',            trip.reimb_carType)}
+
+      <div class="read-section-title">Transportation / Fares</div>
+      ${reimbTransportationHTML(trip)}
 
     </div>
-
-    ${attachmentsHTML(trip.reimbAssets, 'Submitted receipts')}
   `;
 }
+
+
+function reimbTransportationHTML(trip) {
+  if (!trip.reimbSubitems?.length) return '<div class="read-empty">No transportation expenses submitted.</div>';
+
+  const rows = trip.reimbSubitems.map(row => `
+    <div class="form-row form-row--5col transport-row">
+      ${readField('Date',   row.date || '—')}
+      ${readField('Type',   `${row.transportType}${row.listType ? ` — ${row.listType}` : ''}`)}
+      ${readField('Amount', `$${row.amount.toFixed(2)}`)}
+      ${readField('Tip',    `$${row.tipAmount.toFixed(2)}`)}
+      <div class="read-field">
+        <div class="read-field__label">Receipt</div>
+        <div class="read-field__value receipts">
+          ${attachmentsHTML(row.receiptAssets, '')}
+        </div>
+      </div>
+    </div>
+  `).join('');
+
+  const total = trip.reimbSubitems.reduce((s, r) => s + r.amount + r.tipAmount, 0);
+
+  return `
+    ${rows}
+  `;
+}
+
 
 
 // ---------------------------------------------------------------------------

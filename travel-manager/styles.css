@@ -742,6 +742,29 @@ html, body {
   grid-template-columns: 1fr 1fr 1fr 1fr;
 }
 
+.form-row--5col {
+  grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
+}
+
+.transport-row {
+  align-items: flex-start;
+}
+
+.receipts .attachments {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.receipts .attachment {
+  white-space: nowrap;
+}
+
+.read-field__value .attachments {
+  margin-top: -7px;
+  padding-top: 0;
+}
+
 /* A single label + input pair */
 .form-field {
   display: flex;

@@ -173,13 +173,36 @@ export const HCA_PACKET_COLS = {
 // ---------------------------------------------------------------------------
 //  COLUMN IDs  —  Board 3: Traveler Reimbursement Submission
 // ---------------------------------------------------------------------------
+export const TRAVELER_REIMB_SUBITEM_COLS = {
+  transportType:   'color_mm32gfgv',
+  listType:        'text_mm32rvf0',
+  date:            'date_mm32jk22',
+  amount:          'numeric_mm32yqpz',
+  tipAmount:       'numeric_mm327arh',
+  receipt:         'file_mm33209m',
+};
+
 export const TRAVELER_REIMB_COLS = {
-  tripID:       'text_mm35kp5n',   // ← replace
-  totalClaimed: 'numbers_XXXXXXXX', // ← replace
-  perDiemDays:  'numbers_XXXXXXXX', // ← replace
-  mileage:      'numbers_XXXXXXXX', // ← replace
-  // --- Add more columns from Board 3 here ---
-  // receiptsNotes: 'text_XXXXXXXX',
+  tripID:           'text_mm35kp5n',
+  reimb_date:       'date4',
+  reimb_division:   'text_mm36xvyg',  
+  reimb_name:       'text_mm32dwr1',
+  reimb_supplierID: 'text_mm325j5s',
+  reimb_departureDate: 'date_mm32tas8',
+  reimb_departureTime: 'text_mm32a8qk',
+  reimb_arrivalDate: 'date_mm32gjap',
+  reimb_arrivalTime: 'text_mm323j64',
+  reimb_mileageToAirport: 'numeric_mm32ynry',
+  reimb_licensePlate: 'text_mm3263qb',
+  reimb_carModel:   'text_mm32k4rx',
+  reimb_carType:    'color_mm32f9gp',
+  reimb_transportUsed: 'color_mm32d2c2',
+  reimb_parkingFee: 'color_mm32qc1y',
+  reimb_parkingFeeAmount: 'numeric_mm32w2q5',
+  reimb_bagFee:     'color_mm32dyk9',
+  reimb_bagFeeAmount: 'numeric_mm32hztf',
+  reimb_rates:      'color_mm366rbp',
+  reimb_rates:      'color_mm366rbp',
 };
 
 

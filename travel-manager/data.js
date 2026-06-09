@@ -8,6 +8,7 @@ import {
   BOARDS,
   TRAVELER_REQUEST_COLS,
   HCA_PACKET_COLS,
+  TRAVELER_REIMB_SUBITEM_COLS,
   TRAVELER_REIMB_COLS,
   ISTE_SUBITEM_COLS,
   ISTE_PACKET_COLS,
@@ -33,6 +34,7 @@ const INITIAL_QUERY = `
           subitems {
             id
             board { id }
+            assets { id name public_url file_extension }
             column_values { id type text value }
           }
         }
@@ -52,6 +54,7 @@ const NEXT_PAGE_QUERY = `
         subitems {
           id
           board { id }
+          assets { id name public_url file_extension }
           column_values { id type text value }
         }
       }
@@ -327,6 +330,33 @@ export function assembleTrips({ travelerItems, hcaItems, reimbItems, isteItems }
     trip.reimbAssets        = item.assets || [];
 
     Object.assign(trip, extract(map, TRAVELER_REIMB_COLS));
+
+    // Map transportation subitems
+    trip.reimbSubitems = (item.subitems || []).map(sub => {
+      const sm = colMap(sub);
+      const sv = colId => sm[colId]?.text || '';
+
+      // Find receipt asset — the file column's text is the asset ID
+      const receiptColId  = TRAVELER_REIMB_SUBITEM_COLS.receipt;
+
+      const receiptAssets = (() => {
+        try {
+          const files = JSON.parse(sm[receiptColId]?.value)?.files || [];
+          return files
+            .map(f => sub.assets?.find(a => String(a.id) === String(f.assetId)))
+            .filter(Boolean);
+        } catch { return []; }
+      })();
+
+      return {
+        transportType: sv(TRAVELER_REIMB_SUBITEM_COLS.transportType),
+        listType:      sv(TRAVELER_REIMB_SUBITEM_COLS.listType),
+        date:          sv(TRAVELER_REIMB_SUBITEM_COLS.date),
+        amount:        parseFloat(sv(TRAVELER_REIMB_SUBITEM_COLS.amount))   || 0,
+        tipAmount:     parseFloat(sv(TRAVELER_REIMB_SUBITEM_COLS.tipAmount)) || 0,
+        receiptAssets:  receiptAssets || null,
+      };
+    }).filter(row => row.transportType || row.date || row.amount);
   }
 
   // --- Board 4: ISTE packet ---
