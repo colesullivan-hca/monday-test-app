@@ -158,6 +158,12 @@ html, body {
   border-bottom: 1px solid var(--border);
 }
 
+.sidebar__sync {
+  margin-left: 5px;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
 .sidebar__title {
   font-size: var(--font-size-sm);
   font-weight: 600;
@@ -827,6 +833,15 @@ html, body {
   transition: border-color .15s, box-shadow .15s;
 }
 
+td:has(.input--dirty) {
+  border-left: 2px solid var(--blue, #0073ea) !important;
+  background: color-mix(in srgb, var(--blue, #0073ea) 5%, transparent) !important;
+
+}
+
+.input--dirty {
+}
+
 /* .form-select {
   &.readyforapprovals {
     color: var(--mn-green);
@@ -913,6 +928,17 @@ html, body {
 }
 
 .btn--primary:hover { background: var(--mn-blue-hover); border-color: var(--mn-blue-hover); }
+
+#save-btn {
+  background: var(--border);
+  border: none;
+}
+
+#save-btn.save-btn--dirty {
+  background: var(--mn-blue);
+  border-color: var(--mn-blue);
+  color: var(--text-on-blue);
+}
 
 
 /* ---------------------------------------------------------------------------

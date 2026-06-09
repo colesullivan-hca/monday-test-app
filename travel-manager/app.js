@@ -25,24 +25,26 @@ let isDirty          = false;
 // ---------------------------------------------------------------------------
 
 async function refreshTrips() {
+  const syncEl = document.getElementById('last-synced');
+  if (syncEl) syncEl.textContent = 'Syncing…';
+  
   try {
-    const raw  = await fetchAllBoards(monday);
+    const raw   = await fetchAllBoards(monday);
     const fresh = assembleTrips(raw);
-
-    // Merge fresh data into trips, preserving the active selection
     Object.assign(trips, fresh);
-
-    // Re-render sidebar with updated data
     renderSidebar(trips, { onSelect });
     highlightSidebarItem(activeId);
 
-    // Re-render detail only if not dirty
     if (activeId && !isDirty) {
       renderDetail(trips[activeId], activeTab, { onSavePre, onSavePost, onTabSwitch, onNotifyTraveler });
       snapshotAndWatch(activeTab);
     }
+
+    if (syncEl) syncEl.textContent = 
+      `Synced ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
   } catch (err) {
     console.error('Background refresh failed:', err);
+    if (syncEl) syncEl.textContent = 'Sync failed';
   }
 }
 
@@ -124,13 +126,16 @@ async function init() {
 
   loader.classList.add('hidden');
 
+  document.getElementById('last-synced').textContent = 
+        `Last synced ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+
   window.addEventListener('focus', async () => {
     if (!isDirty) await refreshTrips();
   });
 
   setInterval(async () => {
     if (!isDirty && !document.hidden) await refreshTrips();
-  }, 60_000);
+  }, 120_000);
 }
 
 
@@ -191,8 +196,13 @@ function highlightSidebarItem(tripId) {
 //  Dirty tracking
 // ---------------------------------------------------------------------------
 
+function updateSaveButton() {
+  const btn = document.getElementById('save-btn');
+  if (!btn) return;
+  btn.classList.toggle('save-btn--dirty', isDirty);
+}
+
 function snapshotAndWatch(tab) {
-  // Snapshot must happen after the DOM is rendered
   originalFormData = tab === 'pre' ? collectPreFormData() : collectPostFormData();
   isDirty = false;
 
@@ -202,10 +212,40 @@ function snapshotAndWatch(tab) {
 
   const handler = () => {
     const current = tab === 'pre' ? collectPreFormData() : collectPostFormData();
-    isDirty = Object.keys(current).some(
-      k => JSON.stringify(current[k]) !== JSON.stringify(originalFormData[k])
-    );
+    isDirty = false;
+
+    for (const [key, value] of Object.entries(current)) {
+      if (key === 'isteRows') {
+        (value || []).forEach((row, i) => {
+          const rowEl = form.querySelector(`.iste-row[data-row="${i}"]`);
+          if (!rowEl) return;
+          const rowDirty = JSON.stringify(row) !== JSON.stringify(originalFormData?.isteRows?.[i]);
+          if (rowDirty) isDirty = true;   // ← was missing
+          rowEl.querySelectorAll('.iste-input').forEach(input => {
+            input.classList.toggle('input--dirty', rowDirty);
+          });
+        });
+        continue;
+      }
+
+      const changed = JSON.stringify(value) !== JSON.stringify(originalFormData?.[key]);
+      if (changed) isDirty = true;
+
+      const el = form.querySelector(`#${key}, [data-form-key="${key}"]`);
+      if (el) {
+        if (el.type === 'radio') {
+          form.querySelectorAll(`[name="${el.name}"]`).forEach(r => {
+            r.closest('td, div')?.classList.toggle('input--dirty', changed);
+          });
+        } else {
+          el.classList.toggle('input--dirty', changed);
+        }
+      }
+    }
+
+    updateSaveButton();  // ← call after all keys processed
   };
+
   form.addEventListener('input',  handler);
   form.addEventListener('change', handler);
 }
