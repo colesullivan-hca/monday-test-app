@@ -24,6 +24,28 @@ let isDirty          = false;
 //  Boot
 // ---------------------------------------------------------------------------
 
+async function refreshTrips() {
+  try {
+    const raw  = await fetchAllBoards(monday);
+    const fresh = assembleTrips(raw);
+
+    // Merge fresh data into trips, preserving the active selection
+    Object.assign(trips, fresh);
+
+    // Re-render sidebar with updated data
+    renderSidebar(trips, { onSelect });
+    highlightSidebarItem(activeId);
+
+    // Re-render detail only if not dirty
+    if (activeId && !isDirty) {
+      renderDetail(trips[activeId], activeTab, { onSavePre, onSavePost, onTabSwitch, onNotifyTraveler });
+      snapshotAndWatch(activeTab);
+    }
+  } catch (err) {
+    console.error('Background refresh failed:', err);
+  }
+}
+
 
 // ---------------------------------------------------------------------------
 //  serializeColumnValue(colId, value)
@@ -101,6 +123,14 @@ async function init() {
   }
 
   loader.classList.add('hidden');
+
+  window.addEventListener('focus', async () => {
+    if (!isDirty) await refreshTrips();
+  });
+
+  setInterval(async () => {
+    if (!isDirty && !document.hidden) await refreshTrips();
+  }, 60_000);
 }
 
 
