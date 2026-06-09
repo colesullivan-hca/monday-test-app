@@ -231,7 +231,7 @@ function snapshotAndWatch(tab) {
       const changed = JSON.stringify(value) !== JSON.stringify(originalFormData?.[key]);
       if (changed) isDirty = true;
 
-      const el = form.querySelector(`#${key}, [data-form-key="${key}"]`);
+      const el = form.querySelector(`#${key}, [name="${key}"]`);
       if (el) {
         if (el.type === 'radio') {
           form.querySelectorAll(`[name="${el.name}"]`).forEach(r => {
@@ -348,6 +348,15 @@ async function onSavePost(formData) {
     }
 
     showSaveStatus('Saving…', 'info');
+
+    if (formData.iste_voucherBasis !== undefined) {
+      formData.iste_prepaidVoucher = formData.iste_voucherBasis === 'Prepaid Voucher';
+      formData.iste_finalVoucher   = formData.iste_voucherBasis === 'Final Voucher';
+    }
+    if (formData.iste_perDiemBasis !== undefined) {
+      formData.iste_actual        = formData.iste_perDiemBasis === 'Actual';
+      formData.iste_approvedRates = formData.iste_perDiemBasis === 'Approved Rates';
+    }
 
     // Save column fields
     for (const [fieldKey, value] of Object.entries(changedColumns)) {

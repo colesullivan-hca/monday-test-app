@@ -833,13 +833,9 @@ html, body {
   transition: border-color .15s, box-shadow .15s;
 }
 
-td:has(.input--dirty) {
-  border-left: 2px solid var(--blue, #0073ea) !important;
+td:has(.input--dirty), td.input--dirty {
+  /* border-left: 2px solid var(--blue, #0073ea) !important; */
   background: color-mix(in srgb, var(--blue, #0073ea) 5%, transparent) !important;
-
-}
-
-.input--dirty {
 }
 
 /* .form-select {

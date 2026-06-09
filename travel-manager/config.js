@@ -236,17 +236,23 @@ export const ISTE_PACKET_COLS = {
   iste_attendance:    'color_mm322zrz',
   iste_lengthOfBoard: 'color_mm32ddxm',
   iste_postOfDuty:    'text_mm32ydbs',
-  iste_prepaidVoucher:'boolean_mm32z5q7',
-  iste_finalVoucher:  'boolean_mm32n5pq',
-  iste_actual:        'boolean_mm3490fe',
-  iste_approvedRates: 'boolean_mm345nt4',
   iste_residence:     'text_mm32f377',
   iste_licensePlate:  'text_mm328jte',
   iste_vehicleModel:  'text_mm32vtpv',
   iste_vehicleType:   'color_mm32b86r',
-  travelerApproval_post: 'color_mm3tzwcd',
+  travelerApproval_post:   'color_mm3tzwcd',
   supervisorApproval_post: 'color_mm3txq9z',
-  iste_APApproval: 'color_mm3t1vzy',
+  iste_APApproval:         'color_mm3t1vzy',
+
+  // Radio groups — derive booleans in onSavePost before saving
+  iste_voucherBasis:  null,   // not a real column, handled in onSavePost
+  iste_perDiemBasis:  null,   // not a real column, handled in onSavePost
+
+  // Underlying boolean columns
+  iste_prepaidVoucher: 'boolean_mm32z5q7',
+  iste_finalVoucher:   'boolean_mm32n5pq',
+  iste_actual:         'boolean_mm3490fe',
+  iste_approvedRates:  'boolean_mm345nt4',
 };
 
 

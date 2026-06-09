@@ -418,10 +418,8 @@ export function collectPostFormData() {
     iste_lengthOfBoard:      status('iste_boardMeetingLength'), // was 'iste_lengthOfBoard'
     iste_advanceAmount:      num('iste_advance'),
 
-    iste_prepaidVoucher:     checked('iste_isPrepaid'),         // was 'iste_prepaidVoucher'
-    iste_finalVoucher:       checked('iste_isFinal'),           // was 'iste_finalVoucher'
-    iste_actual:             checked('iste_actual'),            // was 'iste_perDiemActual'
-    iste_approvedRates:      checked('iste_approvedRates'),     // was 'iste_perDiemApproved'
+    iste_voucherBasis: document.querySelector('input[name="iste_voucherBasis"]:checked')?.value || '',
+    iste_perDiemBasis: document.querySelector('input[name="iste_perDiemBasis"]:checked')?.value || '',
 
     isteRows: rows,
   };
