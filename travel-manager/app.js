@@ -27,20 +27,35 @@ let isDirty          = false;
 async function refreshTrips() {
   const syncEl = document.getElementById('last-synced');
   if (syncEl) syncEl.textContent = 'Syncing…';
-  
+
+  // Save scroll positions before re-render
+  const leftPane  = document.querySelector('.split-pane__left');
+  const rightPane = document.querySelector('.split-pane__right');
+  const leftScroll  = leftPane?.scrollTop  || 0;
+  const rightScroll = rightPane?.scrollTop || 0;
+
   try {
     const raw   = await fetchAllBoards(monday);
     const fresh = assembleTrips(raw);
     Object.assign(trips, fresh);
+
     renderSidebar(trips, { onSelect });
     highlightSidebarItem(activeId);
 
     if (activeId && !isDirty) {
       renderDetail(trips[activeId], activeTab, { onSavePre, onSavePost, onTabSwitch, onNotifyTraveler });
       snapshotAndWatch(activeTab);
+
+      // Restore scroll positions after re-render
+      requestAnimationFrame(() => {
+        const l = document.querySelector('.split-pane__left');
+        const r = document.querySelector('.split-pane__right');
+        if (l) l.scrollTop = leftScroll;
+        if (r) r.scrollTop = rightScroll;
+      });
     }
 
-    if (syncEl) syncEl.textContent = 
+    if (syncEl) syncEl.textContent =
       `Synced ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
   } catch (err) {
     console.error('Background refresh failed:', err);
