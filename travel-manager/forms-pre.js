@@ -283,6 +283,11 @@ export function initPreFormListeners() {
     input.addEventListener('input', calculateTotals);
   });
   calculateTotals();
+  // packetStatus is outside the form div so needs its own listener
+  document.getElementById('packetStatus_pre')?.addEventListener('change', () => {
+    // Trigger the snapshotAndWatch handler manually by dispatching on the form
+    document.getElementById('pre-travel-form')?.dispatchEvent(new Event('change'));
+  });
 }
 
 function calculateTotals() {

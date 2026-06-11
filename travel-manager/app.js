@@ -187,17 +187,28 @@ async function onTabSwitch(tab) {
   snapshotAndWatch(tab);
 }
 
+function reimbursementURL(trip){
+  const baseURL = 'https://forms.monday.com/forms/23ad52a366e30773dfddc027ec1f6ef3?r=use1';
+  return baseURL + `&formid=${trip.tripID}`;
+}
+
 async function onNotifyTraveler({ email, name, trip }) {
   if (!email) {
     monday.execute('notice', { message: 'No email on file for this traveler.', type: 'error' });
     return;
   }
-  // monday.execute('sendNotification') requires a userId, not an email.
-  // The cleanest option here is to open a pre-filled mailto link.
+
+  const url = reimbursementURL(trip);
   const subject = encodeURIComponent(`Reimbursement form needed — ${trip}`);
-  const body    = encodeURIComponent(
-    `Hi ${name},\n\nWe're ready to process your reimbursement for "${trip}" but haven't received your completed form yet.\n\nPlease submit it at your earliest convenience.\n\nThank you`
+  
+  const body = encodeURIComponent(
+    `Hi ${name},\n\n` +
+    `We're ready to process your reimbursement for "${trip}" but haven't received your completed form yet.\n\n` +
+    `Please submit it at your earliest convenience using this link:\n` +
+    `${url}\n\n` +
+    `Thank you`
   );
+
   window.open(`mailto:${email}?subject=${subject}&body=${body}`);
 }
 
