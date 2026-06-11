@@ -298,7 +298,7 @@ export const PRE_TRAVEL_STEPS = [
 export const POST_TRAVEL_STEPS = [
   { label: 'Reimbursement form submitted', actor: 'Traveler',        autoComplete: false, isteUrlRequired: true },
   { label: 'Generate itemized statement',  actor: 'Travel Team',     colKey: 'ISTEStatus',         doneValue: STATUS_LABELS.readyForApprovals },
-  { label: 'Traveler approval',            actor: 'Traveler',        colKey: 'travelerApproval',   doneValue: STATUS_LABELS.approved, deniedValue: STATUS_LABELS.denied },
-  { label: 'Supervisor approval',          actor: 'Supervisor',      colKey: 'supervisorApproval', doneValue: STATUS_LABELS.approved, deniedValue: STATUS_LABELS.denied },
+  { label: 'Traveler approval',            actor: 'Traveler',        colKey: 'travelerApproval_post', doneValue: STATUS_LABELS.approved, deniedValue: STATUS_LABELS.denied },
+  { label: 'Supervisor approval',          actor: 'Supervisor',      colKey: 'supervisorApproval_post', doneValue: STATUS_LABELS.approved, deniedValue: STATUS_LABELS.denied },
   { label: 'Payments processing',          actor: 'Accounts Payable', autoComplete: false },
 ];

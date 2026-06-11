@@ -458,7 +458,7 @@ export function assembleTrips({ travelerItems, hcaItems, reimbItems, isteItems }
     fill('iste_residence',     trip.tr_homeCity && trip.tr_homeState
                                 ? `${trip.tr_homeCity}, ${trip.tr_homeState}`
                                 : trip.iste_residence);
-    // fill('iste_supervisorEmail',  trip.tr_supervisorEmail);   // only if relevant — see note below
+    // fill('iste_supervisorEmail',  trip.tr_supervisorEmail);  
   }
 
   return Object.fromEntries(

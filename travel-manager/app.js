@@ -310,6 +310,13 @@ function snapshotAndWatch(tab) {
 
   form.addEventListener('input',  handler);
   form.addEventListener('change', handler);
+
+  if (tab === 'post') {
+    const isteStatus = document.getElementById('ISTEStatus');
+    if (isteStatus) {
+      isteStatus.addEventListener('change', handler);
+    }
+  }
 }
 
 async function confirmDiscard() {
