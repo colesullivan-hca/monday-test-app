@@ -90,6 +90,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     await loadQueue();
 
     monday.get("location").then(res => {
+        console.log(res);
         const formId = res?.query?.formid;
         if(formId) {
             const item = allItems.find(i => String(i.id) === formId);
