@@ -348,8 +348,7 @@ function travelerReimbPaneHTML(trip) {
 
     ${notConfigured ? `
       <div class="pane-notice">
-        Board 3 column IDs not yet configured.
-        Add them to <code>TRAVELER_REIMB_COLS</code> in <code>config.js</code>.
+        No Reimbursement Form has been submitted yet.
       </div>
     ` : ''}
 

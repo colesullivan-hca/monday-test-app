@@ -75,19 +75,28 @@ document.addEventListener('DOMContentLoaded', async () => {
     monday = window.mondaySdk();
     monday.setToken(''); // SDK handles token via context in custom objects
 
+    
     try {
         const ctx = await monday.get('context');
         currentUser = ctx.data?.user;
         if (currentUser) {
             document.getElementById('user-label').textContent =
-                `Showing items assigned to ${currentUser.name}`;
+            `Showing items assigned to ${currentUser.name}`;
         }
     } catch (e) {
         console.warn('Could not get context user, will fall back to /me query:', e);
     }
-
+    
     await loadQueue();
 
+    monday.get("location").then(res => {
+        const formId = res?.query?.formid;
+        if(formId) {
+            const item = allItems.find(i => String(i.id) === formId);
+            openModal(item);
+        }
+    })
+    
     document.addEventListener('visibilitychange', () => {
         if (document.visibilityState === 'visible') {
             loadQueue({ bustCache: true });

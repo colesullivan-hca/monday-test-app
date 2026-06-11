@@ -234,6 +234,7 @@ export const ISTE_PACKET_COLS = {
   iste_voucherNumber: 'text_mm33zev5',
   iste_supplierName:  'text_mm32xqxs',
   iste_supplierId:    'text_mm32zdd2',
+  iste_destination:   'text_mm47ez1r',
   iste_attendance:    'color_mm322zrz',
   iste_lengthOfBoard: 'color_mm32ddxm',
   iste_postOfDuty:    'text_mm32ydbs',

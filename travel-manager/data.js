@@ -157,8 +157,6 @@ async function fetchBoard(monday, boardId) {
 }
 
 export async function fetchAllBoards(monday) {
-  // Fetch sequentially so a bad board ID gives a clear per-board error
-  // rather than one cryptic Promise.all failure.
   const [travelerItems, hcaItems, reimbItems, isteItems] = await Promise.all([
     fetchBoard(monday, BOARDS.travelerRequest).catch(err => {
       console.error('travelerRequest fetch failed:', err); return [];
@@ -459,6 +457,7 @@ export function assembleTrips({ travelerItems, hcaItems, reimbItems, isteItems }
                                 ? `${trip.tr_homeCity}, ${trip.tr_homeState}`
                                 : trip.iste_residence);
     // fill('iste_supervisorEmail',  trip.tr_supervisorEmail);  
+    fill('iste_destination',  trip.tr_confCity);  
   }
 
   return Object.fromEntries(

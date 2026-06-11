@@ -64,7 +64,7 @@ async function refreshTrips() {
 }
 
 async function backfillIsteDefaults(trip) {
-  const needed = true || trip._isteBackfillNeeded;
+  const needed = trip._isteBackfillNeeded;
   if (!needed || !Object.keys(needed).length) return;
 
   const ISTE_BACKFILL_MAP = {
