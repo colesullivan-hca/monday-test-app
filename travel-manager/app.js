@@ -154,7 +154,7 @@ async function init() {
 
     // Auto-select first active trip if any
     const firstActive = Object.values(trips).find(t =>
-      ['preTravel', 'postTravel', 'travelling'].includes(t.state)
+      ['preTravel'].includes(t.state)
     );
     if (firstActive) onSelect(firstActive.tripID);
 
@@ -197,7 +197,7 @@ async function onSelect(tripId) {
   if (isDirty && !(await confirmDiscard())) return;
   isDirty  = false;
   activeId  = tripId;
-  activeTab = 'pre';
+  activeTab = trips[tripId].istePacketUrl ? 'post' : 'pre';
   renderDetail(trips[tripId], activeTab, { onSavePre, onSavePost, onTabSwitch, onNotifyTraveler });
   highlightSidebarItem(tripId);
   initFileDialogListeners();
@@ -634,6 +634,24 @@ function showSaveStatus(msg, type) {
 // ---------------------------------------------------------------------------
 //  File Dialog
 // ---------------------------------------------------------------------------
+function handleMondayUploadClick(event) {
+  const el = event.target.closest('.monday-upload-btn');
+  if (!el) return;
+
+  // Prevent any weird double-bubbling behaviors
+  event.preventDefault();
+
+  monday.execute("openAppFeatureModal", {
+    url: `https://nmhca.monday.com/boards/18412077420/views/256095973/pulses/${el.dataset.itemId}`,
+    urlParams: { tab: "notifications" },
+    width: "600px",
+    height: "700px",
+    returnToPreviousModal: true
+  }).then((res) => {
+    // triggered when a user closes the dialog
+  });
+}
+
 function initFileDialogListeners() {
   // document.querySelectorAll('.monday-file-btn').forEach(el => {
   //   el.addEventListener('click', () => {
@@ -645,23 +663,8 @@ function initFileDialogListeners() {
   //     });
   //   });
   // });
-  document.body.addEventListener('click', (event) => {
-    // Find if the clicked element (or its closest parent) matches button class
-    const el = event.target.closest('.monday-upload-btn');
-    
-    // If it's not our upload button, ignore the click
-    if (!el) return;
-
-    monday.execute("openAppFeatureModal", {
-      url: `https://nmhca.monday.com/boards/18412077420/views/256095973/pulses/${el.dataset.itemId}`,
-      urlParams: { tab: "notifications" },
-      width: "600px",
-      height: "700px",
-      returnToPreviousModal: true
-    }).then((res) => {
-      // triggered when a user closes the dialog
-    });
-  });
+  document.body.removeEventListener('click', handleMondayUploadClick);
+  document.body.addEventListener('click', handleMondayUploadClick);
 }
 
 
