@@ -15,7 +15,7 @@ export function buildPostForm(trip) {
     return buildWaitingState(trip);
   }
 
-  const locked = trip.packetStatus === 'Ready For Approvals';
+  const locked = trip.ISTEStatus === 'Ready For Approvals';
   const ro     = locked ? 'readonly' : '';
   const roSel  = locked ? 'disabled' : '';
 

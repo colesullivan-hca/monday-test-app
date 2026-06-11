@@ -63,6 +63,41 @@ async function refreshTrips() {
   }
 }
 
+async function backfillIsteDefaults(trip) {
+  const needed = true || trip._isteBackfillNeeded;
+  if (!needed || !Object.keys(needed).length) return;
+
+  const ISTE_BACKFILL_MAP = {
+    iste_supplierName: ISTE_PACKET_COLS.iste_supplierName,
+    iste_supplierId:   ISTE_PACKET_COLS.iste_supplierId,
+    iste_division:     ISTE_PACKET_COLS.iste_division,
+    iste_postOfDuty:   ISTE_PACKET_COLS.iste_postOfDuty,
+    iste_residence:    ISTE_PACKET_COLS.iste_residence,
+  };
+
+  const saves = [];
+  for (const [tripKey, colId] of Object.entries(ISTE_BACKFILL_MAP)) {
+    if (!colId || !(tripKey in needed)) continue;  // ← only fields that were blank
+    saves.push(
+      monday.api(MUTATION_CHANGE_COLUMN, {
+        variables: {
+          boardId:  String(BOARDS.istePacket),
+          itemId:   String(trip.mondayItemId_iste),
+          columnId: colId,
+          value:    serializeColumnValue(colId, needed[tripKey]),
+        },
+      }).catch(err => console.warn(`backfill failed for ${tripKey}:`, err))
+    );
+  }
+
+  if (saves.length) {
+    await Promise.all(saves);
+    console.log(`Backfilled ${saves.length} ISTE field(s) for trip ${trip.tripID}`);
+  }
+
+  trip._isteBackfillNeeded = {};  // ← clear so re-selecting the same trip is a no-op
+}
+
 
 // ---------------------------------------------------------------------------
 //  serializeColumnValue(colId, value)
@@ -167,6 +202,7 @@ async function onSelect(tripId) {
   highlightSidebarItem(tripId);
   initFileDialogListeners();
   snapshotAndWatch('pre');
+  backfillIsteDefaults(trips[tripId]);
 }
 
 async function onTabSwitch(tab) {
@@ -187,9 +223,9 @@ async function onTabSwitch(tab) {
   snapshotAndWatch(tab);
 }
 
-function reimbursementURL(trip){
+function reimbursementURL(tripID){
   const baseURL = 'https://forms.monday.com/forms/23ad52a366e30773dfddc027ec1f6ef3?r=use1';
-  return baseURL + `&formid=${trip.tripID}`;
+  return baseURL + `&formid=${tripID}`;
 }
 
 async function onNotifyTraveler({ email, name, trip }) {
@@ -198,7 +234,7 @@ async function onNotifyTraveler({ email, name, trip }) {
     return;
   }
 
-  const url = reimbursementURL(trip);
+  const url = reimbursementURL(activeId);
   const subject = encodeURIComponent(`Reimbursement form needed — ${trip}`);
   
   const body = encodeURIComponent(

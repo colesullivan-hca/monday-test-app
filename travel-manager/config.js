@@ -226,6 +226,7 @@ export const ISTE_SUBITEM_COLS = {
 export const ISTE_PACKET_COLS = {
   tripID:             'text_mm35jsjp',
   ISTEStatus:         'color_mm3tt944',
+  iste_supervisorEmail: 'email_mm47mgfq',
   iste_agencyName:    'text_mm32f6m5',
   iste_advanceAmount: 'numeric_mm34wpds',
   iste_division:      'text_mm38bwhw',

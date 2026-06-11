@@ -434,6 +434,33 @@ export function assembleTrips({ travelerItems, hcaItems, reimbItems, isteItems }
     }
   }
 
+  // --- Auto-fill ISTE fields from Board 1 when they're blank ---
+  for (const trip of Object.values(trips)) {
+    if (!trip.mondayItemId_iste) continue;  // no ISTE item, skip
+
+    trip._isteBackfillNeeded = {};  // ← new: tracks only fields that were actually blank
+
+    const fill = (isteKey, sourceVal) => {
+      if (!trip[isteKey] && sourceVal) {
+        trip[isteKey] = sourceVal;
+        trip._isteBackfillNeeded[isteKey] = sourceVal;  // ← mark it
+      }
+    };
+
+    fill('iste_supplierName',  trip.tr_firstName && trip.tr_lastName
+                                ? `${trip.tr_firstName} ${trip.tr_lastName}`
+                                : trip.iste_supplierName);
+    fill('iste_supplierId',    trip.tr_vendorId);
+    fill('iste_division',      trip.tr_division);
+    fill('iste_postOfDuty',    trip.tr_workCity && trip.tr_workState
+                                ? `${trip.tr_workCity}, ${trip.tr_workState}`
+                                : trip.iste_postOfDuty);
+    fill('iste_residence',     trip.tr_homeCity && trip.tr_homeState
+                                ? `${trip.tr_homeCity}, ${trip.tr_homeState}`
+                                : trip.iste_residence);
+    // fill('iste_supervisorEmail',  trip.tr_supervisorEmail);   // only if relevant — see note below
+  }
+
   return Object.fromEntries(
     Object.entries(trips).filter(([, trip]) => trip.mondayItemId_hca)
   );
