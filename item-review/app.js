@@ -87,6 +87,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     await loadQueue();
+
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') {
+            loadQueue({ bustCache: true });
+        }
+    });
 });
 
 // ─────────────────────────────────────────────
