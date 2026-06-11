@@ -3,12 +3,12 @@ const CONFIG = {
     board1: {
         id: 18412077420,
         pairs: [
-            { peopleColId: 'multiple_person_mm3te832', statusColId: 'color_mm2x5q1s' },
-            { peopleColId: 'multiple_person_mm3te832', statusColId: 'color_mm2xnfbh' },
-            { peopleColId: 'multiple_person_mm3te832', statusColId: 'color_mm2x8nh2' },
-            { peopleColId: 'multiple_person_mm3te832', statusColId: 'color_mm2xerea' },
-            { peopleColId: 'multiple_person_mm3xtzcj', statusColId: 'color_mm3seyds' }, // conditional pair A
-            { peopleColId: 'multiple_person_mm3x20zt', statusColId: 'color_mm3s84rd' }, // conditional pair B
+            { peopleColId: 'multiple_person_mm3te832', statusColId: 'color_mm2x5q1s', approvalLabel: 'Supervisor Approval' },
+            { peopleColId: 'multiple_person_mm3te832', statusColId: 'color_mm2xnfbh', approvalLabel: 'Division Approval' },
+            { peopleColId: 'multiple_person_mm3te832', statusColId: 'color_mm2x8nh2', approvalLabel: 'ASD Budget Approval' },
+            { peopleColId: 'multiple_person_mm3te832', statusColId: 'color_mm2xerea', approvalLabel: 'OOS Approval' },
+            { peopleColId: 'multiple_person_mm3xtzcj', statusColId: 'color_mm3seyds', approvalLabel: 'Rental Car Approval' }, // conditional pair A
+            { peopleColId: 'multiple_person_mm3x20zt', statusColId: 'color_mm3s84rd', approvalLabel: 'Room Rates Approval' }, // conditional pair B
         ],
     },
 
@@ -17,6 +17,7 @@ const CONFIG = {
         id: 18412077425,
         reviewerColumnId: 'multiple_person_mm3tmrp3',
         statusColumnIds: ['color_mm3tzwcd', 'color_mm3txq9z', 'color_mm3t1vzy'],
+        approvalLabel: 'Accounts Payable Approval',
     },
 
     awaitingLabel: 'Awaiting Review',
@@ -233,6 +234,7 @@ async function fetchReviewItems() {
                     columnValues: item.column_values,
                     // Store which status col to update on this item
                     activeStatusColId: pair.statusColId,
+                    approvalLabel: pair.approvalLabel || 'Pending Review',
                 });
                 break; // only add the item once even if multiple pairs match
             }
@@ -260,6 +262,7 @@ async function fetchReviewItems() {
                 reviewStatus: 'pending',
                 columnValues: item.column_values,
                 activeStatusColId: activeStatusCol.id,
+                approvalLabel: CONFIG.board2.approvalLabel || 'Pending Review',
             });
         }
     }
@@ -329,7 +332,7 @@ function buildQueueCard(item) {
     el.dataset.itemId = item.id;
 
     const statusMap = {
-        pending: { label: 'Pending Review', cls: 'status-pending' },
+        pending: { label: item.approvalLabel || 'Pending Review', cls: 'status-pending' },
         approved: { label: 'Approved', cls: 'status-approved' },
         denied: { label: 'Denied', cls: 'status-denied' },
     };
