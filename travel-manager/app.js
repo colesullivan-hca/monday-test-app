@@ -645,24 +645,21 @@ function initFileDialogListeners() {
   //     });
   //   });
   // });
-  document.querySelectorAll('.monday-upload-btn').forEach(el => {
-    el.addEventListener('click', () => {
-      monday.execute("openAppFeatureModal", {
-        url: "https://nmhca.monday.com/boards/18412077420/views/256095973/pulses/11979846987",
-        urlParams: { tab: "notifications" },
-        width: "600px",
-        height: "700px",
-        returnToPreviousModal: true
-      }).then((res) => {
-        // only triggered when a user closes the dialog
-      });
-      // const payload = {
-      //   boardId:  BOARDS.hcaPacket,
-      //   itemId:   parseInt(el.dataset.itemId),
-      //   columnId: String(el.dataset.columnId),
-      // };
-      // console.log('triggerFilesUpload payload:', payload);
-      // monday.execute('triggerFilesUpload', payload);
+  document.body.addEventListener('click', (event) => {
+    // Find if the clicked element (or its closest parent) matches button class
+    const el = event.target.closest('.monday-upload-btn');
+    
+    // If it's not our upload button, ignore the click
+    if (!el) return;
+
+    monday.execute("openAppFeatureModal", {
+      url: `https://nmhca.monday.com/boards/18412077420/views/256095973/pulses/${el.dataset.itemId}`,
+      urlParams: { tab: "notifications" },
+      width: "600px",
+      height: "700px",
+      returnToPreviousModal: true
+    }).then((res) => {
+      // triggered when a user closes the dialog
     });
   });
 }
