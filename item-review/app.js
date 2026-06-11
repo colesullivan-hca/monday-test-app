@@ -91,7 +91,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     monday.get("location").then(res => {
         console.log(res);
-        const formId = res?.query?.formid;
+        const {query} = res?.data;
+        const formId = query?.formid;
         if(formId) {
             const item = allItems.find(i => String(i.id) === formId);
             openModal(item);
