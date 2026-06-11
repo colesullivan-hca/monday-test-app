@@ -89,15 +89,26 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     await loadQueue();
 
-    monday.get("location").then(res => {
-        console.log(res);
-        const {query} = res?.data;
+    try {
+        const res = await monday.get("location");
+        console.log("Current location data:", res);
+        
+        const { query } = res?.data || {};
         const formId = query?.formid;
-        if(formId) {
-            const item = allItems.find(i => String(i.id) === formId);
-            openModal(item);
+        
+        if (formId) {
+            const item = allItems.find(i => String(i.id) === String(formId));
+            
+            if (item) {
+                console.log('Matching pending item found! Opening modal...');
+                openModal(item);
+            } else {
+                console.log(`Item ${formId} is not currently awaiting your review.`);
+            }
         }
-    })
+    } catch (urlErr) {
+        console.error("Failed to parse URL location features:", urlErr);
+    }
     
     document.addEventListener('visibilitychange', () => {
         if (document.visibilityState === 'visible') {
