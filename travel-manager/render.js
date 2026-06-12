@@ -281,6 +281,11 @@ function travelerRequestPaneHTML(trip) {
         ${readField('First Name',      trip.tr_firstName)}
         ${readField('Last Name',       trip.tr_lastName)}
       </div>
+      ${columnFilesHTML(
+          trip.requestFilesByCol?.tr_driversLicense || [],
+          "Driver's License",
+          { boardId: BOARDS.travelerRequest, itemId: trip.mondayItemId_request, columnId: TRAVELER_REQUEST_FILE_COLS.tr_driversLicense }
+      )}
       <div class="form-row form-row--2col">
         ${readField('Email',          trip.tr_email)}
         ${readField('Work Phone',     trip.tr_phone)}
@@ -289,6 +294,11 @@ function travelerRequestPaneHTML(trip) {
         ${readField('Position/Title', trip.tr_position)}
         ${readField('Vendor/Supplier ID',      trip.tr_vendorId)}
       </div>
+      ${columnFilesHTML(
+          trip.requestFilesByCol?.tr_w9 || [],
+          'W9',
+          { boardId: BOARDS.travelerRequest, itemId: trip.mondayItemId_request, columnId: TRAVELER_REQUEST_FILE_COLS.tr_w9 }
+      )}
       ${readField('Work Street',      trip.tr_workStreet)}
       <div class="form-row form-row--2col">
         ${readField('Work City',      trip.tr_workCity)}
@@ -299,6 +309,11 @@ function travelerRequestPaneHTML(trip) {
         ${readField('Home City',      trip.tr_homeCity)}
         ${readField('Home State',     trip.tr_homeState)}
       </div>
+      ${columnFilesHTML(
+          trip.requestFilesByCol?.tr_googleMaps || [],
+          'Google Maps',
+          { boardId: BOARDS.travelerRequest, itemId: trip.mondayItemId_request, columnId: TRAVELER_REQUEST_FILE_COLS.tr_googleMaps }
+      )}
 
       <div class="read-section-title">Conference Information</div>
       ${readField('Conference',     trip.tr_conference)}
@@ -311,6 +326,11 @@ function travelerRequestPaneHTML(trip) {
       ${readField('Conference Fee Amount', fmt(trip.tr_confFeeAmount))}
 
       <div class="read-section-title">Travel Information</div>
+      ${columnFilesHTML(
+          trip.requestFilesByCol?.tr_prefFlight || [],
+          'Preferred Flight',
+          { boardId: BOARDS.travelerRequest, itemId: trip.mondayItemId_request, columnId: TRAVELER_REQUEST_FILE_COLS.tr_prefFlight }
+      )}
       ${readField('Preferred Airline', trip.tr_prefAirline)}
       ${readField('Preferred Outbound Departure Date', trip.tr_outboundDate)}
       ${readField('Preferred Outbound Departure Times', trip.tr_outboundTime)}
@@ -323,11 +343,21 @@ function travelerRequestPaneHTML(trip) {
           { boardId: BOARDS.travelerRequest, itemId: trip.mondayItemId_request, columnId: TRAVELER_REQUEST_FILE_COLS.tr_bagFeeQuote }
       )}
       ${readField('Do you anticipate airport parking fees?', trip.tr_parkingFee)}
+      ${columnFilesHTML(
+          trip.requestFilesByCol?.tr_parkingQuote || [],
+          'Airport Parking fees quote',
+          { boardId: BOARDS.travelerRequest, itemId: trip.mondayItemId_request, columnId: TRAVELER_REQUEST_FILE_COLS.tr_parkingQuote }
+      )}
       ${readField('Do you need a rental car?', trip.tr_carRental)}
       ${readField('Rental car explanation', trip.tr_carRentalExpl)}
       ${readField('Comments', trip.tr_comments)}
 
       <div class="read-section-title">Lodging Information</div>
+      ${columnFilesHTML(
+          trip.requestFilesByCol?.tr_hotelReservation || [],
+          'Hotel Reservation',
+          { boardId: BOARDS.travelerRequest, itemId: trip.mondayItemId_request, columnId: TRAVELER_REQUEST_FILE_COLS.tr_hotelReservation }
+      )}
       ${readField('Hotel', trip.tr_hotel)}
       ${readField('Check-In Date', trip.tr_checkin)}
       ${readField('Check-Out Date', trip.tr_checkout)}
@@ -338,13 +368,17 @@ function travelerRequestPaneHTML(trip) {
 
       <div class="read-section-title">Reimbursement</div>
       ${readField('How would you like to be reimbursed?', trip.tr_reimburseType)}
+      ${columnFilesHTML(
+          trip.requestFilesByCol?.tr_additionalDocuments || [],
+          'Additional Documents',
+          { boardId: BOARDS.travelerRequest, itemId: trip.mondayItemId_request, columnId: TRAVELER_REQUEST_FILE_COLS.tr_additionalDocuments }
+      )}
 
     </div>
 
+
     ${attachmentsHTML(trip.requestAssets, 'All traveler attachments')}
 
-    <!-- Add more read-only fields here by duplicating readField() calls above.
-         Field keys come from TRAVELER_REQUEST_COLS in config.js. -->
   `;
 }
 
@@ -438,7 +472,7 @@ function columnFilesHTML(assets = [], label, viewerData) {
   if (!assets.length) return '';
 
   return `
-    <div class="attachments">
+    <div class="attachments tr">
       <div class="attachments__label">${label}</div>
       ${assets.map(a => `
         <button

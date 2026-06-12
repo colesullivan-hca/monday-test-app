@@ -43,6 +43,11 @@ export const TRAVELER_REQUEST_FILE_COLS = {
   tr_w9:            'file_mm21bca5',
   tr_bagFeeQuote:   'file0vnbcr0i',
   tr_parkingQuote:  'fileiktemkxs',
+  tr_googleMaps:    'file_mm48796c',
+  tr_prefFlight:    'file_mm48qfgq',
+  tr_hotelReservation: 'file_mm48vsm',
+  tr_driversLicense: 'filex8t88f0o',
+  tr_additionalDocuments: 'file_mm21qrcz',
 }
 
 export const TRAVELER_REQUEST_COLS = {

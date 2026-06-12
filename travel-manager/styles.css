@@ -634,7 +634,7 @@ html, body {
 
 .attachments {
   margin-top: 20px;
-  &.hca {
+  &.hca, &.tr {
     margin-top: 0;
   }
 }
@@ -646,6 +646,11 @@ html, body {
   text-transform: uppercase;
   letter-spacing: .4px;
   margin-bottom: 8px;
+}
+
+.attachment--viewer {
+  width: 100%;
+  text-align: left;
 }
 
 .attachment {
@@ -667,6 +672,7 @@ html, body {
   &.upload {
     margin-top: 10px;
   }
+  cursor: pointer;
 }
 
 .attachment:hover {
