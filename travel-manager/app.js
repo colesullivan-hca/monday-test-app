@@ -14,10 +14,15 @@ const monday = window.mondaySdk();
 
 // App state
 let trips            = {};
-let activeId         = null;
-let activeTab        = 'pre'; // 'pre' | 'post'
+let activeId         = sessionStorage.getItem('activeId') || null;
+let activeTab        = sessionStorage.getItem('activeTab') || 'pre';
 let originalFormData = null;
 let isDirty          = false;
+
+function persistState() {
+  if (activeId)  sessionStorage.setItem('activeId',  activeId);
+  if (activeTab) sessionStorage.setItem('activeTab', activeTab);
+}
 
 
 // ---------------------------------------------------------------------------
@@ -153,10 +158,22 @@ async function init() {
     renderEmptyState();
 
     // Auto-select first active trip if any
-    const firstActive = Object.values(trips).find(t =>
-      ['preTravel'].includes(t.state)
-    );
-    if (firstActive) onSelect(firstActive.tripID);
+    const restoreId = activeId && trips[activeId] ? activeId : null;
+    const fallback  = Object.values(trips).find(t => t.state === 'preTravel');
+    const selectId  = restoreId || fallback?.tripID;
+
+    if (selectId) {
+      // If restoring, skip the tab default logic in onSelect by setting directly
+      if (restoreId) {
+        renderDetail(trips[restoreId], activeTab, { onSavePre, onSavePost, onTabSwitch, onNotifyTraveler, onOpenFile });
+        highlightSidebarItem(restoreId);
+        initFileDialogListeners();
+        snapshotAndWatch(activeTab);
+        backfillIsteDefaults(trips[restoreId]);
+      } else {
+        onSelect(selectId);
+      }
+    }
 
   } catch (err) {
     console.error('Init error:', err);
@@ -198,6 +215,7 @@ async function onSelect(tripId) {
   isDirty  = false;
   activeId  = tripId;
   activeTab = trips[tripId].istePacketUrl ? 'post' : 'pre';
+  persistState();
   renderDetail(trips[tripId], activeTab, { onSavePre, onSavePost, onTabSwitch, onNotifyTraveler, onOpenFile });
   highlightSidebarItem(tripId);
   initFileDialogListeners();
@@ -209,6 +227,7 @@ async function onTabSwitch(tab) {
   if (isDirty && !(await confirmDiscard())) return;
   isDirty   = false;
   activeTab = tab;
+  persistState();
 
   if (tab === 'post') {
     const trip = trips[activeId];
@@ -751,7 +770,4 @@ function initFileDialogListeners() {
   document.body.addEventListener('click', handleMondayUploadClick);
 }
 
-document.addEventListener('DOMContentLoaded', async () => {
-  init();
-
-});
+init();
