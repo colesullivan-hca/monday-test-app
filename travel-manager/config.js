@@ -39,6 +39,12 @@ export const BOARDS = {
 //  These are what the traveler submitted. Column IDs match the traveler's
 //  standalone request form. The travel team sees these but cannot edit them.
 // ---------------------------------------------------------------------------
+export const TRAVELER_REQUEST_FILE_COLS = {
+  tr_w9:            'file_mm21bca5',
+  tr_bagFeeQuote:   'file0vnbcr0i',
+  tr_parkingQuote:  'fileiktemkxs',
+}
+
 export const TRAVELER_REQUEST_COLS = {
   tripID:           'text_mm35sbdp',   // Shared key that links all 4 boards
   
@@ -54,12 +60,13 @@ export const TRAVELER_REQUEST_COLS = {
   tr_division:      'color_mm36hm34',
   tr_position:      'text_mm21ecb6',
   tr_phone:         'phone_mm21zr34',
+  tr_workStreet:    'text_mm38zc44',
   tr_workCity:      'text_mm3862bq',
   tr_workState:     'color_mm38vtg3',
+  tr_homeStreet:    'text_mm38yzfc',
   tr_homeCity:      'text_mm3850m6',
   tr_homeState:     'color_mm38qytg',
   tr_vendorId:       'numeric_mm21n98s',
-  tr_w9:            'file_mm21bca5',
   
   // Conference info
   tr_conference:    'text_mm21b390',
@@ -78,9 +85,7 @@ export const TRAVELER_REQUEST_COLS = {
   tr_returnDate:    'date_mm217077',
   tr_returnTime:    'dropdown_mm2xnf5s',
   tr_bagFee:        'color_mm21h3bk',
-  tr_bagFeeQuote:   'file0vnbcr0i',
   tr_parkingFee:    'color_mm219wwd',
-  tr_parkingQuote:  'fileiktemkxs',
   tr_carRental:     'color_mm212v99',
   tr_carRentalExpl: 'long_text_mm21zaf2',
   tr_comments:      'long_text_mm21nd8m',

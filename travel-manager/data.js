@@ -6,6 +6,7 @@
 import {
   MODE,
   BOARDS,
+  TRAVELER_REQUEST_FILE_COLS,
   TRAVELER_REQUEST_COLS,
   HCA_PACKET_COLS,
   TRAVELER_REIMB_SUBITEM_COLS,
@@ -296,6 +297,21 @@ export function assembleTrips({ travelerItems, hcaItems, reimbItems, isteItems }
     trip.mondayItemId_request = item.id;  // saved for mutations
     trip.requestUrl           = item.url;
     trip.requestAssets        = item.assets || [];
+
+    trip.requestFilesByCol = {};
+
+    for (const [key, colId] of Object.entries(TRAVELER_REQUEST_FILE_COLS)) {
+      const col = map[colId];
+      if (!col) { trip.requestFilesByCol[key] = []; continue; }
+      try {
+        const fileRefs = JSON.parse(col.value)?.files || [];
+        trip.requestFilesByCol[key] = fileRefs
+          .map(f => item.assets?.find(a => String(a.id) === String(f.assetId)))
+          .filter(Boolean);
+      } catch {
+        trip.requestFilesByCol[key] = [];
+      }
+    }
 
     Object.assign(trip, extract(map, TRAVELER_REQUEST_COLS));
   }

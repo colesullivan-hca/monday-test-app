@@ -7,6 +7,7 @@
 
 import { buildPreForm, collectPreFormData, initPreFormListeners }   from './forms-pre.js';
 import { buildPostForm, collectPostFormData, initPostFormListeners } from './forms-post.js';
+import { BOARDS, TRAVELER_REQUEST_FILE_COLS } from './config.js';
 
 
 // ---------------------------------------------------------------------------
@@ -89,7 +90,7 @@ export function renderEmptyState() {
 //  Detail panel
 // ---------------------------------------------------------------------------
 
-export function renderDetail(trip, activeTab, { onSavePre, onSavePost, onTabSwitch, onNotifyTraveler }) {
+export function renderDetail(trip, activeTab, { onSavePre, onSavePost, onTabSwitch, onNotifyTraveler, onOpenFile }) {
   const panel = document.getElementById('detail-panel');
 
   panel.innerHTML = `
@@ -126,6 +127,15 @@ export function renderDetail(trip, activeTab, { onSavePre, onSavePost, onTabSwit
     );
     initPostFormListeners((notifyData) => onNotifyTraveler(notifyData));
   }
+
+  panel.querySelectorAll('.attachment--viewer').forEach(btn => {
+    btn.addEventListener('click', () => onOpenFile({
+      boardId:  btn.dataset.boardId,
+      itemId:   btn.dataset.itemId,
+      columnId: btn.dataset.columnId,
+      assetId:  btn.dataset.assetId,
+    }));
+  });
 
   // Wire tab switches
   panel.querySelectorAll('.tab-btn').forEach(btn => {
@@ -279,9 +289,13 @@ function travelerRequestPaneHTML(trip) {
         ${readField('Position/Title', trip.tr_position)}
         ${readField('Vendor/Supplier ID',      trip.tr_vendorId)}
       </div>
+      ${readField('Work Street',      trip.tr_workStreet)}
       <div class="form-row form-row--2col">
         ${readField('Work City',      trip.tr_workCity)}
         ${readField('Work State',     trip.tr_workState)}
+      </div>
+      ${readField('Home Street',      trip.tr_homeStreet)}
+      <div class="form-row form-row--2col">
         ${readField('Home City',      trip.tr_homeCity)}
         ${readField('Home State',     trip.tr_homeState)}
       </div>
@@ -303,6 +317,11 @@ function travelerRequestPaneHTML(trip) {
       ${readField('Preferred Return Departure Date',   trip.tr_returnDate)}
       ${readField('Preferred Return Departure Times', trip.tr_returnTime)}
       ${readField('Do you anticipate baggage fees?', trip.tr_bagFee)}
+      ${columnFilesHTML(
+          trip.requestFilesByCol?.tr_bagFeeQuote || [],
+          'Baggage fee quote',
+          { boardId: BOARDS.travelerRequest, itemId: trip.mondayItemId_request, columnId: TRAVELER_REQUEST_FILE_COLS.tr_bagFeeQuote }
+      )}
       ${readField('Do you anticipate airport parking fees?', trip.tr_parkingFee)}
       ${readField('Do you need a rental car?', trip.tr_carRental)}
       ${readField('Rental car explanation', trip.tr_carRentalExpl)}
@@ -322,7 +341,7 @@ function travelerRequestPaneHTML(trip) {
 
     </div>
 
-    ${attachmentsHTML(trip.requestAssets, 'Traveler attachments')}
+    ${attachmentsHTML(trip.requestAssets, 'All traveler attachments')}
 
     <!-- Add more read-only fields here by duplicating readField() calls above.
          Field keys come from TRAVELER_REQUEST_COLS in config.js. -->
@@ -410,6 +429,36 @@ function reimbTransportationHTML(trip) {
 // ---------------------------------------------------------------------------
 //  Attachments list
 // ---------------------------------------------------------------------------
+
+// Renders file chips for a single column's assets, opening monday's file viewer on click.
+// assets  — array from trip.requestFilesByCol[key]
+// label   — section label string
+// viewerData — { boardId, itemId, columnId } passed to openFilesDialog
+function columnFilesHTML(assets = [], label, viewerData) {
+  if (!assets.length) return '';
+
+  return `
+    <div class="attachments">
+      <div class="attachments__label">${label}</div>
+      ${assets.map(a => `
+        <button
+          type="button"
+          class="attachment attachment--viewer"
+          data-monday-file
+          data-board-id="${viewerData.boardId}"
+          data-item-id="${viewerData.itemId}"
+          data-column-id="${viewerData.columnId}"
+          data-asset-id="${a.id}"
+        >
+          ${attachIcon(a.file_extension)}
+          <span class="attachment__name">${a.name}</span>
+          <span class="attachment__ext">${a.file_extension?.toUpperCase() || ''}</span>
+        </button>
+      `).join('')}
+    </div>
+  `;
+}
+
 
 function attachmentsHTML(assets = [], label = 'Attachments') {
   if (!assets.length) return '';

@@ -43,7 +43,7 @@ async function refreshTrips() {
     highlightSidebarItem(activeId);
 
     if (activeId && !isDirty) {
-      renderDetail(trips[activeId], activeTab, { onSavePre, onSavePost, onTabSwitch, onNotifyTraveler });
+      renderDetail(trips[activeId], activeTab, { onSavePre, onSavePost, onTabSwitch, onNotifyTraveler, onOpenFile });
       snapshotAndWatch(activeTab);
 
       // Restore scroll positions after re-render
@@ -198,7 +198,7 @@ async function onSelect(tripId) {
   isDirty  = false;
   activeId  = tripId;
   activeTab = trips[tripId].istePacketUrl ? 'post' : 'pre';
-  renderDetail(trips[tripId], activeTab, { onSavePre, onSavePost, onTabSwitch, onNotifyTraveler });
+  renderDetail(trips[tripId], activeTab, { onSavePre, onSavePost, onTabSwitch, onNotifyTraveler, onOpenFile });
   highlightSidebarItem(tripId);
   initFileDialogListeners();
   snapshotAndWatch('pre');
@@ -218,7 +218,7 @@ async function onTabSwitch(tab) {
     }
   }
 
-  renderDetail(trips[activeId], tab, { onSavePre, onSavePost, onTabSwitch, onNotifyTraveler });
+  renderDetail(trips[activeId], tab, { onSavePre, onSavePost, onTabSwitch, onNotifyTraveler, onOpenFile });
   initFileDialogListeners();
   snapshotAndWatch(tab);
 }
@@ -226,6 +226,15 @@ async function onTabSwitch(tab) {
 function reimbursementURL(tripID){
   const baseURL = 'https://forms.monday.com/forms/23ad52a366e30773dfddc027ec1f6ef3?r=use1';
   return baseURL + `&formid=${tripID}`;
+}
+
+function onOpenFile({ boardId, itemId, columnId, assetId }) {
+  monday.execute('openFilesDialog', {
+    boardId:  String(boardId),
+    itemId:   String(itemId),
+    columnId: String(columnId),
+    assetId:  String(assetId),
+  });
 }
 
 async function onNotifyTraveler({ email, name, trip })  {
@@ -293,9 +302,9 @@ async function onNotifyTraveler({ email, name, trip })  {
     const response = await monday.api(mutation, { variables });
     
     if (response.errors) {
-      console.error("GraphQL errors:", response.errors);
+      monday.execute('notice', { message: 'There was an issue sending email to traveler', type: 'error' });
     } else {
-      console.log("Success! Created Item ID:", response.data.create_item.id);
+      monday.execute('notice', { message: 'Email sent to traveler', type: 'success' });
     }
 
   } catch (err) {
@@ -447,7 +456,7 @@ async function onSavePre(formData) {
     }
 
     rehydrateTrip(trip);
-    renderDetail(trip, activeTab, { onSavePre, onSavePost, onTabSwitch, onNotifyTraveler });
+    renderDetail(trip, activeTab, { onSavePre, onSavePost, onTabSwitch, onNotifyTraveler, onOpenFile });
     renderSidebar(trips, { onSelect });
     highlightSidebarItem(activeId);
     originalFormData = formData;
@@ -742,5 +751,7 @@ function initFileDialogListeners() {
   document.body.addEventListener('click', handleMondayUploadClick);
 }
 
+document.addEventListener('DOMContentLoaded', async () => {
+  init();
 
-init();
+});
