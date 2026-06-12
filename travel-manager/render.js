@@ -355,7 +355,7 @@ function travelerRequestPaneHTML(trip) {
       <div class="read-section-title">Lodging Information</div>
       ${columnFilesHTML(
           trip.requestFilesByCol?.tr_hotelReservation || [],
-          'Hotel Reservation',
+          'Hotel Reservation / Hotel Quote',
           { boardId: BOARDS.travelerRequest, itemId: trip.mondayItemId_request, columnId: TRAVELER_REQUEST_FILE_COLS.tr_hotelReservation }
       )}
       ${readField('Hotel', trip.tr_hotel)}
