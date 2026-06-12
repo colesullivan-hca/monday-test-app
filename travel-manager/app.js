@@ -228,25 +228,100 @@ function reimbursementURL(tripID){
   return baseURL + `&formid=${tripID}`;
 }
 
-async function onNotifyTraveler({ email, name, trip }) {
+async function onNotifyTraveler({ email, name, trip })  {
   if (!email) {
     monday.execute('notice', { message: 'No email on file for this traveler.', type: 'error' });
     return;
   }
 
-  const url = reimbursementURL(activeId);
-  const subject = encodeURIComponent(`Reimbursement form needed — ${trip}`);
-  
-  const body = encodeURIComponent(
-    `Hi ${name},\n\n` +
-    `We're ready to process your reimbursement for "${trip}" but haven't received your completed form yet.\n\n` +
-    `Please submit it at your earliest convenience using this link:\n` +
-    `${url}\n\n` +
-    `Thank you`
-  );
+  const COLUMN_IDS = {
+    recipientEmail: 'email_mm47wxe7', 
+    ccEmail: 'email_mm47vtan',  
+    text: 'text_mm47tab7',
+    longText: 'long_text_mm479ejb'
+  };
 
-  window.open(`mailto:${email}?subject=${subject}&body=${body}`);
+  const url = reimbursementURL(activeId);
+
+  try {
+    // 1. Get the current board's context
+    const context = await monday.get("context");
+
+    // 2. Fetch the current logged-in user's email address
+    const userQuery = `query { me { email name } }`;
+    const userResponse = await monday.api(userQuery);
+    
+    if (userResponse.errors || !userResponse.data?.me) {
+      throw new Error("Could not retrieve current user profile.");
+    }
+    
+    const currentUserEmail = userResponse.data.me.email;
+    const currentUserName = userResponse.data.me.name;
+
+    // 3. Prepare the mutation payload
+    const mutation = `
+      mutation AddItemWithCC($boardId: ID!, $itemName: String!, $columnValues: JSON!) {
+        create_item (board_id: $boardId, item_name: $itemName, column_values: $columnValues) {
+          id
+        }
+      }
+    `;
+
+    // 4. Map the email addresses to their respective columns
+    const columnData = {
+      // The recipient's email (static or passed from elsewhere in your app)
+      [COLUMN_IDS.recipientEmail]: { email: 'cole.sullivan@hca.nm.gov', text: "Recipient" },
+      
+      // Dynamic CC column filled using the current user's fetched data
+      [COLUMN_IDS.ccEmail]: { email: currentUserEmail, text: `CC: ${currentUserName}` },
+      
+      [COLUMN_IDS.text]: "Reimbursement form needed — ${trip}",
+      [COLUMN_IDS.longText]: { text: `<p> Hi ${name},</p>` +
+                              `<p> We're ready to process your reimbursement for "${trip}" but haven't received your completed form yet.</p>` +
+                              `<p>Please submit it at your earliest convenience using this link:</p>` +
+                              `<p>${url}\n\n</p>` +
+                              `<p>Thank you</p>` }
+    };
+
+    const variables = {
+      boardId: 18417451375,
+      itemName: `Notification email ${currentUserName}`,
+      columnValues: JSON.stringify(columnData)
+    };
+
+    // 5. Send the payload to monday.com
+    const response = await monday.api(mutation, { variables });
+    
+    if (response.errors) {
+      console.error("GraphQL errors:", response.errors);
+    } else {
+      console.log("Success! Created Item ID:", response.data.create_item.id);
+    }
+
+  } catch (err) {
+    console.error("Error executing action:", err);
+  }
 }
+
+// async function onNotifyTraveler({ email, name, trip }) {
+//   if (!email) {
+//     monday.execute('notice', { message: 'No email on file for this traveler.', type: 'error' });
+//     return;
+//   }
+
+//   const url = reimbursementURL(activeId);
+//   const subject = encodeURIComponent(`Reimbursement form needed — ${trip}`);
+  
+//   const body = encodeURIComponent(
+//     `Hi ${name},\n\n` +
+//     `We're ready to process your reimbursement for "${trip}" but haven't received your completed form yet.\n\n` +
+//     `Please submit it at your earliest convenience using this link:\n` +
+//     `${url}\n\n` +
+//     `Thank you`
+//   );
+
+//   window.open(`mailto:${email}?subject=${subject}&body=${body}`);
+// }
 
 function highlightSidebarItem(tripId) {
   document.querySelectorAll('.sidebar-trip').forEach(el => {
