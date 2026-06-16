@@ -126,21 +126,23 @@ export function buildPostForm(trip) {
       <table class="iste-table itemized">
         <colgroup>
           <col style="width: 100px;">
+          <col style="width: 100px;">
           <col style="width: 70px;">
           <col style="width: 70px;">
           <col style="width: 27%;">
         </colgroup>
         <tr>
-          <td colspan="10" class="iste-section header-title" style="text-align: center; font-weight: bold;">ITEMIZED COSTS BY DAY</td>
+          <td colspan="11" class="iste-section header-title" style="text-align: center; font-weight: bold;">ITEMIZED COSTS BY DAY</td>
         </tr>
         <tr>
-          <th></th>
+          <th colspan="2"></th>
           <th colspan="2" style="text-align: center;">Time: AM or PM</th>
           <th>Nature of Expense</th>
           <th colspan="2" style="text-align: center;">Odometer Readings</th>
           <th colspan="4" style="text-align: center;">Amounts</th>
         </tr>
         <tr>
+          <th></th>
           <th style="font-size: 11px;">DATE</th>
           <th style="font-size: 11px;">DEPARTURE TIME</th>
           <th style="font-size: 11px;">ARRIVAL TIME</th>
@@ -153,7 +155,7 @@ export function buildPostForm(trip) {
           <th style="font-size: 11px;">TOTALS</th>
         </tr>
         
-        <tbody id="iste-rows">
+        <tbody id="iste-rows" data-locked="${locked}">
           ${(t.isteSubitems || Array(15).fill({})).map((row, i) => isteRowHTML(row, i)).join('')}
         </tbody>
         
@@ -297,7 +299,7 @@ export async function ensureIsteSubitems(trip, monday) {
       });
     });
 
-    monday.execute('notice', { message: 'Ready!', type: 'success' });
+    monday.execute('notice', { message: 'Ready!', type: 'success', timeout: 2500 });
   }
 
   return true;
@@ -314,6 +316,7 @@ function isteRowHTML(row, i) {
   const sid = row.subitemId ? `data-subitem-id="${row.subitemId}"` : '';
   return `
     <tr class="iste-row" data-row="${i}" ${sid}>
+      <td class="iste-drag-handle" title="Drag to reorder">⠿</td>
       <td><input class="iste-input" type="date"   data-iste-col="date"        value="${esc(row.date        || '')}" /></td>
       <td><input class="iste-input"               data-iste-col="departTime"  value="${esc(row.departTime  || '')}" /></td>
       <td><input class="iste-input"               data-iste-col="arriveTime"  value="${esc(row.arriveTime  || '')}" /></td>
@@ -336,6 +339,33 @@ function isteRowHTML(row, i) {
 
 export function initPostFormListeners(onNotify) {
   calculateIsteTotals();
+
+  const tbody = document.getElementById('iste-rows');
+  if (tbody && window.Sortable) {
+    // Capture the slot → subitemId mapping ONCE, before any dragging.
+    // This is the order monday will hand back on every future reload.
+    const fixedSubitemIds = Array.from(tbody.querySelectorAll('.iste-row'))
+      .map(row => row.dataset.subitemId || '');
+
+    Sortable.create(tbody, {
+      handle: '.iste-drag-handle',
+      animation: 150,
+      disabled: tbody.dataset.locked === 'true',
+      onEnd() {
+        // The drag just moved values+identity together. Re-pin each
+        // physical slot back to its original subitemId so monday slot #i
+        // always saves to the same subitem — only the visible values move.
+        tbody.querySelectorAll('.iste-row').forEach((row, i) => {
+          row.dataset.row = i;
+          if (fixedSubitemIds[i]) row.dataset.subitemId = fixedSubitemIds[i];
+          else delete row.dataset.subitemId;
+        });
+        calculateIsteTotals();
+        // Reuse the existing dirty-tracking/save pipeline — no new wiring.
+        tbody.dispatchEvent(new Event('input', { bubbles: true }));
+      },
+    });
+  }
 
   document.querySelectorAll('.iste-cost, .iste-miles, #iste_advance').forEach(input => {
     input.addEventListener('input', calculateIsteTotals);

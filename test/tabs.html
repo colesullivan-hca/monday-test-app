@@ -1,0 +1,91 @@
+<style>
+.corner-bookmark {
+  position: fixed;
+  left: 0;
+  bottom: 0;
+
+  width: 72px;
+  height: 72px;
+
+  border: none;
+  cursor: pointer;
+
+  background: #0073ea;
+
+  border-radius: 0 72px 0 0;
+
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-start;
+
+  padding: 14px;
+
+  color: white;
+
+  box-shadow:
+    0 -2px 12px rgba(0,0,0,.08),
+    0 -8px 24px rgba(0,115,234,.25);
+
+  transition: all .2s ease;
+}
+
+.corner-bookmark {
+  background: #ffffff;
+  color: #0073ea;
+  border-top: 1px solid #e6e9ef;
+  border-right: 1px solid #e6e9ef;
+
+  border-radius: 0 72px 0 0;
+
+  box-shadow:
+    0 -1px 3px rgba(0,0,0,.05),
+    0 -8px 20px rgba(0,0,0,.08);
+}
+
+/* .corner-bookmark:hover {
+  width: 80px;
+  height: 80px;
+} */
+
+/* .corner-bookmark svg {
+  width: 22px;
+  height: 22px;
+
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  fill: none;
+} */
+</style>
+<button type="button" class="corner-bookmark">
+    <svg xmlns="http://www.w3.org/2000/svg"
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round">
+    <circle cx="12" cy="12" r="3" />
+    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33
+            1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09
+            a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33
+            l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06
+            a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3
+            a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1
+            1.65 1.65 0 0 0-.33-1.82l-.06-.06
+            a2 2 0 1 1 2.83-2.83l.06.06
+            a1.65 1.65 0 0 0 1.82.33h.01
+            a1.65 1.65 0 0 0 1-1.51V3
+            a2 2 0 1 1 4 0v.09
+            a1.65 1.65 0 0 0 1 1.51
+            1.65 1.65 0 0 0 1.82-.33l.06-.06
+            a2 2 0 1 1 2.83 2.83l-.06.06
+            a1.65 1.65 0 0 0-.33 1.82v.01
+            a1.65 1.65 0 0 0 1.51 1H21
+            a2 2 0 1 1 0 4h-.09
+            a1.65 1.65 0 0 0-1.51 1z"/>
+    </svg>
+</button>

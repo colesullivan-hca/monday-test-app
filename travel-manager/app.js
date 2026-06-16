@@ -175,6 +175,13 @@ async function init() {
       }
     }
 
+    const trip = trips[activeId];
+    if (trip?.mondayItemId_iste) {
+      const ready = await ensureIsteSubitems(trip, monday);
+      refreshTrips();
+      if (!ready) return;
+    }
+
   } catch (err) {
     console.error('Init error:', err);
     loader.innerHTML = `
@@ -221,6 +228,12 @@ async function onSelect(tripId) {
   initFileDialogListeners();
   snapshotAndWatch('pre');
   backfillIsteDefaults(trips[tripId]);
+  const trip = trips[activeId];
+  if (trip?.mondayItemId_iste) {
+    const ready = await ensureIsteSubitems(trip, monday);
+    refreshTrips();
+    if (!ready) return;
+  }
 }
 
 async function onTabSwitch(tab) {
@@ -233,6 +246,7 @@ async function onTabSwitch(tab) {
     const trip = trips[activeId];
     if (trip?.mondayItemId_iste) {
       const ready = await ensureIsteSubitems(trip, monday);
+      refreshTrips();
       if (!ready) return;
     }
   }
@@ -454,7 +468,7 @@ async function onSavePre(formData) {
     );
 
     if (!Object.keys(changed).length) {
-      showSaveStatus('No changes to save', 'success');
+      showSaveStatus('No changes to save', 'success', 2500);
       return;
     }
 
@@ -490,7 +504,7 @@ async function onSavePre(formData) {
     highlightSidebarItem(activeId);
     originalFormData = formData;
     isDirty = false;
-    showSaveStatus('Saved', 'success');
+    showSaveStatus('Saved', 'success', 2500);
 
   } catch (err) {
     console.error('Save error:', err);
@@ -511,6 +525,15 @@ async function onSavePost(formData) {
   }
 
   try {
+    if (formData.iste_voucherBasis !== undefined) {
+      formData.iste_prepaidVoucher = formData.iste_voucherBasis === 'Prepaid Voucher';
+      formData.iste_finalVoucher   = formData.iste_voucherBasis === 'Final Voucher';
+    }
+    if (formData.iste_perDiemBasis !== undefined) {
+      formData.iste_actual        = formData.iste_perDiemBasis === 'Actual';
+      formData.iste_approvedRates = formData.iste_perDiemBasis === 'Approved Rates';
+    }
+
     const { isteRows, ...columnData } = formData;
     const { isteRows: origRows, ...origColumnData } = originalFormData || {};
 
@@ -525,20 +548,12 @@ async function onSavePost(formData) {
     );
 
     if (!Object.keys(changedColumns).length && !changedRows.length) {
-      showSaveStatus('No changes to save', 'success');
+      showSaveStatus('No changes to save', 'success', 2500);
       return;
     }
 
     showSaveStatus('Saving…', 'info');
 
-    if (formData.iste_voucherBasis !== undefined) {
-      formData.iste_prepaidVoucher = formData.iste_voucherBasis === 'Prepaid Voucher';
-      formData.iste_finalVoucher   = formData.iste_voucherBasis === 'Final Voucher';
-    }
-    if (formData.iste_perDiemBasis !== undefined) {
-      formData.iste_actual        = formData.iste_perDiemBasis === 'Actual';
-      formData.iste_approvedRates = formData.iste_perDiemBasis === 'Approved Rates';
-    }
 
     // Save column fields
     for (const [fieldKey, value] of Object.entries(changedColumns)) {
@@ -598,7 +613,7 @@ async function onSavePost(formData) {
     highlightSidebarItem(activeId);
     originalFormData = formData;
     isDirty = false;
-    showSaveStatus('Saved', 'success');
+    showSaveStatus('Saved', 'success', 2500);
 
   } catch (err) {
     console.error('Save error:', err);
@@ -750,13 +765,14 @@ function rehydrateTrip(trip) {
 //  Save status banner
 // ---------------------------------------------------------------------------
 
-function showSaveStatus(msg, type) {
+function showSaveStatus(msg, type, timeout) {
   const el = document.getElementById('save-status');
   if (!el) return;
   el.textContent = msg;
   el.className   = `save-status save-status--${type}`;
   el.classList.remove('hidden');
-  monday.execute('notice', { message: msg, type: type, timeout: 2500}); 
+  if (timeout) monday.execute('notice', { message: msg, type: type, timeout: timeout}); 
+  else monday.execute('notice', { message: msg, type: type }); 
   if (type === 'success') {
     setTimeout(() => el.classList.add('hidden'), 2500);
   }

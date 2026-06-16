@@ -1439,3 +1439,46 @@ td.awaitingreview select.iste-select {
   color: var(--mn-orange);
   opacity: 0.8;
 }
+
+.corner-bookmark {
+  position: fixed;
+  left: 0;
+  bottom: 0;
+
+  width: 65px;
+  height: 65px;
+
+  border: none;
+  cursor: pointer;
+
+  background: #0073ea;
+
+  border-radius: 0 72px 0 0;
+
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-start;
+
+  padding: 14px;
+
+  color: white;
+
+  box-shadow:
+    0 -2px 12px rgba(0,0,0,.05),
+    0 -8px 24px rgba(0,115,234,.01);
+
+  transition: all .2s ease;
+}
+
+.corner-bookmark {
+  background: #ffffff;
+  color: #0073ea;
+  border-top: 1px solid #e6e9ef;
+  border-right: 1px solid #e6e9ef;
+
+  border-radius: 0 72px 0 0;
+}
+
+.iste-drag-handle { cursor: grab; text-align: center; color: #94a3b8; width: 28px; user-select: none; }
+.iste-row.sortable-ghost  { opacity: .4; background: #eef2ff; }
+.iste-row.sortable-chosen { background: #f8fafc; }

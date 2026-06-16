@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Rearrangeable Table</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.2/Sortable.min.js"></script>
+    
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-family: sans-serif;
+        }
+        th, td {
+            padding: 12px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+        th { background-color: #f4f4f4; }
+
+        /* Style for the row being dragged */
+        .sortable-ghost {
+            opacity: 0.4;
+            background-color: #e2e8f0;
+        }
+        /* Style for the row helper under the cursor */
+        .sortable-chosen {
+            background-color: #edf2f7;
+            cursor: grabbing;
+        }
+        /* Visual cue that rows can be dragged */
+        tbody tr {
+            cursor: grab;
+        }
+    </style>
+</head>
+<body>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Order</th>
+                <th>Item</th>
+                <th>Category</th>
+            </tr>
+        </thead>
+        <tbody id="sortable-table">
+            <tr data-id="1">
+                <td>1</td>
+                <td>Apples</td>
+                <td>Fruit</td>
+            </tr>
+            <tr data-id="2">
+                <td>2</td>
+                <td>Broccoli</td>
+                <td>Vegetables</td>
+            </tr>
+            <tr data-id="3">
+                <td>3</td>
+                <td>Milk</td>
+                <td>Dairy</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <script>
+        // Initialize Sortable on the tbody
+        const el = document.getElementById('sortable-table');
+        const sortable = new Sortable(el, {
+            animation: 150,       // Smooth sliding animation (in ms)
+            ghostClass: 'sortable-ghost',  // Class name for the drop placeholder
+            chosenClass: 'sortable-chosen', // Class name for the chosen item
+            
+            // Triggered when dragging ends
+            onEnd: function (evt) {
+                console.log(`Moved item from index ${evt.oldIndex} to ${evt.newIndex}`);
+                
+                // Get the new order of IDs
+                const order = sortable.toArray(); 
+                console.log("New order of IDs:", order);
+                
+                // Optional: Send 'order' to your database via fetch() here
+            }
+        });
+    </script>
+
+</body>
+</html>

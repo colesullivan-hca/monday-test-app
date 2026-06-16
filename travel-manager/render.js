@@ -418,7 +418,7 @@ function travelerReimbPaneHTML(trip) {
       ${readField('Actual Departure From Home Time',   trip.reimb_departureTime)}
       ${readField('Actual Arrival To Home Date',       trip.reimb_arrivalDate)}
       ${readField('Actual Arrival To Home Time',       trip.reimb_arrivalTime)}
-      ${readField('Mileage From Home To Airport',      trip.reimb_mileageToAirport)}
+      ${readField('Actual Distance Driven from Home to Airport (In Miles)',  trip.reimb_mileageToAirport)}
 
       <div class="read-section-title">Vehicle Information</div>
       ${readField('Vehicle License Plate',             trip.reimb_licensePlate)}
