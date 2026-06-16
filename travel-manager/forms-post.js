@@ -142,8 +142,7 @@ export function buildPostForm(trip) {
           <th colspan="4" style="text-align: center;">Amounts</th>
         </tr>
         <tr>
-          <th></th>
-          <th style="font-size: 11px;">DATE</th>
+          <th colspan="2" style="font-size: 11px;">DATE</th>
           <th style="font-size: 11px;">DEPARTURE TIME</th>
           <th style="font-size: 11px;">ARRIVAL TIME</th>
           <th style="font-size: 11px;">DESTINATION AND NATURE OF BUSINESS</th>
@@ -161,7 +160,7 @@ export function buildPostForm(trip) {
         
         <tfoot>
           <tr>
-            <th colspan="5" style="text-align: right; padding: 6px;">TOTALS</th>
+            <th colspan="6" style="text-align: right; padding: 6px;">TOTALS</th>
             <td class="iste-right"><span id="iste_milesTotal">0.00</span></td>
             <td class="iste-right"><span id="iste_mileageTotal">0.00</span></td>
             <td class="iste-right"><span id="iste_perdiemTotal">0.00</span></td>
@@ -169,14 +168,14 @@ export function buildPostForm(trip) {
             <td class="iste-right"><strong><span id="iste_grandTotal">$0.00</span></strong></td>
           </tr>
           <tr>
-            <th class="mergeright" colspan="5" style="text-align: right; padding: 6px;">ADVANCE AMOUNT @ 80%</th>
+            <th class="mergeright" colspan="6" style="text-align: right; padding: 6px;">ADVANCE AMOUNT @ 80%</th>
             <th class="mergeleft" colspan="4"></th>
             <td>
               <input class="iste-input iste-right" type="text" id="iste_advance" ${ro} value="${esc(t.iste_advanceAmount)}" placeholder="0.00">
             </td>
           </tr>
           <tr>
-            <th class="mergeright" colspan="5" style="text-align: right; padding: 6px;">ADJUSTED REIMBURSEMENT</th>
+            <th class="mergeright" colspan="6" style="text-align: right; padding: 6px;">ADJUSTED REIMBURSEMENT</th>
             <th class="mergeleft" colspan="4"></th>
             <td class="iste-right"><strong><span id="iste_adjTotal">$0.00</span></strong></td>
           </tr>
