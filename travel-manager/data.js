@@ -9,6 +9,7 @@ import {
   TRAVELER_REQUEST_FILE_COLS,
   TRAVELER_REQUEST_COLS,
   HCA_PACKET_COLS,
+  TRAVELER_REIMB_FILE_COLS,
   TRAVELER_REIMB_SUBITEM_COLS,
   TRAVELER_REIMB_COLS,
   ISTE_SUBITEM_COLS,
@@ -342,6 +343,21 @@ export function assembleTrips({ travelerItems, hcaItems, reimbItems, isteItems }
     trip.mondayItemId_reimb = item.id;
     trip.reimbUrl           = item.url;
     trip.reimbAssets        = item.assets || [];
+
+    trip.reimbFilesByCol = {};
+
+    for (const [key, colId] of Object.entries(TRAVELER_REIMB_FILE_COLS)) {
+      const col = map[colId];
+      if (!col) { trip.reimbFilesByCol[key] = []; continue; }
+      try {
+        const fileRefs = JSON.parse(col.value)?.files || [];
+        trip.reimbFilesByCol[key] = fileRefs
+          .map(f => item.assets?.find(a => String(a.id) === String(f.assetId)))
+          .filter(Boolean);
+      } catch {
+        trip.reimbFilesByCol[key] = [];
+      }
+    }
 
     Object.assign(trip, extract(map, TRAVELER_REIMB_COLS));
 

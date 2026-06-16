@@ -184,6 +184,12 @@ export const HCA_PACKET_COLS = {
 // ---------------------------------------------------------------------------
 //  COLUMN IDs  —  Board 3: Traveler Reimbursement Submission
 // ---------------------------------------------------------------------------
+export const TRAVELER_REIMB_FILE_COLS = {
+  reimb_parkingReceipt:            'file_mm33c37d',
+  reimb_bagReceipt:   'file_mm3363sh',
+  reimb_supportingDocs:  'file_mm32hb6n',
+}
+
 export const TRAVELER_REIMB_SUBITEM_COLS = {
   transportType:   'color_mm32gfgv',
   listType:        'text_mm32rvf0',
@@ -214,6 +220,8 @@ export const TRAVELER_REIMB_COLS = {
   reimb_bagFeeAmount: 'numeric_mm32hztf',
   reimb_rates:      'color_mm366rbp',
   reimb_rates:      'color_mm366rbp',
+  reimb_foodProvided: 'single_selectosqqx8c',
+  reimb_foodDetails: 'long_texthfwk98gr',
 };
 
 

@@ -7,7 +7,7 @@
 
 import { buildPreForm, collectPreFormData, initPreFormListeners }   from './forms-pre.js';
 import { buildPostForm, collectPostFormData, initPostFormListeners } from './forms-post.js';
-import { BOARDS, TRAVELER_REQUEST_FILE_COLS } from './config.js';
+import { BOARDS, TRAVELER_REQUEST_FILE_COLS, TRAVELER_REIMB_FILE_COLS } from './config.js';
 
 
 // ---------------------------------------------------------------------------
@@ -425,8 +425,35 @@ function travelerReimbPaneHTML(trip) {
       ${readField('Vehicle Model/Year',                trip.reimb_carModel)}
       ${readField('State/Personal Vehicle',            trip.reimb_carType)}
 
+      <div class="read-section-title">Fees</div>
+      ${readField('Did you have airport parking fees',            trip.reimb_parkingFee)}
+      ${readField('Parking Fee Amount',            trip.reimb_parkingFeeAmount)}
+      ${columnFilesHTML(
+          trip.reimbFilesByCol?.reimb_parkingReceipt || [],
+          'Parking Fee Receipt',
+          { boardId: BOARDS.travelerReimbursement, itemId: trip.mondayItemId_reimb, columnId: TRAVELER_REIMB_FILE_COLS.reimb_parkingReceipt }
+      )}
+      ${readField('Did you have baggage fees',            trip.reimb_bagFee)}
+      ${readField('Baggage Fee Amount',            trip.reimb_bagFeeAmount)}
+      ${columnFilesHTML(
+          trip.reimbFilesByCol?.reimb_bagReceipt || [],
+          'Baggage Fee Receipt',
+          { boardId: BOARDS.travelerReimbursement, itemId: trip.mondayItemId_reimb, columnId: TRAVELER_REIMB_FILE_COLS.reimb_bagReceipt }
+      )}
+
       <div class="read-section-title">Transportation / Fares</div>
       ${reimbTransportationHTML(trip)}
+
+      <div class="read-section-title">Meals</div>
+      ${readField('Was food provided for you at any point during your travel?',  trip.reimb_foodProvided)}
+      ${readField('Please provide all details about when/how meals were provided for you',  trip.reimb_foodDetails)}
+
+      <div class="read-section-title">Supporting Documents</div>
+      ${columnFilesHTML(
+          trip.reimbFilesByCol?.reimb_supportingDocs || [],
+          'All Receipts/Documents',
+          { boardId: BOARDS.travelerReimbursement, itemId: trip.mondayItemId_reimb, columnId: TRAVELER_REIMB_FILE_COLS.reimb_supportingDocs }
+      )}
 
     </div>
   `;
