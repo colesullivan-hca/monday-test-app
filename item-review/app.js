@@ -204,28 +204,57 @@ async function fetchReviewItems() {
     const b1StatusCols = CONFIG.board1.pairs.map(p => p.statusColId);
     const b2ColIds = [CONFIG.board2.reviewerColumnId, ...CONFIG.board2.statusColumnIds];
     const allB1Cols = [...new Set([...b1PeopleCols, ...b1StatusCols, ...BOARD1_FORM_COLS])];
-    const allB2Cols = [...new Set(b2ColIds)];
+    const allB2Cols = [...new Set([
+        ...b2ColIds, // reviewerColumnId + statusColumnIds — required for matching/filtering, do not drop
+        'color_mm3tt944',    // ISTEStatus
+        'text_mm32f6m5',     // iste_agencyName
+        'text_mm32vzws',     // iste_businessUnit
+        'text_mm33zev5',     // iste_voucherNumber
+        'text_mm32xqxs',     // iste_supplierName
+        'text_mm32zdd2',     // iste_supplierId
+        'text_mm32ydbs',     // iste_postOfDuty
+        'text_mm32f377',     // iste_residence
+        'text_mm328jte',     // iste_licensePlate
+        'text_mm32vtpv',     // iste_vehicleModel
+        'color_mm32b86r',    // iste_vehicleType
+        'color_mm322zrz',    // iste_attendance
+        'color_mm32ddxm',    // iste_lengthOfBoard
+        'numeric_mm34wpds',  // iste_advanceAmount
+        'boolean_mm32z5q7',  // iste_prepaidVoucher
+        'boolean_mm32n5pq',  // iste_finalVoucher
+        'boolean_mm3490fe',  // iste_actual
+        'boolean_mm345nt4',  // iste_approvedRates
+    ])];
 
     const query = `
     query ($b1Id: ID!, $b2Id: ID!, $b1Cols: [String!]!, $b2Cols: [String!]!) {
-      board1: boards(ids: [$b1Id]) {
-        id name
-        items_page(limit: 100) {
-          items {
-            id name updated_at
-            column_values(ids: $b1Cols) { id text value }
-          }
+        board1: boards(ids: [$b1Id]) {
+            id name
+            items_page(limit: 100) {
+            items {
+                id name updated_at
+                column_values(ids: $b1Cols) { id text value }
+            }
+            }
         }
-      }
-      board2: boards(ids: [$b2Id]) {
+        board2: boards(ids: [$b2Id]) {
         id name
         items_page(limit: 100) {
-          items {
+            items {
             id name updated_at
             column_values(ids: $b2Cols) { id text value }
-          }
+            subitems {
+                id
+                column_values(ids: ["date0", "text_mm33semp", "text_mm33g5ts",
+                                    "text_mm33vyy2", "text_mm33rqhh",
+                                    "numeric_mm33psy1", "numeric_mm33fqwj",
+                                    "numeric_mm334bhr", "numeric_mm33d33d"]) {
+                id text
+                }
+            }
+            }
         }
-      }
+        }
     }
   `;
 
@@ -292,6 +321,20 @@ async function fetchReviewItems() {
                 columnValues: item.column_values,
                 activeStatusColId: activeStatusCol.id,
                 approvalLabel: CONFIG.board2.approvalLabel || 'Pending Review',
+                subitems: item.subitems?.map(sub => {
+                    const s = Object.fromEntries(sub.column_values.map(c => [c.id, c.text]));
+                    return {
+                        date:        s['date0']            || '',
+                        departTime:  s['text_mm33semp']    || '',
+                        arriveTime:  s['text_mm33g5ts']    || '',
+                        destination: s['text_mm33vyy2']    || '',
+                        odometer:    s['text_mm33rqhh']    || '',
+                        miles:       s['numeric_mm33psy1'] || '',
+                        mileage:     s['numeric_mm33fqwj'] || '',
+                        perdiem:     s['numeric_mm334bhr'] || '',
+                        other:       s['numeric_mm33d33d'] || '',
+                    };
+                }) || [],
             });
         }
     }
@@ -773,27 +816,189 @@ function formatCurrency(n) {
     return '$' + n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 }
 
-// ── Board 2 form stub ─────────────────────────────────────────
-// Replace this with your actual board 2 column IDs and layout
+// ── Board 2 form (ISTE Reimbursement — Board 4 / istePacket) ─────────────
 
 function renderBoard2Form(panel, item) {
     const col = (id) => item.columnValues?.find(c => c.id === id)?.text || '';
 
+    // ── Pull all header fields using ISTE_PACKET_COLS IDs from config.js ──
+    const agencyName    = col('text_mm32f6m5');
+    const businessUnit  = col('text_mm32vzws');
+    const voucherNumber = col('text_mm33zev5');
+    const supplierName  = col('text_mm32xqxs');
+    const supplierId    = col('text_mm32zdd2');
+    const postOfDuty    = col('text_mm32ydbs');
+    const residence     = col('text_mm32f377');
+    const licensePlate  = col('text_mm328jte');
+    const vehicleModel  = col('text_mm32vtpv');
+    const vehicleType   = col('color_mm32b86r');
+    const attendance    = col('color_mm322zrz');
+    const lengthOfBoard = col('color_mm32ddxm');
+    const ISTEStatus    = col('color_mm3tt944');
+    const advanceAmount = col('numeric_mm34wpds');
+    const prepaidVoucher = col('boolean_mm32z5q7');
+    const finalVoucher   = col('boolean_mm32n5pq');
+    const actual         = col('boolean_mm3490fe');
+    const approvedRates  = col('boolean_mm345nt4');
+    const travelerApproval   = col('color_mm3tzwcd');
+    const supervisorApproval = col('color_mm3txq9z');
+    const apApproval         = col('color_mm3t1vzy');
+
+    // ── Pull subitem rows (itemized costs) ────────────────────────────────
+    // item.subitems must be fetched — see note below on fetchReviewItems
+    const subitemRows = item.subitems || [];
+
+    const isteRowHTML = (row, i) => `
+      <tr class="iste-row">
+        <td style="padding:3px 4px;font-size:12px;">${escHtml(row.date        || '')}</td>
+        <td style="padding:3px 4px;font-size:12px;">${escHtml(row.departTime  || '')}</td>
+        <td style="padding:3px 4px;font-size:12px;">${escHtml(row.arriveTime  || '')}</td>
+        <td style="padding:3px 4px;font-size:12px;">${escHtml(row.destination || '')}</td>
+        <td style="padding:3px 4px;font-size:12px;">${escHtml(row.odometer    || '')}</td>
+        <td style="padding:3px 4px;font-size:12px;text-align:right;">${escHtml(row.miles    || '')}</td>
+        <td style="padding:3px 4px;font-size:12px;text-align:right;">${row.mileage  ? formatCurrency(parseFloat(row.mileage))  : ''}</td>
+        <td style="padding:3px 4px;font-size:12px;text-align:right;">${row.perdiem  ? formatCurrency(parseFloat(row.perdiem))  : ''}</td>
+        <td style="padding:3px 4px;font-size:12px;text-align:right;">${row.other    ? formatCurrency(parseFloat(row.other))    : ''}</td>
+        <td style="padding:3px 4px;font-size:12px;text-align:right;font-weight:600;">
+          ${formatCurrency((parseFloat(row.mileage)||0) + (parseFloat(row.perdiem)||0) + (parseFloat(row.other)||0))}
+        </td>
+      </tr>
+    `;
+
+    // ── Compute totals from subitems ─────────────────────────────────────
+    let milesSum = 0, mileageSum = 0, perdiemSum = 0, otherSum = 0;
+    for (const r of subitemRows) {
+        milesSum   += parseFloat(r.miles)   || 0;
+        mileageSum += parseFloat(r.mileage) || 0;
+        perdiemSum += parseFloat(r.perdiem) || 0;
+        otherSum   += parseFloat(r.other)   || 0;
+    }
+    const grandTotal = mileageSum + perdiemSum + otherSum;
+    const advance    = parseFloat(advanceAmount) || 0;
+    const adjTotal   = grandTotal - advance;
+
+    // ── Pad to 15 rows so the table always looks full ─────────────────────
+    const displayRows = [...subitemRows];
+    while (displayRows.length < 15) displayRows.push({});
+
     panel.innerHTML = `
     <div class="form-panel-wrap">
       <div class="form-container">
-        <h1>Board 2 Form</h1>
+        <h1>STATE OF NM ITEMIZED SCHEDULE OF TRAVEL EXPENSES</h1>
+
         <table>
-          <tr><td colspan="2" class="section-title">Section 1. INFORMATION</td></tr>
-          <!-- Add your board 2 rows here using col('your_column_id') -->
           <tr>
-            <td class="label">FIELD 1:</td>
-            <td>${escHtml(col('your_col_id_here'))}</td>
+            <td class="label">AGENCY NAME:</td>
+            <td>${escHtml(agencyName)}</td>
+            <td class="label">BUSINESS UNIT:</td>
+            <td>${escHtml(businessUnit)}</td>
+            <td class="label">VOUCHER NUMBER:</td>
+            <td>${escHtml(voucherNumber)}</td>
+            <td class="label">VOUCHER BASIS:</td>
+            <td>
+              ${prepaidVoucher === 'true' || prepaidVoucher === 'v' ? '☑ Prepaid' : '☐ Prepaid'}
+              &nbsp;
+              ${finalVoucher   === 'true' || finalVoucher   === 'v' ? '☑ Final'   : '☐ Final'}
+            </td>
           </tr>
         </table>
-        <p style="padding:12px;font-size:13px;color:#676879;">
-          Work in progress...
-        </p>
+
+        <table>
+          <tr>
+            <td class="label">SUPPLIER NAME:</td>
+            <td>${escHtml(supplierName)}</td>
+            <td class="label">SUPPLIER ID:</td>
+            <td>${escHtml(supplierId)}</td>
+            <td class="label">POST OF DUTY:</td>
+            <td>${escHtml(postOfDuty)}</td>
+            <td class="label">RESIDENCE:</td>
+            <td>${escHtml(residence)}</td>
+          </tr>
+          <tr>
+            <td class="label">LICENSE PLATE:</td>
+            <td>${escHtml(licensePlate)}</td>
+            <td class="label">VEHICLE MODEL &amp; YEAR:</td>
+            <td>${escHtml(vehicleModel)}</td>
+            <td class="label">VEHICLE TYPE:</td>
+            <td colspan="3">${escHtml(vehicleType)}</td>
+          </tr>
+        </table>
+
+        <table>
+          <tr>
+            <td class="label">BOARD/COMMISSION ATTENDANCE:</td>
+            <td>${escHtml(attendance)}</td>
+            <td class="label">LENGTH OF MEETING:</td>
+            <td>${escHtml(lengthOfBoard)}</td>
+            <td class="label">PER DIEM BASED ON:</td>
+            <td>
+              ${actual        === 'true' || actual        === 'v' ? '☑ Actual'         : '☐ Actual'}
+              &nbsp;
+              ${approvedRates === 'true' || approvedRates === 'v' ? '☑ Approved Rates' : '☐ Approved Rates'}
+            </td>
+          </tr>
+        </table>
+
+        <table style="font-size:11px;width:100%;border-collapse:collapse;">
+          <thead>
+            <tr>
+              <td colspan="10" class="section-title" style="text-align:center;font-weight:bold;">ITEMIZED COSTS BY DAY</td>
+            </tr>
+            <tr>
+              <th style="padding:4px;border:1px solid #c5c7d4;"></th>
+              <th colspan="2" style="padding:4px;border:1px solid #c5c7d4;text-align:center;">Time: AM or PM</th>
+              <th style="padding:4px;border:1px solid #c5c7d4;">Nature of Expense</th>
+              <th colspan="2" style="padding:4px;border:1px solid #c5c7d4;text-align:center;">Odometer Readings</th>
+              <th colspan="4" style="padding:4px;border:1px solid #c5c7d4;text-align:center;">Amounts</th>
+            </tr>
+            <tr>
+              <th style="padding:4px;border:1px solid #c5c7d4;">DATE</th>
+              <th style="padding:4px;border:1px solid #c5c7d4;">DEPART TIME</th>
+              <th style="padding:4px;border:1px solid #c5c7d4;">ARRIVE TIME</th>
+              <th style="padding:4px;border:1px solid #c5c7d4;">DESTINATION &amp; NATURE OF BUSINESS</th>
+              <th style="padding:4px;border:1px solid #c5c7d4;">ODOMETER START/FINISH</th>
+              <th style="padding:4px;border:1px solid #c5c7d4;">NO. OF MILES</th>
+              <th style="padding:4px;border:1px solid #c5c7d4;">MILEAGE</th>
+              <th style="padding:4px;border:1px solid #c5c7d4;">PER DIEM</th>
+              <th style="padding:4px;border:1px solid #c5c7d4;">OTHER</th>
+              <th style="padding:4px;border:1px solid #c5c7d4;">TOTALS</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${displayRows.map((row, i) => isteRowHTML(row, i)).join('')}
+          </tbody>
+          <tfoot>
+            <tr>
+              <th colspan="5" style="text-align:right;padding:6px;border:1px solid #c5c7d4;">TOTALS</th>
+              <td style="text-align:right;padding:4px;border:1px solid #c5c7d4;">${milesSum.toFixed(2)}</td>
+              <td style="text-align:right;padding:4px;border:1px solid #c5c7d4;">${formatCurrency(mileageSum)}</td>
+              <td style="text-align:right;padding:4px;border:1px solid #c5c7d4;">${formatCurrency(perdiemSum)}</td>
+              <td style="text-align:right;padding:4px;border:1px solid #c5c7d4;">${formatCurrency(otherSum)}</td>
+              <td style="text-align:right;padding:4px;border:1px solid #c5c7d4;font-weight:700;">${formatCurrency(grandTotal)}</td>
+            </tr>
+            <tr>
+              <th colspan="9" style="text-align:right;padding:6px;border:1px solid #c5c7d4;">ADVANCE AMOUNT @ 80%</th>
+              <td style="text-align:right;padding:4px;border:1px solid #c5c7d4;">${advance ? formatCurrency(advance) : ''}</td>
+            </tr>
+            <tr>
+              <th colspan="9" style="text-align:right;padding:6px;border:1px solid #c5c7d4;">ADJUSTED REIMBURSEMENT</th>
+              <td style="text-align:right;padding:4px;border:1px solid #c5c7d4;font-weight:700;">${formatCurrency(adjTotal)}</td>
+            </tr>
+          </tfoot>
+        </table>
+
+        <table>
+          <tr><td colspan="6" class="section-title">APPROVALS</td></tr>
+          <tr>
+            <td class="label">TRAVELER:</td>
+            <td>${escHtml(travelerApproval)}</td>
+            <td class="label">SUPERVISOR:</td>
+            <td>${escHtml(supervisorApproval)}</td>
+            <td class="label">ACCOUNTS PAYABLE:</td>
+            <td>${escHtml(apApproval)}</td>
+          </tr>
+        </table>
+
       </div>
     </div>
   `;
