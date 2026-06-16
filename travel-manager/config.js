@@ -116,6 +116,7 @@ export const TRAVELER_REQUEST_COLS = {
 // ---------------------------------------------------------------------------
 export const HCA_PACKET_COLS = {
   tripID:             'text_mm35sbdp',  // Must match travelerRequest.tripID value
+  hca_formSnapshot:   'long_text_mm4bz56e',
 
   // Trip identity
   title:            'text_mm2vj6tf',   // Conference name
@@ -235,6 +236,10 @@ export const ISTE_SUBITEM_COLS = {
 // And add header fields to ISTE_PACKET_COLS:
 export const ISTE_PACKET_COLS = {
   tripID:             'text_mm35jsjp',
+  iste_generalSnapshot: 'long_text_mm4bnv81',
+  iste_rowsSnapshot:    'long_text_mm4bpr4x',
+  iste_totalsSnapshot:  'long_text_mm4bgcj6',
+
   ISTEStatus:         'color_mm3tt944',
   iste_supervisorEmail: 'email_mm47mgfq',
   iste_agencyName:    'text_mm32f6m5',

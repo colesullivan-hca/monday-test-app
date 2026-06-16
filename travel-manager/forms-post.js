@@ -8,6 +8,18 @@ const VEHICLE_TYPE_OPTIONS     = ['', 'Personal Vehicle', 'State Vehicle'];
 const BOARD_ATTENDANCE_OPTIONS = ['', 'Not a Board Member', 'Physical Attendance', 'Virtual Attendance'];
 const BOARD_LENGTH_OPTIONS     = ['', 'Not Applicable', '4 Hours or Longer', 'Less than 4 hours'];  
 
+const POST_SNAPSHOT_KEYS = {
+  ag: 'iste_agencyName',
+  bu: 'iste_businessUnit',
+  vn: 'iste_voucherNumber',
+  sn: 'iste_supplierName',
+  si: 'iste_supplierId',
+  pd: 'iste_postOfDuty',
+  rs: 'iste_residence',
+  lp: 'iste_licensePlate',
+  vm: 'iste_vehicleModel',
+};
+
 
 export function buildPostForm(trip) {
   // If reimbursement form not submitted yet, show the waiting state
@@ -425,6 +437,72 @@ export function collectPostFormData() {
   };
 }
 
+export function collectPostFormSnapshot() {
+  const val = id => document.getElementById(id)?.value ?? '';
+  const sel = id => val(id);
+
+  // ── 1. General info ───────────────────────────────────────────────
+  const general = {};
+  for (const [code, id] of Object.entries(POST_SNAPSHOT_KEYS)) {
+    const v = val(id);
+    if (v !== '') general[code] = v;
+  }
+  if (sel('iste_vehicleType'))         general.vt = sel('iste_vehicleType');
+  if (sel('iste_boardAttendance'))     general.ba = sel('iste_boardAttendance');
+  if (sel('iste_boardMeetingLength'))  general.bl = sel('iste_boardMeetingLength');
+  if (sel('ISTEStatus'))               general.st = sel('ISTEStatus');
+  if (sel('travelerApproval_post'))    general.ta = sel('travelerApproval_post');
+  if (sel('supervisorApproval_post'))  general.sa = sel('supervisorApproval_post');
+
+  const vb = document.querySelector('input[name="iste_voucherBasis"]:checked')?.value;
+  const pb = document.querySelector('input[name="iste_perDiemBasis"]:checked')?.value;
+  if (vb) general.vb = vb;
+  if (pb) general.pb = pb;
+
+  const adv = parseFloat(val('iste_advance')) || 0;
+  if (adv) general.ad = adv;
+
+  // ── 2. Itemized rows ─────────────────────────────────────────────
+  // [date, departTime, arriveTime, destination, miles, mileage, perdiem, other, total]
+  const rows = [];
+  document.querySelectorAll('.iste-row').forEach(row => {
+    const get = col => row.querySelector(`[data-iste-col="${col}"]`)?.value || '';
+    const date = get('date'), dep = get('departTime'), arr = get('arriveTime'),
+          dest = get('destination'),
+          miles   = parseFloat(get('miles'))   || 0,
+          mileage = parseFloat(get('mileage')) || 0,
+          perdiem = parseFloat(get('perdiem')) || 0,
+          other   = parseFloat(get('other'))   || 0;
+
+    const blank = !date && !dep && !arr && !dest && !miles && !mileage && !perdiem && !other;
+    if (blank) return;
+
+    const total = Math.round((mileage + perdiem + other) * 100) / 100;
+    rows.push([date.replace(/-/g, ''), dep, arr, dest, miles, mileage, perdiem, other, total]);
+  });
+
+  // ── 3. Totals ────────────────────────────────────────────────────
+  const milesSum   = rows.reduce((s, r) => s + r[4], 0);
+  const mileageSum = rows.reduce((s, r) => s + r[5], 0);
+  const perdiemSum = rows.reduce((s, r) => s + r[6], 0);
+  const otherSum   = rows.reduce((s, r) => s + r[7], 0);
+  const grandTotal = mileageSum + perdiemSum + otherSum;
+
+  const totals = [
+    Math.round(milesSum * 100) / 100,
+    Math.round(mileageSum * 100) / 100,
+    Math.round(perdiemSum * 100) / 100,
+    Math.round(otherSum * 100) / 100,
+    Math.round(grandTotal * 100) / 100,
+    Math.round((grandTotal - adv) * 100) / 100,
+  ];
+
+  return {
+    general: JSON.stringify(general),
+    rows:    JSON.stringify(rows),
+    totals:  JSON.stringify(totals),
+  };
+}
 
 // ---------------------------------------------------------------------------
 //  Helpers

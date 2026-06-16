@@ -7,8 +7,8 @@
 import { fetchAllBoards, assembleTrips, MUTATION_CHANGE_COLUMN } from './data.js';
 import { BOARDS, HCA_PACKET_COLS, ISTE_PACKET_COLS, ISTE_SUBITEM_COLS } from './config.js';
 import { renderSidebar, renderDetail, renderEmptyState } from './render.js';
-import { collectPreFormData, initPreFormListeners } from './forms-pre.js';
-import { collectPostFormData, initPostFormListeners, ensureIsteSubitems } from './forms-post.js';
+import { collectPreFormData, initPreFormListeners, collectPreFormSnapshot } from './forms-pre.js';
+import { collectPostFormData, initPostFormListeners, ensureIsteSubitems, collectPostFormSnapshot } from './forms-post.js';
 
 const monday = window.mondaySdk();
 
@@ -474,6 +474,16 @@ async function onSavePre(formData) {
       trip[fieldKey] = typeof value === 'object' ? (value.label ?? value.date ?? '') : value;
     }
 
+    const snapshot = collectPreFormSnapshot();
+    await monday.api(MUTATION_CHANGE_COLUMN, {
+      variables: {
+        boardId:  String(BOARDS.hcaPacket),
+        itemId:   String(trip.mondayItemId_hca),
+        columnId: HCA_PACKET_COLS.hca_formSnapshot,
+        value:    serializeColumnValue(HCA_PACKET_COLS.hca_formSnapshot, snapshot),
+      },
+    });
+
     rehydrateTrip(trip);
     renderDetail(trip, activeTab, { onSavePre, onSavePost, onTabSwitch, onNotifyTraveler, onOpenFile });
     renderSidebar(trips, { onSelect });
@@ -561,6 +571,24 @@ async function onSavePost(formData) {
         if (trip.isteSubitems?.[i]) {
           Object.assign(trip.isteSubitems[i], row);
         }
+      });
+    }
+
+    const snapshot = collectPostFormSnapshot();
+    const SNAPSHOT_WRITES = [
+      ['iste_generalSnapshot', snapshot.general],
+      ['iste_rowsSnapshot',    snapshot.rows],
+      ['iste_totalsSnapshot',  snapshot.totals],
+    ];
+
+    for (const [key, value] of SNAPSHOT_WRITES) {
+      await monday.api(MUTATION_CHANGE_COLUMN, {
+        variables: {
+          boardId:  String(BOARDS.istePacket),
+          itemId:   String(trip.mondayItemId_iste),
+          columnId: ISTE_PACKET_COLS[key],
+          value:    serializeColumnValue(ISTE_PACKET_COLS[key], value),
+        },
       });
     }
 

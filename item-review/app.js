@@ -26,6 +26,9 @@ const CONFIG = {
 
     board1FilesColumnId: 'file_mm2vqvz3',
     board2FilesColumnId: '',
+
+    board1RentalCarJustification: 'long_text_mm487y1f',
+    board1RoomRatesJustification: 'long_text_mm48kxt0',
 };
 
 const BOARD1_FORM_COLS = [
@@ -395,7 +398,10 @@ function openModal(item) {
 
     // Only reset to form tab if not restoring from a reload
     if (!sessionStorage.getItem('reopenItemId')) {
-        activeModalTab = 'form';
+        const isJustificationApproval =
+            item.approvalLabel === 'Rental Car Approval' ||
+            item.approvalLabel === 'Room Rates Approval';
+        activeModalTab = isJustificationApproval ? 'justification' : 'form';
     }
 
     renderModalTabs(item);
@@ -527,7 +533,7 @@ function showToast(msg, type = 'success') {
 function formatDate(iso) {
     if (!iso) return '';
     const d = new Date(iso);
-    return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+    return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' , hour: 'numeric', minute: '2-digit'});
 }
 
 function escHtml(str) {
@@ -557,7 +563,22 @@ let activeModalTab = 'form';
 // ── Tab rendering ─────────────────────────────────────────────
 
 function renderModalTabs(item) {
-    const tabs = MODAL_TABS[item.boardId] || MODAL_TABS[CONFIG.board1.id];
+    const baseTabs = MODAL_TABS[item.boardId] || MODAL_TABS[CONFIG.board1.id];
+
+    const isJustificationApproval =
+        item.approvalLabel === 'Rental Car Approval' ||
+        item.approvalLabel === 'Room Rates Approval';
+
+    const justificationTab = {
+        id: 'justification',
+        label: 'Justification',
+        icon: '<svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/></svg>',
+    };
+
+    const tabs = isJustificationApproval
+        ? [justificationTab, ...baseTabs]
+        : baseTabs;
+
     const tabBar = document.getElementById('modal-tabs');
     const body = document.getElementById('modal-body');
 
@@ -610,6 +631,8 @@ function renderTabPanel(tabId, item) {
         renderDocsPanel(panel, item);
     } else if (tabId === 'updates') {
         renderUpdatesPanel(panel, item);
+    } else if (tabId === 'justification') {
+        renderJustificationPanel(panel, item);
     }
 }
 
@@ -1032,7 +1055,7 @@ function updateCard(update) {
     const name = update.creator?.name || 'Unknown';
     const initials = name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
     const date = update.created_at
-        ? new Date(update.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
+        ? new Date(update.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' })
         : '';
     // Strip basic HTML tags from monday update body for plain text display
     const body = (update.body || '').replace(/<[^>]+>/g, '').trim();
@@ -1047,4 +1070,50 @@ function updateCard(update) {
       <div class="update-body">${escHtml(body)}</div>
     </div>
   `;
+}
+
+// ── Justification panel ───────────────────────────────────────
+
+async function renderJustificationPanel(panel, item) {
+    const isRentalCar = item.approvalLabel === 'Rental Car Approval';
+    const colId = isRentalCar
+        ? CONFIG.board1RentalCarJustification
+        : CONFIG.board1RoomRatesJustification;
+    const label = isRentalCar ? 'Rental Car Justification' : 'Room Rates Justification';
+
+    panel.innerHTML = `<div class="tab-loading"><div class="spinner-ring"></div> Loading justification…</div>`;
+
+    try {
+        const res = await monday.api(`
+      query ($itemId: ID!, $colId: String!) {
+        items(ids: [$itemId]) {
+          column_values(ids: [$colId]) { id text value }
+        }
+      }
+    `, { variables: { itemId: String(item.id), colId } });
+
+        const colVal = res?.data?.items?.[0]?.column_values?.[0];
+        let text = '';
+        if (colVal?.value) {
+            try { text = JSON.parse(colVal.value)?.text || colVal.text || ''; }
+            catch { text = colVal.text || ''; }
+        }
+
+        panel.innerHTML = `
+      <div class="form-panel-wrap">
+        <div class="form-container">
+          <table>
+            <tr><td class="section-title">${escHtml(label)}</td></tr>
+            <tr>
+              <td style="white-space:pre-wrap;font-size:13px;padding:10px 8px;min-height:80px;">
+                ${text ? escHtml(text) : '<span style="color:#676879;font-style:italic;">No justification provided.</span>'}
+              </td>
+            </tr>
+          </table>
+        </div>
+      </div>
+    `;
+    } catch (err) {
+        panel.innerHTML = `<div class="form-panel-wrap"><div class="form-container"><p style="color:#e2445c;padding:12px;">Failed to load justification: ${escHtml(err.message)}</p></div></div>`;
+    }
 }
