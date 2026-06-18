@@ -64,6 +64,28 @@ const NEXT_PAGE_QUERY = `
   }
 `;
 
+// Query to fetch activity updates for a single item
+const UPDATES_QUERY = `
+  query ($itemId: ID!) {
+    items(ids: [$itemId]) {
+      updates(limit: 100) {
+        id
+        body
+        text_body
+        created_at
+        creator { name }
+        replies {
+          id
+          body
+          text_body
+          created_at
+          creator { name }
+        }
+      }
+    }
+  }
+`;
+
 // Mutation used by the save functions in app.js
 export const MUTATION_CHANGE_COLUMN = `
   mutation ($boardId: ID!, $itemId: ID!, $columnId: String!, $value: JSON!) {
@@ -156,6 +178,67 @@ async function fetchBoard(monday, boardId) {
   }
 
   return items;
+}
+
+export async function fetchTripActivity(monday, trip) {
+  const requests = [];
+  if (trip.mondayItemId_hca)  requests.push({ boardLabel: 'HCA Packet',       itemId: trip.mondayItemId_hca });
+  if (trip.mondayItemId_iste) requests.push({ boardLabel: 'ISTE Reimb. Packet', itemId: trip.mondayItemId_iste });
+
+  if (!requests.length) return [];
+
+  const results = await Promise.all(requests.map(async ({ boardLabel, itemId }) => {
+    try {
+      let res;
+      if (MODE === 'test') {
+        return [];
+      } else if (MODE === 'dev') {
+        const response = await fetch('http://127.0.0.1:5000/get-monday-data', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ query: UPDATES_QUERY, variables: { itemId } }),
+        });
+        res = await response.json();
+      } else {
+        res = await monday.api(UPDATES_QUERY, { variables: { itemId } });
+      }
+
+      const updates = res?.data?.items?.[0]?.updates || [];
+      const flat = [];
+
+      for (const u of updates) {
+        flat.push({
+          id:        u.id,
+          boardLabel,
+          author:    u.creator?.name || 'Travel Update',
+          body:      u.text_body || stripHtml(u.body) || '',
+          createdAt: new Date(u.created_at),
+          isReply:   false,
+        });
+        for (const r of (u.replies || [])) {
+          flat.push({
+            id:        r.id,
+            boardLabel,
+            author:    r.creator?.name || 'Travel Update',
+            body:      r.text_body || stripHtml(r.body) || '',
+            createdAt: new Date(r.created_at),
+            isReply:   true,
+          });
+        }
+      }
+      return flat;
+    } catch (err) {
+      console.warn(`fetchTripActivity failed for item ${itemId}:`, err);
+      return [];
+    }
+  }));
+
+  // Merge all updates and sort newest-first
+  return results.flat().sort((a, b) => b.createdAt - a.createdAt);
+}
+
+function stripHtml(html = '') {
+  return html.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim();
 }
 
 export async function fetchAllBoards(monday) {

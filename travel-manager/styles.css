@@ -1566,3 +1566,181 @@ td.awaitingreview select.iste-select {
   overflow-wrap: break-word;
   color: var(--mn-blue);
 }
+
+/* =========================================================
+   Activity tab 
+   ========================================================= */
+
+/* Tab icon alignment (used by the activity tab button) */
+.tab-btn .tab-icon {
+  vertical-align: middle;
+  margin-right: 4px;
+  margin-top: -2px;
+}
+
+/* Push activity tab to the right edge */
+.tab-btn--activity {
+  margin-left: auto;
+}
+
+/* ── Feed wrapper ───────────────────────────────────────── */
+.activity-feed {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 24px 28px 48px;
+}
+
+.activity-feed__header {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 12px;
+}
+
+.activity-feed__title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.activity-feed__sub {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* ── Loading / empty states ─────────────────────────────── */
+.activity-loading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text-muted);
+  font-size: 13px;
+  padding: 32px 0;
+}
+
+.activity-spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--border);
+  border-top-color: var(--brand);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.activity-empty {
+  color: var(--text-muted);
+  font-size: 13px;
+  padding: 32px 0;
+  text-align: center;
+}
+
+/* ── Update list ────────────────────────────────────────── */
+.activity-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.activity-item {
+  display: flex;
+  gap: 12px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border-subtle, #f0f0f0);
+}
+
+.activity-item--reply {
+  padding-left: 36px;
+  background: var(--surface-alt, #fafafa);
+  border-radius: 6px;
+  margin: 2px 0;
+  padding: 10px 12px 10px 36px;
+  border-bottom: none;
+}
+
+.activity-item:last-child {
+  border-bottom: none;
+}
+
+/* Avatar circle */
+.activity-item__avatar {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--brand, #2563eb);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  letter-spacing: 0.02em;
+}
+
+.activity-item--reply .activity-item__avatar {
+  width: 26px;
+  height: 26px;
+  font-size: 10px;
+  background: var(--text-muted, #888);
+}
+
+/* Body */
+.activity-item__body {
+  flex: 1;
+  min-width: 0;
+}
+
+.activity-item__meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+
+.activity-item__author {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.activity-item__time {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-left: auto;
+}
+
+.activity-item__text {
+  font-size: 13px;
+  color: var(--text-secondary, #444);
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* ── Board badges ───────────────────────────────────────── */
+.activity-badge {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 2px 6px;
+  border-radius: 4px;
+  text-transform: uppercase;
+}
+
+.activity-badge--hca {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.activity-badge--iste {
+  background: #dcfce7;
+  color: #15803d;
+}

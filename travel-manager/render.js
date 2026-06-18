@@ -119,6 +119,11 @@ export function renderDetail(trip, activeTab, { onSavePre, onSavePost, onTabSwit
       'pre'
     );
     initPreFormListeners();  // wire live cost totals after HTML is in DOM
+  } else if (activeTab === 'activity') {
+    tabContent.innerHTML = activityPaneHTML(trip);
+    // Hide save button — nothing to save on activity tab
+    const saveBtn = document.getElementById('save-btn');
+    if (saveBtn) saveBtn.style.display = 'none';
   } else {
     tabContent.innerHTML = splitPaneHTML(
       travelerReimbPaneHTML(trip),
@@ -219,11 +224,14 @@ function xIcon() {
 function tabsHTML(activeTab) {
   return `
     <div class="tabs">
-      <button class="tab-btn ${activeTab === 'pre'  ? 'active' : ''}" data-tab="pre">
+      <button class="tab-btn ${activeTab === 'pre'      ? 'active' : ''}" data-tab="pre">
         Pre-Travel
       </button>
-      <button class="tab-btn ${activeTab === 'post' ? 'active' : ''}" data-tab="post">
+      <button class="tab-btn ${activeTab === 'post'     ? 'active' : ''}" data-tab="post">
         Post-Travel Reimbursement
+      </button>
+      <button class="tab-btn tab-btn--activity ${activeTab === 'activity' ? 'active' : ''}" data-tab="activity">
+        ${activityIcon()} Activity
       </button>
     </div>
   `;
@@ -558,6 +566,99 @@ export function readField(label, value) {
     </div>
   `;
 }
+
+// ---------------------------------------------------------------------------
+//  Activity tab — updates feed from Board 2 (HCA) and Board 4 (ISTE)
+// ---------------------------------------------------------------------------
+
+export function renderActivityFeed(trip) {
+  const tabContent = document.getElementById('tab-content');
+  if (!tabContent) return;
+  tabContent.innerHTML = activityPaneHTML(trip);
+}
+
+function activityPaneHTML(trip) {
+  const updates = trip._activityUpdates;
+
+  if (!updates) {
+    // Not yet loaded — show spinner; app.js will call renderActivityFeed once ready
+    return `
+      <div class="activity-feed">
+        <div class="activity-feed__header">
+          <span class="activity-feed__title">${activityIcon()} Activity</span>
+          <span class="activity-feed__sub">Travel Request & Reimbursement Activity</span>
+        </div>
+        <div class="activity-loading">
+          <div class="activity-spinner"></div>
+          <span>Loading updates…</span>
+        </div>
+      </div>
+    `;
+  }
+
+  if (!updates.length) {
+    return `
+      <div class="activity-feed">
+        <div class="activity-feed__header">
+          <span class="activity-feed__title">${activityIcon()} Activity</span>
+          <span class="activity-feed__sub">Travel Request & Reimbursement Activity</span>
+        </div>
+        <div class="activity-empty">No updates yet on this trip.</div>
+      </div>
+    `;
+  }
+
+  const items = updates.map(u => {
+    const date  = u.createdAt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    const time  = u.createdAt.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+    const board = u.boardLabel === 'HCA Packet'
+      ? `<span class="activity-badge activity-badge--hca">Request</span>`
+      : `<span class="activity-badge activity-badge--iste">Reimbursement</span>`;
+
+    return `
+      <div class="activity-item ${u.isReply ? 'activity-item--reply' : ''}">
+        <div class="activity-item__avatar">${avatarInitials(u.author)}</div>
+        <div class="activity-item__body">
+          <div class="activity-item__meta">
+            <span class="activity-item__author">${escHtml(u.author)}</span>
+            ${board}
+            <span class="activity-item__time">${date} · ${time}</span>
+          </div>
+          <div class="activity-item__text">${escHtml(u.body) || '<em class="empty-val">No text</em>'}</div>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  return `
+    <div class="activity-feed">
+      <div class="activity-feed__header">
+        <span class="activity-feed__title">${activityIcon()} Activity</span>
+        <span class="activity-feed__sub">${updates.length} update${updates.length !== 1 ? 's' : ''}</span>
+      </div>
+      <div class="activity-list">
+        ${items}
+      </div>
+    </div>
+  `;
+}
+
+function avatarInitials(name = '') {
+  return name.split(' ').slice(0, 2).map(w => w[0]?.toUpperCase() || '').join('');
+}
+
+function escHtml(str = '') {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function activityIcon() {
+  return `<svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="14" height="14"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>`;
+}
+
 
 function formIcon() {
   return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>`;

@@ -4,9 +4,9 @@
 //  To add new editable fields to the forms, see forms-pre.js / forms-post.js.
 // =============================================================================
 
-import { fetchAllBoards, assembleTrips, MUTATION_CHANGE_COLUMN } from './data.js';
+import { fetchAllBoards, assembleTrips, MUTATION_CHANGE_COLUMN, fetchTripActivity } from './data.js';
 import { BOARDS, HCA_PACKET_COLS, ISTE_PACKET_COLS, ISTE_SUBITEM_COLS } from './config.js';
-import { renderSidebar, renderDetail, renderEmptyState } from './render.js';
+import { renderSidebar, renderDetail, renderEmptyState, renderActivityFeed } from './render.js';
 import { collectPreFormData, initPreFormListeners, collectPreFormSnapshot } from './forms-pre.js';
 import { collectPostFormData, initPostFormListeners, ensureIsteSubitems, collectPostFormSnapshot } from './forms-post.js';
 
@@ -39,10 +39,20 @@ async function refreshTrips() {
   const leftScroll  = leftPane?.scrollTop  || 0;
   const rightScroll = rightPane?.scrollTop || 0;
 
+  // assembleTrips() below builds brand-new trip objects from scratch, so any
+  // data we'd previously cached directly on the old trip object (like
+  // _activityUpdates) would otherwise vanish on every background refresh.
+  // Capture it here so we can carry it forward.
+  const prevActivityUpdates = trips[activeId]?._activityUpdates;
+
   try {
     const raw   = await fetchAllBoards(monday);
     const fresh = assembleTrips(raw);
     Object.assign(trips, fresh);
+
+    if (activeId && trips[activeId] && prevActivityUpdates) {
+      trips[activeId]._activityUpdates = prevActivityUpdates;
+    }
 
     renderSidebar(trips, { onSelect });
     highlightSidebarItem(activeId);
@@ -58,6 +68,20 @@ async function refreshTrips() {
         if (l) l.scrollTop = leftScroll;
         if (r) r.scrollTop = rightScroll;
       });
+
+      // If the user is sitting on the Activity tab during a background refresh,
+      // quietly re-fetch updates onto the new trip object too. Without this,
+      // the tab would show stale (or, if prevActivityUpdates was undefined,
+      // permanently spinning) content since nothing else re-triggers the fetch.
+      if (activeTab === 'activity') {
+        const trip = trips[activeId];
+        fetchTripActivity(monday, trip).then(updates => {
+          trip._activityUpdates = updates;
+          renderActivityFeed(trip);
+        }).catch(err => {
+          console.error('Activity refresh fetch error:', err);
+        });
+      }
     }
 
     if (syncEl) syncEl.textContent =
@@ -254,6 +278,21 @@ async function onTabSwitch(tab) {
 
   renderDetail(trips[activeId], tab, { onSavePre, onSavePost, onTabSwitch, onNotifyTraveler, onOpenFile });
   initFileDialogListeners();
+
+  if (tab === 'activity') {
+    // Fetch updates (shows spinner until complete), then re-render the feed in-place
+    const trip = trips[activeId];
+    fetchTripActivity(monday, trip).then(updates => {
+      trip._activityUpdates = updates;
+      renderActivityFeed(trip);
+    }).catch(err => {
+      console.error('Activity fetch error:', err);
+      trip._activityUpdates = [];
+      renderActivityFeed(trip);
+    });
+    return; // skip snapshotAndWatch — nothing editable on this tab
+  }
+
   snapshotAndWatch(tab);
 }
 
