@@ -144,6 +144,7 @@ function serializeColumnValue(colId, value) {
 
 async function init() {
   const loader = document.getElementById('loader');
+  initTravelInfoModal();
 
   try {
     const context = await monday.get('context');
@@ -812,6 +813,21 @@ function initFileDialogListeners() {
   // });
   document.body.removeEventListener('click', handleMondayUploadClick);
   document.body.addEventListener('click', handleMondayUploadClick);
+}
+
+function initTravelInfoModal() {
+  const modal   = document.getElementById('travel-info-modal');
+  const trigger = document.getElementById('travel-info-trigger');
+  // const close   = document.getElementById('travel-info-close');
+  if (!modal || !trigger) return;
+
+  trigger.addEventListener('click', () => modal.showModal());
+  // close.addEventListener('click', () => modal.close());
+
+  // Click on the backdrop (outside the dialog's content box) closes it
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) modal.close();
+  });
 }
 
 init();

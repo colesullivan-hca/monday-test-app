@@ -321,10 +321,10 @@ function isteRowHTML(row, i) {
       <td><input class="iste-input"               data-iste-col="arriveTime"  value="${esc(row.arriveTime  || '')}" /></td>
       <td><input class="iste-input"               data-iste-col="destination" value="${esc(row.destination || '')}" /></td>
       <td><input class="iste-input"               data-iste-col="odometer"    value="${esc(row.odometer    || '')}" /></td>
-      <td><input class="iste-input iste-miles"    data-iste-col="miles"       type="number" value="${esc(row.miles    || '')}" /></td>
-      <td><input class="iste-input iste-cost"     data-iste-col="mileage"     type="number" value="${esc(row.mileage  || '')}" /></td>
-      <td><input class="iste-input iste-cost"     data-iste-col="perdiem"     type="number" value="${esc(row.perdiem  || '')}" /></td>
-      <td><input class="iste-input iste-cost"     data-iste-col="other"       type="number" value="${esc(row.other    || '')}" /></td>
+      <td><input class="iste-input iste-miles"    data-iste-col="miles"       value="${esc(row.miles    || '')}" /></td>
+      <td><input class="iste-input iste-cost"     data-iste-col="mileage"     value="${esc(row.mileage  || '')}" /></td>
+      <td><input class="iste-input iste-cost"     data-iste-col="perdiem"     value="${esc(row.perdiem  || '')}" /></td>
+      <td><input class="iste-input iste-cost"     data-iste-col="other"       value="${esc(row.other    || '')}" /></td>
       <td class="iste-num"><span class="iste-row-total">0.00</span></td>
     </tr>
   `;

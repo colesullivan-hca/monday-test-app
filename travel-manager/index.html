@@ -38,15 +38,29 @@
 
   </div>
 
-  <button type="button" class="corner-bookmark">
-    <svg xmlns="http://www.w3.org/2000/svg"
-        width="24"
-        height="24"
-        viewBox="0 0 24 24"
-        fill="none">
-      <circle cx="12" cy="12" r="10" fill="#3B82F6"/>
-      <circle cx="12" cy="7" r="1.4" fill="white"/>
-      <path d="M12 10v6" stroke="white" stroke-width="2.2" stroke-linecap="round"/>
+  <dialog id="travel-info-modal" class="travel-info-modal">
+  </dialog>
+
+  <script>
+    (async () => {
+        try {
+          const response = await fetch('travel-info-modal.html');
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          const htmlText = await response.text();
+          document.getElementById('travel-info-modal').innerHTML = htmlText;
+        } catch (error) {
+          console.error('Error loading the HTML:', error);
+          document.getElementById('travel-info-modal').innerHTML = '<p>Failed to load content.</p>';
+        }
+      })();
+  </script>
+
+  <button type="button" class="corner-bookmark" id="travel-info-trigger" aria-haspopup="dialog" aria-controls="travel-info-modal">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+      <circle cx="12" cy="12" r="10" fill="#2563eb"/>
+      <path d="M12 16.8a1 1 0 1 1 0 2a1 1 0 0 1 0-2zm0-10a3.5 3.5 0 0 1 3.5 3.5c0 1.8-1 2.8-2.2 3.6-.9.6-1.3 1-1.3 1.6v.3h-2v-.6c0-1.5.8-2.4 1.8-3.1 1-.7 1.7-1.3 1.7-2.2a1.5 1.5 0 1 0-3 0h-2A3.5 3.5 0 0 1 12 6.8z" fill="white"/>
     </svg>
   </button>
 
