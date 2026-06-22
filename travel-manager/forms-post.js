@@ -36,16 +36,19 @@ export function buildPostForm(trip) {
   return `
     <div class="pane-header">
       <span class="pane-header__icon">${editIcon()}</span>
-      <div class="form-row form-row--2col pane-header__container">
+      <div class="form-row form-row--3col pane-header__container">
         <div>
           <div class="pane-header__title">ISTE Reimbursement</div>
           <div class="pane-header__sub">Board 4 · Editable — saves to monday</div>
         </div>
         <div class="form-field">
-          <label class="form-label" for="ISTEStatus">Statement status</label>
+          <label class="form-label" for="ISTEStatus">Reimbursement status</label>
           <select class="form-select ${(t.ISTEStatus || '').replaceAll(" ", "").toLowerCase()}" id="ISTEStatus">
             ${selectOptions(ISTE_STATUS_OPTIONS, t.ISTEStatus)}
           </select>
+        </div>
+        <div class="print-btn-container">
+          <div class="print-btn" id="iste-print-btn">Print</div>
         </div>
       </div>
     </div>
@@ -334,9 +337,15 @@ function isteRowHTML(row, i) {
 // ---------------------------------------------------------------------------
 //  initPostFormListeners()
 //  Call after buildPostForm() HTML is in the DOM.
+//
+//  onNotify(notifyData) — called when "Notify Traveler" is clicked.
+//  onPrint()             — called when "Print" is clicked. forms-post.js
+//                           doesn't know or care how printing works (that
+//                           lives in print-post.js) — it just reports the
+//                           click. Same pattern to reuse for forms-pre.js.
 // ---------------------------------------------------------------------------
 
-export function initPostFormListeners(onNotify) {
+export function initPostFormListeners({ onNotify, onPrint } = {}) {
   calculateIsteTotals();
 
   const tbody = document.getElementById('iste-rows');
@@ -378,6 +387,26 @@ export function initPostFormListeners(onNotify) {
       name:  notifyBtn.dataset.name,
       trip:  notifyBtn.dataset.trip,
     }));
+  }
+
+  // Print button
+  const printBtn = document.getElementById('iste-print-btn');
+  if (printBtn && onPrint) {
+    printBtn.addEventListener('click', async () => {
+      if (printBtn.classList.contains('is-loading')) return; // guard double-click
+      const original = printBtn.textContent;
+      printBtn.classList.add('is-loading');
+      printBtn.textContent = 'Printing…';
+      try {
+        await onPrint();
+      } catch (err) {
+        console.error('Print error:', err);
+        alert('Could not generate the PDF. Check the console for details.');
+      } finally {
+        printBtn.classList.remove('is-loading');
+        printBtn.textContent = original;
+      }
+    });
   }
 }
 

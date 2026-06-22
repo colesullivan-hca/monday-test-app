@@ -9,6 +9,7 @@ import { BOARDS, HCA_PACKET_COLS, ISTE_PACKET_COLS, ISTE_SUBITEM_COLS } from './
 import { renderSidebar, renderDetail, renderEmptyState, renderActivityFeed } from './render.js';
 import { collectPreFormData, initPreFormListeners, collectPreFormSnapshot } from './forms-pre.js';
 import { collectPostFormData, initPostFormListeners, ensureIsteSubitems, collectPostFormSnapshot } from './forms-post.js';
+import { generateIstePdf } from './print-post.js';
 
 const monday = window.mondaySdk();
 
@@ -58,7 +59,7 @@ async function refreshTrips() {
     highlightSidebarItem(activeId);
 
     if (activeId && !isDirty) {
-      renderDetail(trips[activeId], activeTab, { onSavePre, onSavePost, onTabSwitch, onNotifyTraveler, onOpenFile });
+      renderDetail(trips[activeId], activeTab, { onSavePre, onSavePost, onTabSwitch, onNotifyTraveler, onOpenFile, onPrint });
       snapshotAndWatch(activeTab);
 
       // Restore scroll positions after re-render
@@ -190,7 +191,7 @@ async function init() {
     if (selectId) {
       // If restoring, skip the tab default logic in onSelect by setting directly
       if (restoreId) {
-        renderDetail(trips[restoreId], activeTab, { onSavePre, onSavePost, onTabSwitch, onNotifyTraveler, onOpenFile });
+        renderDetail(trips[restoreId], activeTab, { onSavePre, onSavePost, onTabSwitch, onNotifyTraveler, onOpenFile, onPrint });
         highlightSidebarItem(restoreId);
         initFileDialogListeners();
         snapshotAndWatch(activeTab);
@@ -248,7 +249,7 @@ async function onSelect(tripId) {
   activeId  = tripId;
   activeTab = trips[tripId].istePacketUrl ? 'post' : 'pre';
   persistState();
-  renderDetail(trips[tripId], activeTab, { onSavePre, onSavePost, onTabSwitch, onNotifyTraveler, onOpenFile });
+  renderDetail(trips[tripId], activeTab, { onSavePre, onSavePost, onTabSwitch, onNotifyTraveler, onOpenFile, onPrint });
   highlightSidebarItem(tripId);
   initFileDialogListeners();
   snapshotAndWatch('pre');
@@ -276,7 +277,7 @@ async function onTabSwitch(tab) {
     }
   }
 
-  renderDetail(trips[activeId], tab, { onSavePre, onSavePost, onTabSwitch, onNotifyTraveler, onOpenFile });
+  renderDetail(trips[activeId], tab, { onSavePre, onSavePost, onTabSwitch, onNotifyTraveler, onOpenFile, onPrint });
   initFileDialogListeners();
 
   if (tab === 'activity') {
@@ -308,6 +309,12 @@ function onOpenFile({ boardId, itemId, columnId, assetId }) {
     columnId: String(columnId),
     assetId:  String(assetId),
   });
+}
+
+// Thin wrapper: forms-post.js fires this on Print click, print-post.js does
+// the actual PDF generation. app.js is the only place that knows about both.
+async function onPrint() {
+  await generateIstePdf();
 }
 
 async function onNotifyTraveler({ email, name, trip })  {
@@ -539,7 +546,7 @@ async function onSavePre(formData) {
     });
 
     rehydrateTrip(trip);
-    renderDetail(trip, activeTab, { onSavePre, onSavePost, onTabSwitch, onNotifyTraveler, onOpenFile });
+    renderDetail(trip, activeTab, { onSavePre, onSavePost, onTabSwitch, onNotifyTraveler, onOpenFile, onPrint });
     renderSidebar(trips, { onSelect });
     highlightSidebarItem(activeId);
     originalFormData = formData;
@@ -648,7 +655,7 @@ async function onSavePost(formData) {
     }
 
     rehydrateTrip(trip);
-    renderDetail(trip, activeTab, { onSavePre, onSavePost, onTabSwitch, onNotifyTraveler });
+    renderDetail(trip, activeTab, { onSavePre, onSavePost, onTabSwitch, onNotifyTraveler, onPrint });
     renderSidebar(trips, { onSelect });
     highlightSidebarItem(activeId);
     originalFormData = formData;
