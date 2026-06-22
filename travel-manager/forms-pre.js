@@ -16,27 +16,6 @@
 const APPROVAL_OPTIONS      = ['', 'Awaiting Review', 'Approved', 'Denied', 'Not Applicable'];
 const PACKET_STATUS_OPTIONS = ['', 'In Preparation', 'Ready For Approvals', 'On Hold'];
 
-// Snapshot key map — short code : element id
-const SNAPSHOT_KEYS = {
-  dv: 'hca_division',       dt: 'hca_date',
-  tr: 'hca_traveler',        sh: 'hca_shareId',       ti: 'hca_title',
-  de: 'hca_destination',     cn: 'hca_conferenceName', dd: 'hca_departureDate', rd: 'hca_returnDate',
-  af: 'hca_airfare',         ap: 'hca_airfarePO',
-  mi: 'hca_mileage',         mp: 'hca_mileagePO',
-  tp: 'hca_transport',       tpp:'hca_transportPO',
-  fe: 'hca_fees',            fp: 'hca_feesPO',
-  pk: 'hca_parking',         pp: 'hca_parkingPO',
-  cr: 'hca_carRental',       crp:'hca_carRentalPO',
-  pd: 'hca_perDiem',         pdp:'hca_perDiemPO',
-  me: 'hca_meals',           mep:'hca_mealsPO',
-  lo: 'hca_lodging',         lop:'hca_lodgingPO',
-  cf: 'hca_confFees',        cfp:'hca_confFeesPO',
-  oe: 'hca_otherExp',        oep:'hca_otherExpPO',
-  ju: 'hca_justification',
-  ps: 'packetStatus_pre',    sv: 'supervisorApproval',  dvA:'divisionApproval',
-  asd:'ASDApproval',         oos:'OOSApproval',         rc: 'rentalApproval',  rr: 'roomRatesApproval',
-};
-
 
 // ---------------------------------------------------------------------------
 //  buildPreForm(trip)
@@ -406,26 +385,6 @@ export function collectPreFormData() {
     roomRatesApproval:  status('roomRatesApproval'),
   };
 }
-
-export function collectPreFormSnapshot() {
-  const out = {};
-  for (const [code, id] of Object.entries(SNAPSHOT_KEYS)) {
-    const v = document.getElementById(id)?.value ?? '';
-    if (v !== '') {
-      // dates: store as YYYYMMDD (8 chars) instead of YYYY-MM-DD
-      out[code] = v.includes('-') && /^\d{4}-\d{2}-\d{2}$/.test(v)
-        ? v.replaceAll('-', '')
-        : v;
-    }
-  }
-
-  const json = JSON.stringify(out);
-  if (json.length > 2000) {
-    console.warn(`Pre-form snapshot is ${json.length} chars`);
-  }
-  return json;
-}
-
 
 // ---------------------------------------------------------------------------
 //  Helpers
