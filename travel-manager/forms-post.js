@@ -306,7 +306,7 @@ function isteRowHTML(row, i) {
   const sid = row.subitemId ? `data-subitem-id="${row.subitemId}"` : '';
   return `
     <tr class="iste-row" data-row="${i}" ${sid}>
-      <td class="iste-drag-handle" title="Drag to reorder">⠿</td>
+      <td style="max-width:25px;" class="iste-drag-handle" title="Drag to reorder">⠿</td>
       <td><input class="iste-input" type="date"   data-iste-col="date"        value="${esc(row.date        || '')}" /></td>
       <td><input class="iste-input"               data-iste-col="departTime"  value="${esc(row.departTime  || '')}" /></td>
       <td><input class="iste-input"               data-iste-col="arriveTime"  value="${esc(row.arriveTime  || '')}" /></td>
