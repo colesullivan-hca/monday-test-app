@@ -942,13 +942,13 @@ td:has(.input--dirty), td.input--dirty {
   color: var(--text-on-blue);
 }
 
-.print-btn-container {
-  /* display: flex;
-  justify-content: flex-end; */
+/* .print-btn-container {
+  display: flex;
+  justify-content: flex-end;
 }
 .print-btn {
-  /* max-width: 150px;; */
-}
+  max-width: 150px;;
+} */
 
 
 /* ---------------------------------------------------------------------------
@@ -1301,9 +1301,9 @@ ISTE FORM STYLES
   cursor: default;
 }
 
-.email {
-  /* color: var(--border-focus); */
-}
+/* .email {
+  color: var(--border-focus);
+} */
 
 .iste-cost {
   text-align: right;
