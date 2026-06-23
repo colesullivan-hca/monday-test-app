@@ -103,8 +103,8 @@ export function renderDetail(trip, activeTab, { onSavePre, onSavePost, onTabSwit
       <div class="footer-links">
         ${trip.requestUrl    ? `<a href="${trip.requestUrl}" target="_blank" class="footer-link">Request intake ↗</a>` : ''}
         ${trip.reimbUrl      ? `<a href="${trip.reimbUrl}" target="_blank" class="footer-link">Reimb. intake ↗</a>` : ''}
-        ${trip.hcaUrl        ? `<a href="${trip.hcaUrl}" target="_blank" class="footer-link">Request packet ↗</a>` : ''}
-        ${trip.istePacketUrl ? `<a href="${trip.istePacketUrl}" target="_blank" class="footer-link">Reimb. packet ↗</a>` : ''}
+        ${trip.hcaUrl        ? `<a href="${trip.hcaUrl}" target="_blank" class="footer-link">Request board ↗</a>` : ''}
+        ${trip.istePacketUrl ? `<a href="${trip.istePacketUrl}" target="_blank" class="footer-link">Reimb. board ↗</a>` : ''}
       </div>
       <button id="save-btn" class="btn btn--primary">Save to monday</button>
     </div>
@@ -429,7 +429,6 @@ function travelerReimbPaneHTML(trip) {
       ${readField('Actual Departure From Home Time',   trip.reimb_departureTime)}
       ${readField('Actual Arrival To Home Date',       trip.reimb_arrivalDate)}
       ${readField('Actual Arrival To Home Time',       trip.reimb_arrivalTime)}
-      ${readField('Actual Distance Driven from Home to Airport (In Miles)',  trip.reimb_mileageToAirport)}
 
       <div class="read-section-title">Vehicle Information</div>
       ${readField('Vehicle License Plate',             trip.reimb_licensePlate)}
@@ -458,6 +457,14 @@ function travelerReimbPaneHTML(trip) {
       <div class="read-section-title">Meals</div>
       ${readField('Was food provided for you at any point during your travel?',  trip.reimb_foodProvided)}
       ${readField('Please provide all details about when/how meals were provided for you',  trip.reimb_foodDetails)}
+
+      <div class="read-section-title">Lodging</div>
+      ${readField('Do you have your hotel/lodging receipt?',  trip.reimb_hotelReceiptHas)}
+      ${columnFilesHTML(
+          trip.reimbFilesByCol?.reimb_hotelReceipt || [],
+          'Baggage Fee Receipt',
+          { boardId: BOARDS.travelerReimbursement, itemId: trip.mondayItemId_reimb, columnId: TRAVELER_REIMB_FILE_COLS.reimb_hotelReceipt }
+      )}
 
       <div class="read-section-title">Supporting Documents</div>
       ${columnFilesHTML(

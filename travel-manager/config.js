@@ -176,7 +176,13 @@ export const HCA_PACKET_COLS = {
   // ── Section 4: Justification ──────────────────────────────────────────────
   hca_justification:  'long_text_mm2vd845',
 
-  // --- Add more Board 2 columns here ---
+    // Appoval Emails
+  hca_supervisorEmail: 'text_mm4k5p4x',
+  hca_divisionEmail: 'text_mm4ktabk',
+  hca_asdEmail: 'text_mm4kqp75',
+  hca_oosEmail: 'text_mm4kzrc3',
+  hca_rentalApprover: 'text_mm4kray4',
+  hca_ratesApprover: 'text_mm4k5kyt',
 };
 
 
@@ -186,6 +192,7 @@ export const HCA_PACKET_COLS = {
 export const TRAVELER_REIMB_FILE_COLS = {
   reimb_parkingReceipt:            'file_mm33c37d',
   reimb_bagReceipt:   'file_mm3363sh',
+  reimb_hotelReceipt: 'filejnwb3ert',
   reimb_supportingDocs:  'file_mm32hb6n',
 }
 
@@ -208,7 +215,6 @@ export const TRAVELER_REIMB_COLS = {
   reimb_departureTime: 'text_mm32a8qk',
   reimb_arrivalDate: 'date_mm32gjap',
   reimb_arrivalTime: 'text_mm323j64',
-  reimb_mileageToAirport: 'numeric_mm32ynry',
   reimb_licensePlate: 'text_mm3263qb',
   reimb_carModel:   'text_mm32k4rx',
   reimb_carType:    'color_mm32f9gp',
@@ -221,6 +227,7 @@ export const TRAVELER_REIMB_COLS = {
   reimb_rates:      'color_mm366rbp',
   reimb_foodProvided: 'single_selectosqqx8c',
   reimb_foodDetails: 'long_texthfwk98gr',
+  reimb_hotelReceiptHas: 'single_selectuy4stm4',
 };
 
 
@@ -274,6 +281,10 @@ export const ISTE_PACKET_COLS = {
   iste_finalVoucher:   'boolean_mm32n5pq',
   iste_actual:         'boolean_mm3490fe',
   iste_approvedRates:  'boolean_mm345nt4',
+
+  // Appoval Emails
+  iste_traveler: 'text_mm4k4cns',
+  iste_supervisor: 'text_mm4k1gnn',
 };
 
 

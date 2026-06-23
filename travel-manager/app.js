@@ -173,7 +173,7 @@ async function init() {
 
   try {
     const context = await monday.get('context');
-    console.log('monday context:', context?.data);
+    // console.log('monday context:', context?.data);
     // If you see boardId / itemId / accountId here, the SDK is connected.
     // If context.data is empty, the app isn't running inside a monday view.
 

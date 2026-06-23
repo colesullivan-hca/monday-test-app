@@ -942,6 +942,14 @@ td:has(.input--dirty), td.input--dirty {
   color: var(--text-on-blue);
 }
 
+.print-btn-container {
+  /* display: flex;
+  justify-content: flex-end; */
+}
+.print-btn {
+  /* max-width: 150px;; */
+}
+
 
 /* ---------------------------------------------------------------------------
    Responsive — split pane stacking
@@ -1291,6 +1299,10 @@ ISTE FORM STYLES
 .iste-input[readonly] {
   color: var(--text-secondary);
   cursor: default;
+}
+
+.email {
+  /* color: var(--border-focus); */
 }
 
 .iste-cost {

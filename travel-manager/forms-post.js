@@ -24,19 +24,20 @@ export function buildPostForm(trip) {
   return `
     <div class="pane-header">
       <span class="pane-header__icon">${editIcon()}</span>
-      <div class="form-row form-row--3col pane-header__container">
+      <div class="form-row form-row--4col pane-header__container">
         <div>
           <div class="pane-header__title">ISTE Reimbursement</div>
           <div class="pane-header__sub">Board 4 · Editable — saves to monday</div>
         </div>
         <div class="form-field">
-          <label class="form-label" for="ISTEStatus">Reimbursement status</label>
-          <select class="form-select ${(t.ISTEStatus || '').replaceAll(" ", "").toLowerCase()}" id="ISTEStatus">
-            ${selectOptions(ISTE_STATUS_OPTIONS, t.ISTEStatus)}
-          </select>
+        <label class="form-label" for="ISTEStatus">ISTE status</label>
+        <select class="form-select ${(t.ISTEStatus || '').replaceAll(" ", "").toLowerCase()}" id="ISTEStatus">
+        ${selectOptions(ISTE_STATUS_OPTIONS, t.ISTEStatus)}
+        </select>
         </div>
+        <div></div>
         <div class="print-btn-container">
-          <div class="print-btn" id="iste-print-btn">Print</div>
+          <div class="print-btn btn" id="iste-print-btn">Print</div>
         </div>
       </div>
     </div>
@@ -191,13 +192,13 @@ export function buildPostForm(trip) {
       <table class="iste-table">
         <tr><td colspan="4" class="iste-section">APPROVALS</td></tr>
         <tr>
-          <td class="iste-label">TRAVELER:</td>
+          <td class="iste-label">TRAVELER:<input class="iste-input email" id="iste_traveler" value="${esc(t.iste_traveler)}" /></td>
           <td class="${(t.travelerApproval_post || '').replaceAll(" ", "").toLowerCase()}">
             <select class="iste-select" id="travelerApproval_post" ${roSel}>
               ${selectOptions(APPROVAL_OPTIONS, t.travelerApproval_post)}
             </select>
           </td>
-          <td class="iste-label">SUPERVISOR:</td>
+          <td class="iste-label">SUPERVISOR:<input class="iste-input email" id="iste_supervisor" value="${esc(t.iste_supervisor)}" /></td>
           <td class="${(t.supervisorApproval_post || '').replaceAll(" ", "").toLowerCase()}">
             <select class="iste-select" id="supervisorApproval_post" ${roSel}>
               ${selectOptions(APPROVAL_OPTIONS, t.supervisorApproval_post)}
@@ -478,6 +479,9 @@ export function collectPostFormData() {
 
     iste_voucherBasis: document.querySelector('input[name="iste_voucherBasis"]:checked')?.value || '',
     iste_perDiemBasis: document.querySelector('input[name="iste_perDiemBasis"]:checked')?.value || '',
+
+    iste_traveler: val('iste_traveler'),
+    iste_supervisor: val('iste_supervisor'),
 
     isteRows: rows,
   };

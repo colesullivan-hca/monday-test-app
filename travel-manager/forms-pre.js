@@ -218,13 +218,13 @@ export function buildPreForm(trip) {
       <table class="hca-table">
         <tr><td colspan="4" class="hca-section">Section 5. APPROVALS</td></tr>
         <tr>
-          <td class="hca-label">SUPERVISOR:</td>
+          <td class="hca-label">SUPERVISOR:<input class="iste-input email" id="hca_supervisorEmail" value="${esc(trip.hca_supervisorEmail)}" /></td>
           <td class="${trip.supervisorApproval.replaceAll(" ", "").toLowerCase()}">
             <select class="hca-select" id="supervisorApproval" ${roSel}>
               ${selectOptions(APPROVAL_OPTIONS, trip.supervisorApproval)}
             </select>
           </td>
-          <td class="hca-label">DIVISION:</td>
+          <td class="hca-label">DIVISION:<input class="iste-input email" id="hca_divisionEmail" value="${esc(trip.hca_divisionEmail)}" /></td>
           <td class="${trip.divisionApproval.replaceAll(" ", "").toLowerCase()}">
             <select class="hca-select" id="divisionApproval" ${roSel}>
               ${selectOptions(APPROVAL_OPTIONS, trip.divisionApproval)}
@@ -232,13 +232,13 @@ export function buildPreForm(trip) {
           </td>
         </tr>
         <tr>
-          <td class="hca-label">ASD BUDGET:</td>
+          <td class="hca-label">ASD BUDGET:<input class="iste-input email" id="hca_asdEmail" value="${esc(trip.hca_asdEmail)}" /></td>
           <td class="${trip.ASDApproval.replaceAll(" ", "").toLowerCase()}">
             <select class="hca-select" id="ASDApproval" ${roSel}>
               ${selectOptions(APPROVAL_OPTIONS, trip.ASDApproval)}
             </select>
           </td>
-          <td class="hca-label">OOS / DEPUTY SEC:</td>
+          <td class="hca-label">OOS:<input class="iste-input email" id="hca_oosEmail" value="${esc(trip.hca_oosEmail)}" /></td>
           <td class="${trip.OOSApproval.replaceAll(" ", "").toLowerCase()}">
             <select class="hca-select" id="OOSApproval" ${roSel}>
               ${selectOptions(APPROVAL_OPTIONS, trip.OOSApproval)}
@@ -246,13 +246,13 @@ export function buildPreForm(trip) {
           </td>
         </tr>
         <tr>
-          <td class="hca-label">RENTAL CAR (CFO):</td>
+          <td class="hca-label">RENTAL CAR (CFO):<input class="iste-input email" id="hca_rentalApprover" value="${esc(trip.hca_rentalApprover)}" /></td>
           <td class="${trip.rentalApproval.replaceAll(" ", "").toLowerCase()}">
             <select class="hca-select" id="rentalApproval" ${roSel}>
               ${selectOptions(APPROVAL_OPTIONS, trip.rentalApproval)}
             </select>
           </td>
-          <td class="hca-label">ROOM RATES (CFO):</td>
+          <td class="hca-label">ROOM RATES (CFO):<input class="iste-input email" id="hca_ratesApprover" value="${esc(trip.hca_ratesApprover)}" /></td>
           <td class="${trip.roomRatesApproval.replaceAll(" ", "").toLowerCase()}">
             <select class="hca-select" id="roomRatesApproval" ${roSel}>
               ${selectOptions(APPROVAL_OPTIONS, trip.roomRatesApproval)}
@@ -383,6 +383,13 @@ export function collectPreFormData() {
     OOSApproval:        status('OOSApproval'),
     rentalApproval:     status('rentalApproval'),
     roomRatesApproval:  status('roomRatesApproval'),
+
+    hca_supervisorEmail: val('hca_supervisorEmail'),
+    hca_divisionEmail: val('hca_divisionEmail'),
+    hca_asdEmail: val('hca_asdEmail'),
+    hca_oosEmail: val('hca_oosEmail'),
+    hca_rentalApprover: val('hca_rentalApprover'),
+    hca_ratesApprover: val('hca_ratesApprover'),
   };
 }
 

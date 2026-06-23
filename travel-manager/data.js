@@ -257,12 +257,12 @@ export async function fetchAllBoards(monday) {
     }),
   ]);
 
-  console.log('Fetched counts —', {
-    travelerRequest:      travelerItems.length,
-    hcaPacket:            hcaItems.length,
-    travelerReimbursement: reimbItems.length,
-    istePacket:           isteItems.length,
-  });
+  // console.log('Fetched counts —', {
+  //   travelerRequest:      travelerItems.length,
+  //   hcaPacket:            hcaItems.length,
+  //   travelerReimbursement: reimbItems.length,
+  //   istePacket:           isteItems.length,
+  // });
 
   return { travelerItems, hcaItems, reimbItems, isteItems };
 }
