@@ -14,11 +14,13 @@ import { generateIstePdf } from './print-post.js';
 const monday = window.mondaySdk();
 
 // App state
-let trips            = {};
-let activeId         = sessionStorage.getItem('activeId') || null;
-let activeTab        = sessionStorage.getItem('activeTab') || 'pre';
-let originalFormData = null;
-let isDirty          = false;
+let trips                = {};
+let activeId             = sessionStorage.getItem('activeId') || null;
+let activeTab            = sessionStorage.getItem('activeTab') || 'pre';
+let originalFormData     = null;
+let isDirty              = false;
+let lastRenderedTripJson = null;   // used by refreshTrips to skip no-op re-renders
+let lastSyncTime         = 0;      // used by focus handler to avoid re-fetching too soon
 
 function persistState() {
   if (activeId)  sessionStorage.setItem('activeId',  activeId);
@@ -59,32 +61,38 @@ async function refreshTrips() {
     highlightSidebarItem(activeId);
 
     if (activeId && !isDirty) {
-      renderDetail(trips[activeId], activeTab, { onSavePre, onSavePost, onTabSwitch, onNotifyTraveler, onOpenFile, onPrint });
-      snapshotAndWatch(activeTab);
+      const freshTrip    = trips[activeId];
+      const freshTripJson = JSON.stringify(freshTrip);
 
-      // Restore scroll positions after re-render
-      requestAnimationFrame(() => {
-        const l = document.querySelector('.split-pane__left');
-        const r = document.querySelector('.split-pane__right');
-        if (l) l.scrollTop = leftScroll;
-        if (r) r.scrollTop = rightScroll;
-      });
+      if (freshTripJson !== lastRenderedTripJson) {
+        lastRenderedTripJson = freshTripJson;
+        renderDetail(freshTrip, activeTab, { onSavePre, onSavePost, onTabSwitch, onNotifyTraveler, onOpenFile, onPrint });
+        snapshotAndWatch(activeTab);
+
+        // Restore scroll positions after re-render
+        requestAnimationFrame(() => {
+          const l = document.querySelector('.split-pane__left');
+          const r = document.querySelector('.split-pane__right');
+          if (l) l.scrollTop = leftScroll;
+          if (r) r.scrollTop = rightScroll;
+        });
+      }
 
       // If the user is sitting on the Activity tab during a background refresh,
       // quietly re-fetch updates onto the new trip object too. Without this,
       // the tab would show stale (or, if prevActivityUpdates was undefined,
       // permanently spinning) content since nothing else re-triggers the fetch.
       if (activeTab === 'activity') {
-        const trip = trips[activeId];
-        fetchTripActivity(monday, trip).then(updates => {
-          trip._activityUpdates = updates;
-          renderActivityFeed(trip);
+        fetchTripActivity(monday, freshTrip).then(updates => {
+          freshTrip._activityUpdates = updates;
+          renderActivityFeed(freshTrip);
         }).catch(err => {
           console.error('Activity refresh fetch error:', err);
         });
       }
     }
 
+    lastSyncTime = Date.now();
     if (syncEl) syncEl.textContent =
       `Synced ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
   } catch (err) {
@@ -196,6 +204,18 @@ async function init() {
         initFileDialogListeners();
         snapshotAndWatch(activeTab);
         backfillIsteDefaults(trips[restoreId]);
+
+        // Rehydrate any form values that were snapshotted before a file dialog
+        // opened and caused the iframe to reload.
+        const pendingData = sessionStorage.getItem('pendingFormData');
+        const pendingTab  = sessionStorage.getItem('pendingFormTab');
+        if (pendingData && pendingTab === activeTab) {
+          rehydrateForm(activeTab, JSON.parse(pendingData));
+          isDirty = true;
+          updateSaveButton();
+          sessionStorage.removeItem('pendingFormData');
+          sessionStorage.removeItem('pendingFormTab');
+        }
       } else {
         onSelect(selectId);
       }
@@ -229,8 +249,11 @@ async function init() {
   document.getElementById('last-synced').textContent = 
         `Last synced ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
 
+  const MIN_SYNC_INTERVAL_MS = 30_000;
   window.addEventListener('focus', async () => {
-    if (!isDirty) await refreshTrips();
+    if (isDirty) return;
+    if (Date.now() - lastSyncTime < MIN_SYNC_INTERVAL_MS) return;
+    await refreshTrips();
   });
 
   setInterval(async () => {
@@ -250,6 +273,7 @@ async function onSelect(tripId) {
   activeTab = trips[tripId].istePacketUrl ? 'post' : 'pre';
   persistState();
   renderDetail(trips[tripId], activeTab, { onSavePre, onSavePost, onTabSwitch, onNotifyTraveler, onOpenFile, onPrint });
+  lastRenderedTripJson = JSON.stringify(trips[tripId]);
   highlightSidebarItem(tripId);
   initFileDialogListeners();
   snapshotAndWatch('pre');
@@ -303,6 +327,18 @@ function reimbursementURL(tripID){
 }
 
 function onOpenFile({ boardId, itemId, columnId, assetId }) {
+  // Snapshot any unsaved form changes before the file dialog causes an iframe
+  // reload. On the way back in, init() will rehydrate these into the form.
+  if (isDirty) {
+    const formSnapshot = activeTab === 'pre'
+      ? collectPreFormData()
+      : collectPostFormData();
+    if (formSnapshot) {
+      sessionStorage.setItem('pendingFormData', JSON.stringify(formSnapshot));
+      sessionStorage.setItem('pendingFormTab',  activeTab);
+    }
+  }
+
   monday.execute('openFilesDialog', {
     boardId:  String(boardId),
     itemId:   String(itemId),
@@ -483,6 +519,49 @@ function snapshotAndWatch(tab) {
   }
 }
 
+// ---------------------------------------------------------------------------
+//  rehydrateForm(tab, data)
+//  Restores form field values from a sessionStorage snapshot taken before a
+//  file dialog caused the iframe to reload.
+// ---------------------------------------------------------------------------
+function rehydrateForm(tab, data) {
+  const formId = tab === 'pre' ? 'pre-travel-form' : 'post-travel-form';
+  const form   = document.getElementById(formId);
+  if (!form || !data) return;
+
+  for (const [key, value] of Object.entries(data)) {
+    if (key === 'isteRows') continue; // subitems handled separately below
+
+    // Radio groups: find by name, check the matching value
+    const radios = form.querySelectorAll(`[name="${key}"]`);
+    if (radios.length > 1 && radios[0]?.type === 'radio') {
+      radios.forEach(r => { r.checked = r.value === value; });
+      continue;
+    }
+
+    const el = form.querySelector(`#${key}, [name="${key}"]`);
+    if (!el) continue;
+
+    if (el.type === 'checkbox') {
+      el.checked = !!value;
+    } else {
+      el.value = value ?? '';
+    }
+  }
+
+  // Restore ISTE subitem rows if present
+  if (data.isteRows) {
+    data.isteRows.forEach((row, i) => {
+      const rowEl = form.querySelector(`.iste-row[data-row="${i}"]`);
+      if (!rowEl) return;
+      for (const [col, val] of Object.entries(row)) {
+        const input = rowEl.querySelector(`[name="${col}"]`);
+        if (input) input.value = val ?? '';
+      }
+    });
+  }
+}
+
 async function confirmDiscard() {
   const res = await monday.execute('confirm', {
     message:     'You have unsaved changes. Discard them?',
@@ -537,6 +616,7 @@ async function onSavePre(formData) {
 
     rehydrateTrip(trip);
     renderDetail(trip, activeTab, { onSavePre, onSavePost, onTabSwitch, onNotifyTraveler, onOpenFile, onPrint });
+    lastRenderedTripJson = JSON.stringify(trip);
     renderSidebar(trips, { onSelect });
     highlightSidebarItem(activeId);
     originalFormData = formData;
@@ -628,6 +708,7 @@ async function onSavePost(formData) {
 
     rehydrateTrip(trip);
     renderDetail(trip, activeTab, { onSavePre, onSavePost, onTabSwitch, onNotifyTraveler, onPrint });
+    lastRenderedTripJson = JSON.stringify(trip);
     renderSidebar(trips, { onSelect });
     highlightSidebarItem(activeId);
     originalFormData = formData;
