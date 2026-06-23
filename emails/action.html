@@ -1,0 +1,124 @@
+<table border="0" cellpadding="0" cellspacing="0" style="background-color:#f9f9f9; border-collapse:collapse;">
+    <tbody>
+        <tr>
+            <td style="padding:20px 10px;">
+
+                <table border="0" cellpadding="0" cellspacing="0"
+                    style="width:600px; background-color:#ffffff; border:1px solid #e0e0e0; border-collapse:collapse;">
+
+                    <!-- Header -->
+                    <tbody>
+                        <tr>
+                            <td
+                                style="padding:30px 40px 25px 40px; border-bottom:2px solid #0056b3; text-align:center;">
+                                <center> <img src="https://nmhealth.cchsp.com/Content/NMDOH/Images/HCA_Logo_Final.png"
+                                        alt="NM Health Logo" width="120" style="border:0; margin:0 auto;"> </center>
+                                <div style="height:15px; line-height:15px;"> &nbsp; </div>
+                                <div
+                                    style="font-family:Arial, Helvetica, sans-serif; font-size:22px; line-height:28px; font-weight:bold; color:#0056b3; text-align:center;">
+                                    Travel Request Notification </div>
+                            </td>
+                        </tr>
+
+                        <!-- Greeting -->
+                        <tr>
+                            <td style="padding:30px 40px 15px 40px;
+                        font-family:Arial, Helvetica, sans-serif;
+                        font-size:16px;
+                        line-height:24px;
+                        color:#333333;">
+
+                                Hello,
+
+                            </td>
+                        </tr>
+
+                        <!-- Main Content -->
+                        <tr>
+                            <td style="padding:0 40px 15px 40px;
+                        font-family:Arial, Helvetica, sans-serif;
+                        font-size:16px;
+                        line-height:24px;
+                        color:#333333;">
+
+                                @{triggerBody()?['body']}
+
+                            </td>
+                        </tr>
+
+                        <!-- Additional Content -->
+                        <tr>
+                            <td style="padding:0 40px 30px 40px;
+                        font-family:Arial, Helvetica, sans-serif;
+                        font-size:16px;
+                        line-height:24px;
+                        color:#333333;">
+
+                                @{triggerBody()?['body2']}
+
+                            </td>
+                        </tr>
+
+                        <!-- Link Button -->
+                        <tr>
+                            <td style="text-align: center;padding:0 40px 30px 40px;">
+
+                                <table role="presentation"
+                                    border="0"
+                                    cellpadding="0"
+                                    cellspacing="0"
+                                    style="width: 100%;">
+                                    <tr>
+                                        <td align="center"
+                                            bgcolor="#0056b3"
+                                            style="
+                                                text-align: center;
+                                                padding:10px 15px;
+                                                border-radius:4px;
+                                                background-color:#0056b3;">
+
+                                            <a href="@{triggerBody()?['link']}"
+                                            target="_blank"
+                                            style="
+                                                font-family:Arial, Helvetica, sans-serif;
+                                                font-size:16px;
+                                                font-weight:bold;
+                                                color:#ffffff;
+                                                text-decoration:none;
+                                                padding:12px 24px;
+                                                display:inline-block;">
+                                                @{triggerBody()?['linkText']}
+                                            </a>
+
+                                        </td>
+                                    </tr>
+                                </table>
+
+                            </td>
+                        </tr>
+
+
+                        <!-- Footer -->
+                        <tr>
+                            <td style="padding:20px 40px 35px 40px;
+                        border-top:1px solid #eeeeee;
+                        font-family:Arial, Helvetica, sans-serif;
+                        font-size:14px;
+                        line-height:22px;
+                        color:#777777;">
+
+                                Thank you,<br>
+                                <strong style="color:#333333;">
+                                    ITD Travel Team
+                                </strong>
+
+                            </td>
+                        </tr>
+
+                    </tbody>
+                </table>
+
+            </td>
+        </tr>
+    </tbody>
+</table>
