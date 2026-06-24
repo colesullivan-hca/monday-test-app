@@ -914,6 +914,17 @@ function initFileDialogListeners() {
   document.body.addEventListener('click', handleMondayUploadClick);
 }
 
+document.addEventListener('click', e => {
+    if (e.target.id === 'guide-btn') {
+        monday.execute("openAppFeatureModal", {
+            urlPath: "../travel-manager-guide/docs",
+            width: "90vw",
+            height: "90vh",
+            returnToPreviousModal: true
+        });
+    }
+});
+
 function initTravelInfoModal() {
   const modal   = document.getElementById('travel-info-modal');
   const trigger = document.getElementById('travel-info-trigger');
