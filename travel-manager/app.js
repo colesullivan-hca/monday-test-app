@@ -199,8 +199,8 @@ async function init() {
   const loader = document.getElementById('loader');
   initTravelInfoModal();
 
-  // If returning from a file dialog, skip the loader and render instantly
-  // from the cached trips object. Refresh quietly in the background.
+  // If returning from a file dialog, skip the loader entirely and render
+  // instantly from the cached trips object. Refresh in the background.
   const returningFromFileDialog = !!sessionStorage.getItem('pendingFormData');
   if (returningFromFileDialog) {
     if (loader) loader.classList.add('hidden');
@@ -402,10 +402,12 @@ function onOpenFile({ boardId, itemId, columnId, assetId }) {
       sessionStorage.setItem('pendingFormTab',  activeTab);
     }
   } else {
+    // Always set sentinel so init() knows to skip the loader on return.
     sessionStorage.setItem('pendingFormData', 'none');
     sessionStorage.setItem('pendingFormTab',  activeTab);
   }
 
+  // Save scroll positions so they survive the iframe reload.
   const lPane = document.querySelector('.split-pane__left');
   const rPane = document.querySelector('.split-pane__right');
   sessionStorage.setItem('scrollLeft',  String(lPane?.scrollTop  || 0));
@@ -779,7 +781,7 @@ async function onSavePost(formData) {
     }
 
     rehydrateTrip(trip);
-    renderDetail(trip, activeTab, { onSavePre, onSavePost, onTabSwitch, onNotifyTraveler, onPrint });
+    renderDetail(trip, activeTab, { onSavePre, onSavePost, onTabSwitch, onNotifyTraveler, onOpenFile, onPrint });
     lastRenderedTripJson = JSON.stringify(trip);
     renderSidebar(trips, { onSelect });
     highlightSidebarItem(activeId);
