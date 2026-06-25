@@ -530,6 +530,17 @@ function highlightSidebarItem(tripId) {
 //  Dirty tracking
 // ---------------------------------------------------------------------------
 
+// Maps logical data keys (from collectPreFormData / collectPostFormData) to
+// their actual DOM element IDs when the two don't match. Used by both
+// snapshotAndWatch (dirty highlighting) and rehydrateForm (modal restore).
+const KEY_TO_ELEMENT_ID = {
+  iste_attendance:    'iste_boardAttendance',
+  iste_lengthOfBoard: 'iste_boardMeetingLength',
+  iste_advanceAmount: 'iste_advance',
+  ISTEStatus:         'ISTEStatus',
+  packetStatus:       'packetStatus_pre',
+};
+
 function updateSaveButton() {
   const btn = document.getElementById('save-btn');
   if (!btn) return;
@@ -565,7 +576,10 @@ function snapshotAndWatch(tab) {
       const changed = JSON.stringify(value) !== JSON.stringify(originalFormData?.[key]);
       if (changed) isDirty = true;
 
-      const el = form.querySelector(`#${key}, [name="${key}"]`);
+      const resolvedId = KEY_TO_ELEMENT_ID[key];
+      const el = resolvedId
+        ? document.getElementById(resolvedId)
+        : (form.querySelector(`#${key}, [name="${key}"]`) ?? document.getElementById(key));
       if (el) {
         if (el.type === 'radio') {
           form.querySelectorAll(`[name="${el.name}"]`).forEach(r => {
@@ -608,19 +622,6 @@ function rehydrateForm(tab, data) {
     if (typeof value === 'object') return value.date ?? value.label ?? '';
     return value;
   }
-
-  // Some logical field keys in collectPostFormData / collectPreFormData don't
-  // match their HTML element IDs (either renamed for clarity, or the element
-  // lives outside the form div). Map data key -> actual element ID here.
-  const KEY_TO_ELEMENT_ID = {
-    // post form: collectPostFormData uses the trip/board key but the HTML id differs
-    iste_attendance:    'iste_boardAttendance',
-    iste_lengthOfBoard: 'iste_boardMeetingLength',
-    iste_advanceAmount: 'iste_advance',
-    // status selects that live outside their respective form divs
-    ISTEStatus:         'ISTEStatus',
-    packetStatus:       'packetStatus_pre',
-  };
 
   function setEl(el, value) {
     if (!el) return;
