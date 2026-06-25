@@ -179,13 +179,59 @@ async function init() {
   const loader = document.getElementById('loader');
   initTravelInfoModal();
 
+  // If we're returning from a file dialog, the iframe reloaded but we already
+  // have valid state in sessionStorage. Hide the loader immediately so the user
+  // never sees the loading screen — the form will be rehydrated further down.
+  const returningFromFileDialog = !!sessionStorage.getItem('pendingFormData');
+  if (returningFromFileDialog && loader) loader.classList.add('hidden');
+
   try {
     const context = await monday.get('context');
     // console.log('monday context:', context?.data);
     // If you see boardId / itemId / accountId here, the SDK is connected.
     // If context.data is empty, the app isn't running inside a monday view.
 
-    const raw  = await fetchAllBoards(monday);
+    // Kick off the board fetch but don't await it yet — if we're returning from
+    // a file dialog, render the sidebar and detail panel from the prior fetch
+    // first so the UI is immediately visible while the refresh runs in parallel.
+    const boardFetchPromise = fetchAllBoards(monday);
+
+    if (returningFromFileDialog && activeId) {
+      // We don't have trip objects yet (fresh page load), so do a quick fetch
+      // in the background and render once it resolves. The pending form data
+      // rehydration below will run after renderDetail.
+      boardFetchPromise.then(raw => {
+        trips = assembleTrips(raw);
+        renderSidebar(trips, { onSelect });
+        if (trips[activeId]) {
+          renderDetail(trips[activeId], activeTab, { onSavePre, onSavePost, onTabSwitch, onNotifyTraveler, onOpenFile, onPrint });
+          lastRenderedTripJson = JSON.stringify(trips[activeId]);
+          highlightSidebarItem(activeId);
+          initFileDialogListeners();
+          snapshotAndWatch(activeTab);
+          backfillIsteDefaults(trips[activeId]);
+
+          const pendingData = sessionStorage.getItem('pendingFormData');
+          const pendingTab  = sessionStorage.getItem('pendingFormTab');
+          if (pendingData && pendingTab === activeTab) {
+            rehydrateForm(activeTab, JSON.parse(pendingData));
+            isDirty = true;
+            updateSaveButton();
+            sessionStorage.removeItem('pendingFormData');
+            sessionStorage.removeItem('pendingFormTab');
+          }
+        }
+        lastSyncTime = Date.now();
+        document.getElementById('last-synced').textContent =
+          `Last synced ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+      }).catch(err => console.error('Background fetch after file dialog failed:', err));
+
+      // Don't block — skip the rest of init's synchronous setup below
+      setupPostInitListeners();
+      return;
+    }
+
+    const raw  = await boardFetchPromise;
     trips      = assembleTrips(raw);
 
     renderSidebar(trips, { onSelect });
@@ -249,6 +295,10 @@ async function init() {
   document.getElementById('last-synced').textContent = 
         `Last synced ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
 
+  setupPostInitListeners();
+}
+
+function setupPostInitListeners() {
   const MIN_SYNC_INTERVAL_MS = 30_000;
   window.addEventListener('focus', async () => {
     if (isDirty) return;
@@ -891,8 +941,8 @@ function handleMondayUploadClick(event) {
   monday.execute("openAppFeatureModal", {
     url: `https://nmhca.monday.com/boards/18412077420/views/256095973/pulses/${el.dataset.itemId}`,
     urlParams: { tab: "notifications" },
-    width: "600px",
-    height: "700px",
+    width: "60vw",
+    height: "60vh",
     returnToPreviousModal: true
   }).then((res) => {
     // triggered when a user closes the dialog
