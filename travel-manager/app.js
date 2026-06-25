@@ -9,7 +9,7 @@ import { BOARDS, HCA_PACKET_COLS, ISTE_PACKET_COLS, ISTE_SUBITEM_COLS } from './
 import { renderSidebar, renderDetail, renderEmptyState, renderActivityFeed } from './render.js';
 import { collectPreFormData, initPreFormListeners } from './forms-pre.js';
 import { collectPostFormData, initPostFormListeners, ensureIsteSubitems } from './forms-post.js';
-import { generateIstePdf } from './print-post.js';
+import { generateIsteXlsx } from './print-post.js';
 
 const monday = window.mondaySdk();
 
@@ -348,9 +348,9 @@ function onOpenFile({ boardId, itemId, columnId, assetId }) {
 }
 
 // Thin wrapper: forms-post.js fires this on Print click, print-post.js does
-// the actual PDF generation. app.js is the only place that knows about both.
+// the actual xlsx generation. app.js is the only place that knows about both.
 async function onPrint() {
-  await generateIstePdf();
+  await generateIsteXlsx();
 }
 
 async function onNotifyTraveler({ email, name, trip })  {
