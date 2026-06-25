@@ -24,7 +24,7 @@ export function buildPostForm(trip) {
   return `
     <div class="pane-header">
       <span class="pane-header__icon">${editIcon()}</span>
-      <div class="form-row form-row--4col pane-header__container">
+      <div class="form-row form-row--3col pane-header__container">
         <div>
           <div class="pane-header__title">ISTE Reimbursement</div>
           <div class="pane-header__sub">Board 4 · Editable — saves to monday</div>
@@ -36,9 +36,9 @@ export function buildPostForm(trip) {
         </select>
         </div>
         <div></div>
-        <div class="print-btn-container">
-          <div class="print-btn btn" id="iste-print-btn">Print</div>
-        </div>
+      </div>
+      <div class="print-btn-container">
+        <div class="print-btn btn" id="iste-print-btn">Print</div>
       </div>
     </div>
 

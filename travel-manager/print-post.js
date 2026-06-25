@@ -26,12 +26,13 @@
 //    5. In app.js: import it, pass as onPrint to renderDetail.
 // =============================================================================
 
-const TEMPLATE_URL     = './FY26_ISTE_Travel_Form_Template.xlsx';
-const DOWNLOAD_NAME    = 'ISTE_Report.xlsx';
-const FIRST_ROW        = 15;   // first itemized row in the template
-const TEMPLATE_LAST    = 33;   // last pre-formatted itemized row in the template
-const TEMPLATE_ROWS    = TEMPLATE_LAST - FIRST_ROW + 1;  // 19
-const TOTALS_START_ROW = 34;   // first row of the totals block (in the base template)
+const TEMPLATE_URL = './FY26_ISTE_Travel_Form_Template.xlsx';
+const DOWNLOAD_NAME = 'ISTE_Report.xlsx';
+
+const FIRST_ROW = 15;
+const TOTALS_START_ROW = 50;   // first row of the totals block (in the base template)
+const ROW_TOTAL_COL = 'T';
+const ADVANCE_CELL = 'T52';
 
 // ---------------------------------------------------------------------------
 //  Cell address maps
@@ -60,16 +61,13 @@ const HEADER_MAP = {
 // At write time they are adjusted by the row offset produced by adding/removing
 // itemized rows.
 const TOTALS_MAP = {
-  iste_milesTotal:   'L34',  // merged L34:L35
-  iste_mileageTotal: 'N34',  // merged N34:N35
-  iste_perdiemTotal: 'P34',  // merged P34:P35
-  iste_otherTotal:   'R34',  // merged R34:R35
-  iste_grandTotal:   'T34',  // merged T34:T35
-  iste_adjTotal:     'T38',  // merged T36:T37
+  iste_milesTotal:   'L50',  // merged L34:L35
+  iste_mileageTotal: 'N50',  // merged N34:N35
+  iste_perdiemTotal: 'P50',  // merged P34:P35
+  iste_otherTotal:   'R50',  // merged R34:R35
+  iste_grandTotal:   'T50',  // merged T34:T35
+  iste_adjTotal:     'T54',  // merged T36:T37
 };
-
-// Advance amount: its own input, written as a number.
-const ADVANCE_CELL = 'T36';  // merged L36:M37
 
 // Adjusted subtotals by category.
 const ADJ_SUBTOTAL_MAP = {
@@ -109,7 +107,6 @@ const ROW_COL_MAP = {
   perdiem:     { col: 'P', type: 'number' },
   other:       { col: 'R', type: 'number' },
 };
-const ROW_TOTAL_COL = 'T';  // .iste-row-total span → this column
 
 
 // ---------------------------------------------------------------------------
@@ -183,110 +180,87 @@ function writeCell(sheet, addr, value, type) {
 export async function generateIsteXlsx() {
   if (!window.XlsxPopulate) {
     throw new Error(
-      'xlsx-populate is not loaded. ' +
-      'Add <script src="https://cdn.jsdelivr.net/npm/xlsx-populate/browser/xlsx-populate.min.js"></script> to index.html.'
+      'xlsx-populate is not loaded. Add CDN script before using exporter.'
     );
   }
 
-  const val  = id => document.getElementById(id)?.value?.trim()       ?? '';
-  const text = id => document.getElementById(id)?.textContent?.trim() ?? '';
+  const val = id =>
+    document.getElementById(id)?.value?.trim() ?? '';
 
-  // Collect itemized rows from the DOM.
-  const domRows = Array.from(document.querySelectorAll('.iste-row'));
-  const dataRowCount = domRows.length;
+  const text = id =>
+    document.getElementById(id)?.textContent?.trim() ?? '';
 
-  // ── Fetch and parse the template ──────────────────────────────────
+  // ---------------- Load template ----------------
   const buf = await fetch(TEMPLATE_URL).then(r => r.arrayBuffer());
-  const wb  = await window.XlsxPopulate.fromDataAsync(buf);
-  const ws  = wb.sheet(0);
+  const wb = await window.XlsxPopulate.fromDataAsync(buf);
+  const ws = wb.sheet(0);
 
-  // ── Adjust the itemized row block to match dataRowCount ───────────
-  //
-  // The template has TEMPLATE_ROWS (19) pre-formatted rows at FIRST_ROW–TEMPLATE_LAST.
-  // After this block the totals block begins at TOTALS_START_ROW.
-  //
-  // Strategy:
-  //   • If dataRowCount < TEMPLATE_ROWS: delete the surplus empty rows.
-  //   • If dataRowCount > TEMPLATE_ROWS: insert (dataRowCount - TEMPLATE_ROWS) rows
-  //     just above the totals block, copying row TEMPLATE_LAST as the style source.
-  //   • If equal: no structural changes needed.
-  //
-  // After adjustment, totals land at:  FIRST_ROW + dataRowCount  (i.e. TOTALS_START_ROW + rowOffset)
+  // ---------------- DOM rows ----------------
+  const domRows = Array.from(document.querySelectorAll('.iste-row'));
 
-  let rowOffset = 0;  // positive = totals block shifted down; negative = shifted up
-
-  if (false && dataRowCount < TEMPLATE_ROWS) {
-    // Delete unused pre-formatted rows.
-    const surplusStart = FIRST_ROW + dataRowCount;           // first row to remove
-    const surplusEnd   = TEMPLATE_LAST;                       // last row to remove
-    const surplusCount = surplusEnd - surplusStart + 1;
-    ws.deleteRows(surplusStart, surplusCount);
-    rowOffset = -(surplusCount);
-  } else if (dataRowCount > TEMPLATE_ROWS) {
-    // Insert extra rows above the totals block, copying the last template row's style.
-    const extraCount    = dataRowCount - TEMPLATE_ROWS;
-    const insertBefore  = TOTALS_START_ROW;  // insert just before the totals block
-    ws.insertRows(insertBefore, extraCount, true /* copyRowAbove */);
-    rowOffset = extraCount;
-  }
-
-  // Actual totals block start row after adjustment.
-  const actualTotalsRow = TOTALS_START_ROW + rowOffset;
-
-  // ── Header text fields ────────────────────────────────────────────
+  // ---------------- Header fields ----------------
   for (const [domId, addr] of Object.entries(HEADER_MAP)) {
     writeCell(ws, addr, val(domId), 'text');
   }
 
-  // ── Radio groups → X markers (addresses fixed; above itemized area) ──
+  // ---------------- Radio groups ----------------
   for (const { radioName, options } of RADIO_MAP) {
-    const selected = document.querySelector(`input[name="${radioName}"]:checked`)?.value || '';
+    const selected =
+      document.querySelector(`input[name="${radioName}"]:checked`)?.value || '';
+
     for (const { value, cell } of options) {
-      // Radio cells in RADIO_MAP are either in the header block (rows ≤ 14, no shift)
-      // or in the totals block (rows ≥ 34, must shift).
-      const { row } = parseAddr(cell);
-      const adjustedCell = row >= TOTALS_START_ROW ? shiftAddr(cell, rowOffset) : cell;
-      writeCell(ws, adjustedCell, selected === value ? 'X' : '', 'text');
+      writeCell(ws, cell, selected === value ? 'X' : '', 'text');
     }
   }
 
-  // ── Itemized rows ─────────────────────────────────────────────────
+  // ---------------- Itemized rows ----------------
   domRows.forEach((row, i) => {
-    const r   = FIRST_ROW + i;
-    const get = col => row.querySelector(`[data-iste-col="${col}"]`)?.value ?? '';
+    const r = FIRST_ROW + i;
+
+    const get = col =>
+      row.querySelector(`[data-iste-col="${col}"]`)?.value ?? '';
 
     for (const [isteCol, { col, type }] of Object.entries(ROW_COL_MAP)) {
       writeCell(ws, `${col}${r}`, get(isteCol), type);
     }
 
-    // Row total comes from the computed span, not an input.
-    const rowTotal = row.querySelector('.iste-row-total')?.textContent?.trim() ?? '';
+    const rowTotal =
+      row.querySelector('.iste-row-total')?.textContent?.trim() ?? '';
+
     writeCell(ws, `${ROW_TOTAL_COL}${r}`, rowTotal, 'number');
   });
 
-  // ── Totals block — shift addresses then write ─────────────────────
-  for (const [domId, baseAddr] of Object.entries(TOTALS_MAP)) {
-    writeCell(ws, shiftAddr(baseAddr, rowOffset), text(domId), 'number');
+  // ---------------- Hide + clear unused rows ----------------
+  const lastItemRow = FIRST_ROW + domRows.length - 1;
+  const lastItemLimit = TOTALS_START_ROW - 1;
+
+  // only operate within the itemized region
+  for (let r = lastItemRow + 1; r <= lastItemLimit; r++) {
+    ws.row(r).hidden(true);
+
+    const cols = ['A','C','D','F','K','L','N','P','R','T'];
+
+    for (const c of cols) {
+      ws.cell(`${c}${r}`).value(null);
+    }
   }
 
-  writeCell(ws, shiftAddr(ADVANCE_CELL, rowOffset), val('iste_advance'), 'number');
-
-  for (const [domId, baseAddr] of Object.entries(ADJ_SUBTOTAL_MAP)) {
-    writeCell(ws, shiftAddr(baseAddr, rowOffset), text(domId), 'number');
+  // ---------------- Totals ----------------
+  for (const [domId, addr] of Object.entries(TOTALS_MAP)) {
+    writeCell(ws, addr, text(domId), 'number');
   }
 
-  // Dropdowns
-  writeCell( ws, 'D9', dropdownIndex( ['Not a Board Member', 'Physical Attendance', 'Virtual Attendance'], val('iste_boardAttendance') ), 'number' );
-  writeCell( ws, 'D10', dropdownIndex( ['Not Applicable', '4 Hours or Longer', 'Less than 4 hours'], val('iste_boardMeetingLength') ), 'number' );
-  writeCell( ws, 'G10', dropdownIndex( ['State Vehicle', 'Personal Vehicle', 'None'], val('iste_vehicleType') ), 'number' );
+  writeCell(ws, ADVANCE_CELL, val('iste_advance'), 'number');
 
-
-  // ── Download ──────────────────────────────────────────────────────
+  // ---------------- Download ----------------
   const blob = await wb.outputAsync('blob');
-  const url  = URL.createObjectURL(blob);
+  const url = URL.createObjectURL(blob);
+
   const link = Object.assign(document.createElement('a'), {
-    href: url, download: DOWNLOAD_NAME,
+    href: url,
+    download: DOWNLOAD_NAME,
   });
+
   document.body.appendChild(link);
   link.click();
   link.remove();
