@@ -27,6 +27,27 @@ function persistState() {
   if (activeTab) sessionStorage.setItem('activeTab', activeTab);
 }
 
+function persistTrips() {
+  try {
+    const slim = Object.fromEntries(
+      Object.entries(trips).map(([id, t]) => {
+        const { _activityUpdates, ...rest } = t;
+        return [id, rest];
+      })
+    );
+    sessionStorage.setItem('cachedTrips', JSON.stringify(slim));
+  } catch (e) {
+    console.warn('persistTrips: could not cache trips', e);
+  }
+}
+
+function restoreTrips() {
+  try {
+    const raw = sessionStorage.getItem('cachedTrips');
+    return raw ? JSON.parse(raw) : null;
+  } catch (e) { return null; }
+}
+
 
 // ---------------------------------------------------------------------------
 //  Boot
@@ -46,6 +67,7 @@ async function refreshTrips() {
     const raw   = await fetchAllBoards(monday);
     const fresh = assembleTrips(raw);
     Object.assign(trips, fresh);
+    persistTrips();
 
     if (activeId && trips[activeId] && prevActivityUpdates) {
       trips[activeId]._activityUpdates = prevActivityUpdates;
@@ -179,11 +201,35 @@ async function init() {
   const loader = document.getElementById('loader');
   initTravelInfoModal();
 
-  // If we're returning from a file dialog, the iframe reloaded but we already
-  // have valid state in sessionStorage. Hide the loader immediately so the user
-  // never sees the loading screen — the form will be rehydrated further down.
+  // If we're returning from a file dialog the iframe reloaded, but we have
+  // the previous trips object cached. Render it immediately so there is no
+  // blank/loading screen, then refresh quietly in the background.
   const returningFromFileDialog = !!sessionStorage.getItem('pendingFormData');
-  if (returningFromFileDialog && loader) loader.classList.add('hidden');
+  if (returningFromFileDialog) {
+    if (loader) loader.classList.add('hidden');
+    const cached = restoreTrips();
+    if (cached && activeId && cached[activeId]) {
+      trips = cached;
+      renderSidebar(trips, { onSelect });
+      renderDetail(trips[activeId], activeTab, { onSavePre, onSavePost, onTabSwitch, onNotifyTraveler, onOpenFile, onPrint });
+      lastRenderedTripJson = JSON.stringify(trips[activeId]);
+      highlightSidebarItem(activeId);
+      initFileDialogListeners();
+      snapshotAndWatch(activeTab);
+      const pendingData = sessionStorage.getItem('pendingFormData');
+      const pendingTab  = sessionStorage.getItem('pendingFormTab');
+      if (pendingData && pendingData !== 'none' && pendingTab === activeTab) {
+        rehydrateForm(activeTab, JSON.parse(pendingData));
+        isDirty = true;
+        updateSaveButton();
+      }
+      sessionStorage.removeItem('pendingFormData');
+      sessionStorage.removeItem('pendingFormTab');
+    }
+    setupPostInitListeners();
+    refreshTrips();
+    return;
+  }
 
   try {
     const context = await monday.get('context');
@@ -191,48 +237,9 @@ async function init() {
     // If you see boardId / itemId / accountId here, the SDK is connected.
     // If context.data is empty, the app isn't running inside a monday view.
 
-    // Kick off the board fetch but don't await it yet — if we're returning from
-    // a file dialog, render the sidebar and detail panel from the prior fetch
-    // first so the UI is immediately visible while the refresh runs in parallel.
-    const boardFetchPromise = fetchAllBoards(monday);
-
-    if (returningFromFileDialog && activeId) {
-      // We don't have trip objects yet (fresh page load), so do a quick fetch
-      // in the background and render once it resolves. The pending form data
-      // rehydration below will run after renderDetail.
-      boardFetchPromise.then(raw => {
-        trips = assembleTrips(raw);
-        renderSidebar(trips, { onSelect });
-        if (trips[activeId]) {
-          renderDetail(trips[activeId], activeTab, { onSavePre, onSavePost, onTabSwitch, onNotifyTraveler, onOpenFile, onPrint });
-          lastRenderedTripJson = JSON.stringify(trips[activeId]);
-          highlightSidebarItem(activeId);
-          initFileDialogListeners();
-          snapshotAndWatch(activeTab);
-          backfillIsteDefaults(trips[activeId]);
-
-          const pendingData = sessionStorage.getItem('pendingFormData');
-          const pendingTab  = sessionStorage.getItem('pendingFormTab');
-          if (pendingData && pendingTab === activeTab) {
-            rehydrateForm(activeTab, JSON.parse(pendingData));
-            isDirty = true;
-            updateSaveButton();
-            sessionStorage.removeItem('pendingFormData');
-            sessionStorage.removeItem('pendingFormTab');
-          }
-        }
-        lastSyncTime = Date.now();
-        document.getElementById('last-synced').textContent =
-          `Last synced ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
-      }).catch(err => console.error('Background fetch after file dialog failed:', err));
-
-      // Don't block — skip the rest of init's synchronous setup below
-      setupPostInitListeners();
-      return;
-    }
-
-    const raw  = await boardFetchPromise;
+    const raw  = await fetchAllBoards(monday);
     trips      = assembleTrips(raw);
+    persistTrips();
 
     renderSidebar(trips, { onSelect });
     renderEmptyState();
@@ -377,8 +384,8 @@ function reimbursementURL(tripID){
 }
 
 function onOpenFile({ boardId, itemId, columnId, assetId }) {
-  // Snapshot any unsaved form changes before the file dialog causes an iframe
-  // reload. On the way back in, init() will rehydrate these into the form.
+  // Snapshot unsaved form changes before the file dialog causes an iframe
+  // reload. Always set the sentinel so init() knows to skip the loader.
   if (isDirty) {
     const formSnapshot = activeTab === 'pre'
       ? collectPreFormData()
@@ -387,6 +394,10 @@ function onOpenFile({ boardId, itemId, columnId, assetId }) {
       sessionStorage.setItem('pendingFormData', JSON.stringify(formSnapshot));
       sessionStorage.setItem('pendingFormTab',  activeTab);
     }
+  } else {
+    // No dirty changes, but still set a sentinel so the loader is skipped.
+    sessionStorage.setItem('pendingFormData', 'none');
+    sessionStorage.setItem('pendingFormTab',  activeTab);
   }
 
   monday.execute('openFilesDialog', {
