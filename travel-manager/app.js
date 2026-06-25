@@ -36,9 +36,7 @@ function persistTrips() {
       })
     );
     sessionStorage.setItem('cachedTrips', JSON.stringify(slim));
-  } catch (e) {
-    console.warn('persistTrips: could not cache trips', e);
-  }
+  } catch (e) { console.warn('persistTrips:', e); }
 }
 
 function restoreTrips() {
@@ -201,9 +199,8 @@ async function init() {
   const loader = document.getElementById('loader');
   initTravelInfoModal();
 
-  // If we're returning from a file dialog the iframe reloaded, but we have
-  // the previous trips object cached. Render it immediately so there is no
-  // blank/loading screen, then refresh quietly in the background.
+  // If returning from a file dialog, skip the loader and render instantly
+  // from the cached trips object. Refresh quietly in the background.
   const returningFromFileDialog = !!sessionStorage.getItem('pendingFormData');
   if (returningFromFileDialog) {
     if (loader) loader.classList.add('hidden');
@@ -216,6 +213,7 @@ async function init() {
       highlightSidebarItem(activeId);
       initFileDialogListeners();
       snapshotAndWatch(activeTab);
+
       const pendingData = sessionStorage.getItem('pendingFormData');
       const pendingTab  = sessionStorage.getItem('pendingFormTab');
       if (pendingData && pendingData !== 'none' && pendingTab === activeTab) {
@@ -225,6 +223,15 @@ async function init() {
       }
       sessionStorage.removeItem('pendingFormData');
       sessionStorage.removeItem('pendingFormTab');
+
+      requestAnimationFrame(() => {
+        const l = document.querySelector('.split-pane__left');
+        const r = document.querySelector('.split-pane__right');
+        if (l) l.scrollTop = parseInt(sessionStorage.getItem('scrollLeft')  || '0', 10);
+        if (r) r.scrollTop = parseInt(sessionStorage.getItem('scrollRight') || '0', 10);
+        sessionStorage.removeItem('scrollLeft');
+        sessionStorage.removeItem('scrollRight');
+      });
     }
     setupPostInitListeners();
     refreshTrips();
@@ -384,8 +391,8 @@ function reimbursementURL(tripID){
 }
 
 function onOpenFile({ boardId, itemId, columnId, assetId }) {
-  // Snapshot unsaved form changes before the file dialog causes an iframe
-  // reload. Always set the sentinel so init() knows to skip the loader.
+  // Snapshot any unsaved form changes before the file dialog causes an iframe
+  // reload. On the way back in, init() will rehydrate these into the form.
   if (isDirty) {
     const formSnapshot = activeTab === 'pre'
       ? collectPreFormData()
@@ -395,10 +402,14 @@ function onOpenFile({ boardId, itemId, columnId, assetId }) {
       sessionStorage.setItem('pendingFormTab',  activeTab);
     }
   } else {
-    // No dirty changes, but still set a sentinel so the loader is skipped.
     sessionStorage.setItem('pendingFormData', 'none');
     sessionStorage.setItem('pendingFormTab',  activeTab);
   }
+
+  const lPane = document.querySelector('.split-pane__left');
+  const rPane = document.querySelector('.split-pane__right');
+  sessionStorage.setItem('scrollLeft',  String(lPane?.scrollTop  || 0));
+  sessionStorage.setItem('scrollRight', String(rPane?.scrollTop || 0));
 
   monday.execute('openFilesDialog', {
     boardId:  String(boardId),
