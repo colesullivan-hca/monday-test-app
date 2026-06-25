@@ -36,12 +36,6 @@ async function refreshTrips() {
   const syncEl = document.getElementById('last-synced');
   if (syncEl) syncEl.textContent = 'Syncing…';
 
-  // Save scroll positions before re-render
-  const leftPane  = document.querySelector('.split-pane__left');
-  const rightPane = document.querySelector('.split-pane__right');
-  const leftScroll  = leftPane?.scrollTop  || 0;
-  const rightScroll = rightPane?.scrollTop || 0;
-
   // assembleTrips() below builds brand-new trip objects from scratch, so any
   // data we'd previously cached directly on the old trip object (like
   // _activityUpdates) would otherwise vanish on every background refresh.
@@ -56,6 +50,12 @@ async function refreshTrips() {
     if (activeId && trips[activeId] && prevActivityUpdates) {
       trips[activeId]._activityUpdates = prevActivityUpdates;
     }
+
+    // Save scroll positions before re-render
+    const leftPane  = document.querySelector('.split-pane__left');
+    const rightPane = document.querySelector('.split-pane__right');
+    const leftScroll  = leftPane?.scrollTop  || 0;
+    const rightScroll = rightPane?.scrollTop || 0;
 
     renderSidebar(trips, { onSelect });
     highlightSidebarItem(activeId);
