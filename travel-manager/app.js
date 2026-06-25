@@ -609,39 +609,60 @@ function rehydrateForm(tab, data) {
     return value;
   }
 
+  // Some logical field keys in collectPostFormData / collectPreFormData don't
+  // match their HTML element IDs (either renamed for clarity, or the element
+  // lives outside the form div). Map data key -> actual element ID here.
+  const KEY_TO_ELEMENT_ID = {
+    // post form: collectPostFormData uses the trip/board key but the HTML id differs
+    iste_attendance:    'iste_boardAttendance',
+    iste_lengthOfBoard: 'iste_boardMeetingLength',
+    iste_advanceAmount: 'iste_advance',
+    // status selects that live outside their respective form divs
+    ISTEStatus:         'ISTEStatus',
+    packetStatus:       'packetStatus_pre',
+  };
+
+  function setEl(el, value) {
+    if (!el) return;
+    if (el.type === 'checkbox') {
+      el.checked = !!value;
+    } else {
+      el.value = toPrimitive(value);
+    }
+    el.dispatchEvent(new Event('change', { bubbles: true }));
+  }
+
   for (const [key, value] of Object.entries(data)) {
     if (key === 'isteRows') continue; // subitems handled separately below
 
-    // Radio groups: find by name, check the matching value
+    // Radio groups: find by name within the form
     const radios = form.querySelectorAll(`[name="${key}"]`);
     if (radios.length > 1 && radios[0]?.type === 'radio') {
       radios.forEach(r => { r.checked = r.value === value; });
-      // Fire change on the checked radio so dirty handler picks it up
       const checked = Array.from(radios).find(r => r.checked);
       if (checked) checked.dispatchEvent(new Event('change', { bubbles: true }));
       continue;
     }
 
-    const el = form.querySelector(`#${key}, [name="${key}"]`);
-    if (!el) continue;
+    // Resolve element: try alias map first, then by id/name within form,
+    // then by id anywhere in the document (for out-of-form elements).
+    const resolvedId = KEY_TO_ELEMENT_ID[key];
+    const el = resolvedId
+      ? document.getElementById(resolvedId)
+      : (form.querySelector(`#${key}, [name="${key}"]`) ?? document.getElementById(key));
 
-    if (el.type === 'checkbox') {
-      el.checked = !!value;
-      el.dispatchEvent(new Event('change', { bubbles: true }));
-    } else {
-      el.value = toPrimitive(value);
-      // Use 'change' so <select> and date inputs both trigger the dirty handler
-      el.dispatchEvent(new Event('change', { bubbles: true }));
-    }
+    setEl(el, value);
   }
 
-  // Restore ISTE subitem rows if present
+  // Restore ISTE subitem rows if present.
+  // Use data-iste-col attribute (not name) to match isteRowHTML in forms-post.js.
   if (data.isteRows) {
     data.isteRows.forEach((row, i) => {
       const rowEl = form.querySelector(`.iste-row[data-row="${i}"]`);
       if (!rowEl) return;
       for (const [col, val] of Object.entries(row)) {
-        const input = rowEl.querySelector(`[name="${col}"]`);
+        if (col === 'subitemId') continue;
+        const input = rowEl.querySelector(`[data-iste-col="${col}"]`);
         if (input) {
           input.value = toPrimitive(val);
           input.dispatchEvent(new Event('change', { bubbles: true }));
