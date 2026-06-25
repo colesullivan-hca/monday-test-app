@@ -64,7 +64,7 @@ async function refreshTrips() {
   try {
     const raw   = await fetchAllBoards(monday);
     const fresh = assembleTrips(raw);
-    Object.assign(trips, fresh);
+    trips = fresh;
     persistTrips();
 
     if (activeId && trips[activeId] && prevActivityUpdates) {
@@ -188,8 +188,6 @@ function serializeColumnValue(colId, value) {
     case 'numeric':
     case 'numbers':
       return JSON.stringify(String(parseFloat(value) || 0));
-    case 'boolean':                                          // ← add this
-      return JSON.stringify({ checked: value ? 'true' : 'false' });
     default:
       return JSON.stringify(String(value));
   }
@@ -269,7 +267,7 @@ async function init() {
         // opened and caused the iframe to reload.
         const pendingData = sessionStorage.getItem('pendingFormData');
         const pendingTab  = sessionStorage.getItem('pendingFormTab');
-        if (pendingData && pendingTab === activeTab) {
+        if (pendingData && pendingData !== 'none' && pendingTab === activeTab) {
           rehydrateForm(activeTab, JSON.parse(pendingData));
           isDirty = true;
           updateSaveButton();
@@ -340,7 +338,7 @@ async function onSelect(tripId) {
   lastRenderedTripJson = JSON.stringify(trips[tripId]);
   highlightSidebarItem(tripId);
   initFileDialogListeners();
-  snapshotAndWatch('pre');
+  snapshotAndWatch(activeTab);
   backfillIsteDefaults(trips[tripId]);
   const trip = trips[activeId];
   if (trip?.mondayItemId_iste) {
@@ -417,7 +415,7 @@ function onOpenFile({ boardId, itemId, columnId, assetId }) {
     boardId:  String(boardId),
     itemId:   String(itemId),
     columnId: String(columnId),
-    assetId:  String(assetId),
+    ...(assetId ? { assetId: String(assetId) } : {}),
   });
 }
 
@@ -603,6 +601,14 @@ function rehydrateForm(tab, data) {
   const form   = document.getElementById(formId);
   if (!form || !data) return;
 
+  // Unwrap structured column values to the primitive string the DOM input needs.
+  // e.g. { date: "2024-01-15" } → "2024-01-15"  |  { label: "Approved" } → "Approved"
+  function toPrimitive(value) {
+    if (value === null || value === undefined) return '';
+    if (typeof value === 'object') return value.date ?? value.label ?? '';
+    return value;
+  }
+
   for (const [key, value] of Object.entries(data)) {
     if (key === 'isteRows') continue; // subitems handled separately below
 
@@ -610,6 +616,9 @@ function rehydrateForm(tab, data) {
     const radios = form.querySelectorAll(`[name="${key}"]`);
     if (radios.length > 1 && radios[0]?.type === 'radio') {
       radios.forEach(r => { r.checked = r.value === value; });
+      // Fire change on the checked radio so dirty handler picks it up
+      const checked = Array.from(radios).find(r => r.checked);
+      if (checked) checked.dispatchEvent(new Event('change', { bubbles: true }));
       continue;
     }
 
@@ -618,8 +627,11 @@ function rehydrateForm(tab, data) {
 
     if (el.type === 'checkbox') {
       el.checked = !!value;
+      el.dispatchEvent(new Event('change', { bubbles: true }));
     } else {
-      el.value = value ?? '';
+      el.value = toPrimitive(value);
+      // Use 'change' so <select> and date inputs both trigger the dirty handler
+      el.dispatchEvent(new Event('change', { bubbles: true }));
     }
   }
 
@@ -630,7 +642,10 @@ function rehydrateForm(tab, data) {
       if (!rowEl) return;
       for (const [col, val] of Object.entries(row)) {
         const input = rowEl.querySelector(`[name="${col}"]`);
-        if (input) input.value = val ?? '';
+        if (input) {
+          input.value = toPrimitive(val);
+          input.dispatchEvent(new Event('change', { bubbles: true }));
+        }
       }
     });
   }
