@@ -90,7 +90,7 @@ export function renderEmptyState() {
 //  Detail panel
 // ---------------------------------------------------------------------------
 
-export function renderDetail(trip, activeTab, { onSavePre, onSavePost, onTabSwitch, onNotifyTraveler, onOpenFile, onPrint }) {
+export function renderDetail(trip, activeTab, { onSavePre, onSavePost, onTabSwitch, onNotifyTraveler, onOpenFile, onPrintPost, onPrintPre }) {
   const panel = document.getElementById('detail-panel');
 
   panel.innerHTML = `
@@ -118,10 +118,10 @@ export function renderDetail(trip, activeTab, { onSavePre, onSavePost, onTabSwit
       buildPreForm(trip),
       'pre'
     );
-    initPreFormListeners();  // wire live cost totals after HTML is in DOM
+    initPreFormListeners({ onPrintPre });  // wire live cost totals after HTML is in DOM
     // To add printing here later: give forms-pre.js's print button an id,
-    // accept an onPrint callback in initPreFormListeners() the same way
-    // initPostFormListeners() does below, and pass onPrint through here.
+    // accept an onPrintPost callback in initPreFormListeners() the same way
+    // initPostFormListeners() does below, and pass onPrintPost through here.
   } else if (activeTab === 'activity') {
     tabContent.innerHTML = activityPaneHTML(trip);
     // Hide save button — nothing to save on activity tab
@@ -133,7 +133,7 @@ export function renderDetail(trip, activeTab, { onSavePre, onSavePost, onTabSwit
       buildPostForm(trip),
       'post'
     );
-    initPostFormListeners({ onNotify: onNotifyTraveler, onPrint });
+    initPostFormListeners({ onNotify: onNotifyTraveler, onPrintPost });
   }
 
   panel.querySelectorAll('.attachment--viewer').forEach(btn => {

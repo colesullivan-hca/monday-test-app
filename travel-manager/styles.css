@@ -1748,3 +1748,25 @@ td.awaitingreview select.iste-select {
   background: #dcfce7;
   color: #15803d;
 }
+
+.print-btn-container {
+  display: flex;
+  gap: 5px;
+
+  & .print-btn {
+    align-self: flex-start;
+  }
+
+  & .attachment {
+    &.hca {
+        margin-top: 0;
+    }
+  }
+}
+
+.editable-header {
+  & * {
+    align-self: flex-start;
+  }
+}
+

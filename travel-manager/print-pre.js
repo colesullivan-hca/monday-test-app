@@ -26,13 +26,8 @@
 //    5. In app.js: import it, pass as onPrint to renderDetail.
 // =============================================================================
 
-const TEMPLATE_URL = './FY26_ISTE_Travel_Form_Template.xlsx';
-const DOWNLOAD_NAME = 'ISTE.xlsx';
-
-const FIRST_ROW = 15;
-const TOTALS_START_ROW = 50;   // first row of the totals block (in the base template)
-const ROW_TOTAL_COL = 'T';
-const ADVANCE_CELL = 'T52';
+const TEMPLATE_URL = './HCA_Out_of_State_Travel_Request_Form.xlsx';
+const DOWNLOAD_NAME = 'Request.xlsx';
 
 // ---------------------------------------------------------------------------
 //  Cell address maps
@@ -42,70 +37,71 @@ const ADVANCE_CELL = 'T52';
 
 // DOM element ID → Excel cell address (plain text and numeric fields)
 const HEADER_MAP = {
-  iste_agencyName:         'B3',
-  iste_businessUnit:       'N3',
-  iste_voucherNumber:      'P3',
-  iste_supplierName:       'B5',   // merged B5:F6
-  iste_postOfDuty:         'K5',   // merged K5:Q7
-  iste_licensePlate:       'G6',   // merged G6:H6
-  iste_supplierId:         'B7',
-  iste_vehicleModel:       'G8',   // merged G8:H8
-  iste_residence:          'K8',   // merged K8:Q10
-  // iste_boardAttendance:    'D9',   // merged D9:F9
-  // iste_vehicleType:        'G10',  // merged G10:H10
-  // iste_boardMeetingLength: 'D10',  // merged D10:F10
+    hca_division:          'A3',
+    hca_date:              'D3',
+    hca_traveler:          'A6',
+    hca_shareId:           'C6',
+    hca_title:             'D6',
+    hca_destination:       'A9',
+    hca_conferenceName:    'B9',
+    hca_departureDate:     'C9',
+    hca_returnDate:        'E9',
+
+    hca_airfare:        'C12',
+    hca_mileage:        'C13',
+    hca_transport:      'C14',
+    hca_fees:           'C15',
+    hca_parking:        'C16',
+    hca_carRental:      'C17',
+    hca_perDiem:        'C19',
+    hca_meals:          'C20',
+    hca_lodging:        'C21',
+    hca_confFees:       'C23',
+    hca_otherExp:       'C24',
+
+    hca_airfarePO:      'E12',
+    hca_mileagePO:      'E13',
+    hca_transportPO:    'E14',
+    hca_feesPO:         'E15',
+    hca_parkingPO:      'E16',
+    hca_carRentalPO:    'E17',
+    hca_perDiemPO:      'E19',
+    hca_mealsPO:        'E20',
+    hca_lodgingPO:      'E21',
+    hca_confFeesPO:     'E23',
+    hca_otherExpPO:     'E24',
+
+    hca_justification:  'A28',
 };
+
+const NUMERIC_FIELDS = new Set([
+    'hca_shareId', 'hca_airfare', 'hca_mileage', 'hca_transport', 'hca_fees',
+    'hca_parking', 'hca_carRental', 'hca_perDiem', 'hca_meals',
+    'hca_lodging', 'hca_confFees', 'hca_otherExp',  
+    // 'hca_airfarePO',
+    // 'hca_mileagePO',
+    // 'hca_transportPO',
+    // 'hca_feesPO',
+    // 'hca_parkingPO',
+    // 'hca_carRentalPO',
+    // 'hca_perDiemPO',
+    // 'hca_mealsPO',
+    // 'hca_lodgingPO',
+    // 'hca_confFeesPO',
+    // 'hca_otherExpPO',  
+]);
 
 // DOM span ID → Excel cell address (computed totals — written as numbers).
 // These addresses are in the BASE template (totals block at row 34).
 // At write time they are adjusted by the row offset produced by adding/removing
 // itemized rows.
 const TOTALS_MAP = {
-  iste_milesTotal:   'L50',  // merged L34:L35
-  iste_mileageTotal: 'N50',  // merged N34:N35
-  iste_perdiemTotal: 'P50',  // merged P34:P35
-  iste_otherTotal:   'R50',  // merged R34:R35
-  iste_grandTotal:   'T50',  // merged T34:T35
-  iste_adjTotal:     'T54',  // merged T36:T37
-};
-
-// Adjusted subtotals by category.
-const ADJ_SUBTOTAL_MAP = {
-  // iste_mileageTotal: 'N36',  // merged N36:N37
-  // iste_perdiemTotal: 'P36',  // merged P36:P37
-  // iste_otherTotal:   'R36',  // merged R36:R37
-};
-
-// Radio button groups → pairs of [cell, value-that-triggers-X].
-// Cell addresses are in the BASE template layout.
-const RADIO_MAP = [
-  {
-    radioName: 'iste_voucherBasis',
-    options: [
-      { value: 'Prepaid Voucher', cell: 'S6' },
-      { value: 'Final Voucher',   cell: 'S9' },
-    ],
-  },
-  {
-    radioName: 'iste_perDiemBasis',
-    options: [
-      { value: 'Actual',         cell: 'B36' },  // merged A35:B35
-      { value: 'Approved Rates', cell: 'B38' },  // merged A37:B37
-    ],
-  },
-];
-
-// data-iste-col value → column letter and data type in the itemized rows.
-const ROW_COL_MAP = {
-  date:        { col: 'A', type: 'date'   },  // merged A:B, format mm-dd-yy
-  departTime:  { col: 'C', type: 'text'   },
-  arriveTime:  { col: 'D', type: 'text'   },  // merged D:E
-  destination: { col: 'F', type: 'text'   },  // merged F:I
-  odometer:    { col: 'K', type: 'text'   },
-  miles:       { col: 'L', type: 'number' },
-  mileage:     { col: 'N', type: 'number' },
-  perdiem:     { col: 'P', type: 'number' },
-  other:       { col: 'R', type: 'number' },
+    // hca_travelTotal:    'C18',
+    hca_travelPOTotal:  'E18',
+    // hca_lodgingTotal:   'C22',
+    hca_lodgingPOTotal: 'E22',
+    // hca_grandTotal:     'C25',
+    hca_grandPOTotal:   'E25',
 };
 
 
@@ -177,7 +173,7 @@ function writeCell(sheet, addr, value, type) {
 //  Called by the Print button via initPostFormListeners → app.js → onPrint.
 // ---------------------------------------------------------------------------
 
-export async function generateIsteXlsx() {
+export async function generateDFAXlsx() {
   if (!window.XlsxPopulate) {
     throw new Error(
       'xlsx-populate is not loaded. Add CDN script before using exporter.'
@@ -188,69 +184,24 @@ export async function generateIsteXlsx() {
     document.getElementById(id)?.value?.trim() ?? '';
 
   const text = id =>
-    document.getElementById(id)?.textContent?.trim() ?? '';
+    document.getElementById(id)?.textContent?.trim().replace('$', '') ?? '';
 
   // ---------------- Load template ----------------
   const buf = await fetch(TEMPLATE_URL).then(r => r.arrayBuffer());
   const wb = await window.XlsxPopulate.fromDataAsync(buf);
   const ws = wb.sheet(0);
 
-  // ---------------- DOM rows ----------------
-  const domRows = Array.from(document.querySelectorAll('.iste-row'));
-
   // ---------------- Header fields ----------------
   for (const [domId, addr] of Object.entries(HEADER_MAP)) {
-    writeCell(ws, addr, val(domId), 'text');
-  }
-
-  // ---------------- Radio groups ----------------
-  for (const { radioName, options } of RADIO_MAP) {
-    const selected =
-      document.querySelector(`input[name="${radioName}"]:checked`)?.value || '';
-
-    for (const { value, cell } of options) {
-      writeCell(ws, cell, selected === value ? 'X' : '', 'text');
-    }
-  }
-
-  // ---------------- Itemized rows ----------------
-  domRows.forEach((row, i) => {
-    const r = FIRST_ROW + i;
-
-    const get = col =>
-      row.querySelector(`[data-iste-col="${col}"]`)?.value ?? '';
-
-    for (const [isteCol, { col, type }] of Object.entries(ROW_COL_MAP)) {
-      writeCell(ws, `${col}${r}`, get(isteCol), type);
-    }
-
-    const rowTotal =
-      row.querySelector('.iste-row-total')?.textContent?.trim() ?? '';
-
-    writeCell(ws, `${ROW_TOTAL_COL}${r}`, rowTotal, 'number');
-  });
-
-  // ---------------- Hide + clear unused rows ----------------
-  const lastItemRow = FIRST_ROW + domRows.length - 1;
-  const lastItemLimit = TOTALS_START_ROW - 1;
-
-  // only operate within the itemized region
-  for (let r = lastItemRow + 1; r <= lastItemLimit; r++) {
-    ws.row(r).hidden(true);
-
-    const cols = ['A','C','D','F','K','L','N','P','R','T'];
-
-    for (const c of cols) {
-      ws.cell(`${c}${r}`).value(null);
-    }
+    if (val(domId) === '0') continue;
+    const type = NUMERIC_FIELDS.has(domId) ? 'number' : 'text';
+    writeCell(ws, addr, val(domId), type);
   }
 
   // ---------------- Totals ----------------
   for (const [domId, addr] of Object.entries(TOTALS_MAP)) {
     writeCell(ws, addr, text(domId), 'number');
   }
-
-  writeCell(ws, ADVANCE_CELL, val('iste_advance'), 'number');
 
   // ---------------- Download ----------------
   const blob = await wb.outputAsync('blob');

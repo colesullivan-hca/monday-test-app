@@ -39,6 +39,7 @@ export function buildPostForm(trip) {
       </div>
       <div class="print-btn-container">
         <div class="print-btn btn" id="iste-print-btn">Print</div>
+        ${fileUpload(trip.mondayItemId_iste, 'file_mm2vqvz3')}
       </div>
     </div>
 
@@ -328,13 +329,13 @@ function isteRowHTML(row, i) {
 //  Call after buildPostForm() HTML is in the DOM.
 //
 //  onNotify(notifyData) — called when "Notify Traveler" is clicked.
-//  onPrint()             — called when "Print" is clicked. forms-post.js
+//  onPrintPost()             — called when "Print" is clicked. forms-post.js
 //                           doesn't know or care how printing works (that
 //                           lives in print-post.js) — it just reports the
 //                           click. Same pattern to reuse for forms-pre.js.
 // ---------------------------------------------------------------------------
 
-export function initPostFormListeners({ onNotify, onPrint } = {}) {
+export function initPostFormListeners({ onNotify, onPrintPost } = {}) {
   calculateIsteTotals();
 
   const tbody = document.getElementById('iste-rows');
@@ -380,14 +381,14 @@ export function initPostFormListeners({ onNotify, onPrint } = {}) {
 
   // Print button
   const printBtn = document.getElementById('iste-print-btn');
-  if (printBtn && onPrint) {
+  if (printBtn && onPrintPost) {
     printBtn.addEventListener('click', async () => {
       if (printBtn.classList.contains('is-loading')) return; // guard double-click
       const original = printBtn.textContent;
       printBtn.classList.add('is-loading');
       printBtn.textContent = 'Printing…';
       try {
-        await onPrint();
+        await onPrintPost();
       } catch (err) {
         console.error('Print error:', err);
         alert('Could not generate the PDF. Check the console for details.');
@@ -491,6 +492,14 @@ export function collectPostFormData() {
 // ---------------------------------------------------------------------------
 //  Helpers
 // ---------------------------------------------------------------------------
+
+function fileUpload(itemId, columnId) {
+  return `
+    <div class="monday-upload-btn btn hca upload attachment" data-item-id="${itemId}" data-column-id="${columnId}" data-url="https://nmhca.monday.com/boards/18412077425/views/260953875/pulses/" style="cursor:pointer">
+      <svg xmlns="http://www.w3.org/2000/svg" height="1.2rem" viewBox="0 -960 960 960" width="22px" fill="#666666"><path d="M760-200H320q-33 0-56.5-23.5T240-280v-560q0-33 23.5-56.5T320-920h280l240 240v400q0 33-23.5 56.5T760-200ZM560-640v-200H320v560h440v-360H560ZM160-40q-33 0-56.5-23.5T80-120v-560h80v560h440v80H160Zm160-800v200-200 560-560Z"/></svg>
+    </div>
+  `;
+}
 
 function selectOptions(options, currentValue) {
   return options.map(opt =>

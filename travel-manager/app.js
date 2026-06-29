@@ -10,8 +10,10 @@ import { renderSidebar, renderDetail, renderEmptyState, renderActivityFeed } fro
 import { collectPreFormData, initPreFormListeners } from './forms-pre.js';
 import { collectPostFormData, initPostFormListeners, ensureIsteSubitems } from './forms-post.js';
 import { generateIsteXlsx } from './print-post.js';
+import { generateDFAXlsx } from './print-pre.js';
 
 const monday = window.mondaySdk();
+monday.setApiVersion("2026-04");
 
 // App state
 let trips                = {};
@@ -86,7 +88,7 @@ async function refreshTrips() {
 
       if (freshTripJson !== lastRenderedTripJson) {
         lastRenderedTripJson = freshTripJson;
-        renderDetail(freshTrip, activeTab, { onSavePre, onSavePost, onTabSwitch, onNotifyTraveler, onOpenFile, onPrint });
+        renderDetail(freshTrip, activeTab, { onSavePre, onSavePost, onTabSwitch, onNotifyTraveler, onOpenFile, onPrintPost, onPrintPre });
         snapshotAndWatch(activeTab);
 
         // Restore scroll positions after re-render
@@ -206,7 +208,7 @@ async function init() {
     if (cached && activeId && cached[activeId]) {
       trips = cached;
       renderSidebar(trips, { onSelect });
-      renderDetail(trips[activeId], activeTab, { onSavePre, onSavePost, onTabSwitch, onNotifyTraveler, onOpenFile, onPrint });
+      renderDetail(trips[activeId], activeTab, { onSavePre, onSavePost, onTabSwitch, onNotifyTraveler, onOpenFile, onPrintPost, onPrintPre });
       lastRenderedTripJson = JSON.stringify(trips[activeId]);
       highlightSidebarItem(activeId);
       initFileDialogListeners();
@@ -257,7 +259,7 @@ async function init() {
     if (selectId) {
       // If restoring, skip the tab default logic in onSelect by setting directly
       if (restoreId) {
-        renderDetail(trips[restoreId], activeTab, { onSavePre, onSavePost, onTabSwitch, onNotifyTraveler, onOpenFile, onPrint });
+        renderDetail(trips[restoreId], activeTab, { onSavePre, onSavePost, onTabSwitch, onNotifyTraveler, onOpenFile, onPrintPost, onPrintPre });
         highlightSidebarItem(restoreId);
         initFileDialogListeners();
         snapshotAndWatch(activeTab);
@@ -334,7 +336,7 @@ async function onSelect(tripId) {
   activeId  = tripId;
   activeTab = trips[tripId].istePacketUrl ? 'post' : 'pre';
   persistState();
-  renderDetail(trips[tripId], activeTab, { onSavePre, onSavePost, onTabSwitch, onNotifyTraveler, onOpenFile, onPrint });
+  renderDetail(trips[tripId], activeTab, { onSavePre, onSavePost, onTabSwitch, onNotifyTraveler, onOpenFile, onPrintPost, onPrintPre });
   lastRenderedTripJson = JSON.stringify(trips[tripId]);
   highlightSidebarItem(tripId);
   initFileDialogListeners();
@@ -363,7 +365,7 @@ async function onTabSwitch(tab) {
     }
   }
 
-  renderDetail(trips[activeId], tab, { onSavePre, onSavePost, onTabSwitch, onNotifyTraveler, onOpenFile, onPrint });
+  renderDetail(trips[activeId], tab, { onSavePre, onSavePost, onTabSwitch, onNotifyTraveler, onOpenFile, onPrintPost, onPrintPre });
   initFileDialogListeners();
 
   if (tab === 'activity') {
@@ -421,8 +423,12 @@ function onOpenFile({ boardId, itemId, columnId, assetId }) {
 
 // Thin wrapper: forms-post.js fires this on Print click, print-post.js does
 // the actual xlsx generation. app.js is the only place that knows about both.
-async function onPrint() {
+async function onPrintPost() {
   await generateIsteXlsx();
+}
+
+async function onPrintPre() {
+  await generateDFAXlsx();
 }
 
 async function onNotifyTraveler({ email, name, trip })  {
@@ -726,7 +732,7 @@ async function onSavePre(formData) {
     }
 
     rehydrateTrip(trip);
-    renderDetail(trip, activeTab, { onSavePre, onSavePost, onTabSwitch, onNotifyTraveler, onOpenFile, onPrint });
+    renderDetail(trip, activeTab, { onSavePre, onSavePost, onTabSwitch, onNotifyTraveler, onOpenFile, onPrintPost, onPrintPre });
     lastRenderedTripJson = JSON.stringify(trip);
     renderSidebar(trips, { onSelect });
     highlightSidebarItem(activeId);
@@ -818,7 +824,7 @@ async function onSavePost(formData) {
     }
 
     rehydrateTrip(trip);
-    renderDetail(trip, activeTab, { onSavePre, onSavePost, onTabSwitch, onNotifyTraveler, onOpenFile, onPrint });
+    renderDetail(trip, activeTab, { onSavePre, onSavePost, onTabSwitch, onNotifyTraveler, onOpenFile, onPrintPost, onPrintPre });
     lastRenderedTripJson = JSON.stringify(trip);
     renderSidebar(trips, { onSelect });
     highlightSidebarItem(activeId);
@@ -1000,7 +1006,7 @@ function handleMondayUploadClick(event) {
   event.preventDefault();
 
   monday.execute("openAppFeatureModal", {
-    url: `https://nmhca.monday.com/boards/18412077420/views/256095973/pulses/${el.dataset.itemId}`,
+    url: `${el.dataset.url}${el.dataset.itemId}`,
     urlParams: { tab: "notifications" },
     width: "60vw",
     height: "60vh",
