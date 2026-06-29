@@ -32,7 +32,7 @@ export function buildPreForm(trip) {
   return `
     <div class="pane-header">
       <span class="pane-header__icon">${editIcon()}</span>
-      <div class="form-row form-row--2col pane-header__container">
+      <div class="form-row form-row--3col pane-header__container editable-header">
         <div>
           <div class="pane-header__title">HCA Travel Packet</div>
           <div class="pane-header__sub">Board 2 · Editable — saves to monday
@@ -44,6 +44,10 @@ export function buildPreForm(trip) {
               ${selectOptions(PACKET_STATUS_OPTIONS, trip.packetStatus)}
             </select>
         </div>
+      </div>
+      <div class="print-btn-container">
+        <div class="print-btn btn" id="dfa-print-btn">Print</div>
+        ${attachmentsHTML(trip.hcaAssets, 'Traveler attachments', trip.mondayItemId_hca, 'file_mm2vqvz3')}
       </div>
     </div>
 
@@ -204,16 +208,6 @@ export function buildPreForm(trip) {
         </tr>
       </table>
 
-      <!-- ── Section 4: Attachments ──────────────────────────────── -->
-      <table class="hca-table">
-        <tr><td class="hca-section">Attachments</td></tr>
-        <tr>
-          <td>
-            ${attachmentsHTML(trip.hcaAssets, 'Traveler attachments', trip.mondayItemId_hca, 'file_mm2vqvz3')}
-          </td>
-        </tr>
-      </table>
-
       <!-- ── Section 5: Approval Status (travel team manages) ──────── -->
       <table class="hca-table">
         <tr><td colspan="4" class="hca-section">Section 5. APPROVALS</td></tr>
@@ -278,7 +272,7 @@ export function buildPreForm(trip) {
 //  Wires the live running totals on the cost columns.
 // ---------------------------------------------------------------------------
 
-export function initPreFormListeners() {
+export function initPreFormListeners({ onPrintPre } = {}) {
   document.querySelectorAll('.hca-cost').forEach(input => {
     input.addEventListener('input', calculateTotals);
   });
@@ -288,6 +282,25 @@ export function initPreFormListeners() {
     // Trigger the snapshotAndWatch handler manually by dispatching on the form
     document.getElementById('pre-travel-form')?.dispatchEvent(new Event('change'));
   });
+  // Print button
+  const printBtn = document.getElementById('dfa-print-btn');
+  if (printBtn && onPrintPre) {
+    printBtn.addEventListener('click', async () => {
+      if (printBtn.classList.contains('is-loading')) return; // guard double-click
+      const original = printBtn.textContent;
+      printBtn.classList.add('is-loading');
+      printBtn.textContent = 'Printing…';
+      try {
+        await onPrintPre();
+      } catch (err) {
+        console.error('Print error:', err);
+        alert('Could not generate the PDF. Check the console for details.');
+      } finally {
+        printBtn.classList.remove('is-loading');
+        printBtn.textContent = original;
+      }
+    });
+  }
 }
 
 function calculateTotals() {
@@ -401,15 +414,6 @@ function attachmentsHTML(assets = [], label = 'Attachments', itemId, columnId) {
   if (!assets.length) return '';
 
   return `
-    <div class="hca attachments form-row form-row--3col">
-      ${assets.map(a => `
-        <a href="${a.public_url}" target="_blank" class="hca attachment monday-file-btn">
-          ${attachIcon(a.file_extension)}
-          <span class="attachment__name">${a.name}</span>
-          <span class="attachment__ext">${a.file_extension?.toUpperCase() || ''}</span>
-        </a>
-      `).join('')}
-    </div>
     ${fileUpload(itemId, columnId)}
   `;
 
@@ -433,12 +437,8 @@ function attachmentsHTML(assets = [], label = 'Attachments', itemId, columnId) {
 
 function fileUpload(itemId, columnId) {
   return `
-    <div class="monday-upload-btn hca upload attachment" data-item-id="${itemId}" data-column-id="${columnId}" style="cursor:pointer">
-      <svg class="attachment__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-          <path d="M12 5v14M5 12h14" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
-      <span class="attachment__name">Add / View Attachments</span>
-      <span class="attachment__ext"></span>
+    <div class="monday-upload-btn btn hca upload attachment" data-item-id="${itemId}" data-column-id="${columnId}" data-url="https://nmhca.monday.com/boards/18412077420/views/256095973/pulses/" style="cursor:pointer">
+      <svg xmlns="http://www.w3.org/2000/svg" height="1.2rem" viewBox="0 -960 960 960" width="22px" fill="#666666"><path d="M760-200H320q-33 0-56.5-23.5T240-280v-560q0-33 23.5-56.5T320-920h280l240 240v400q0 33-23.5 56.5T760-200ZM560-640v-200H320v560h440v-360H560ZM160-40q-33 0-56.5-23.5T80-120v-560h80v560h440v80H160Zm160-800v200-200 560-560Z"/></svg>
     </div>
   `;
 }
