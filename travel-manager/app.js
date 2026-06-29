@@ -1034,7 +1034,7 @@ function initFileDialogListeners() {
 document.addEventListener('click', e => {
     if (e.target.id === 'guide-btn') {
         monday.execute("openAppFeatureModal", {
-            urlPath: "../travel-manager-guide/docs",
+            urlPath: "docs",
             width: "90vw",
             height: "90vh",
             returnToPreviousModal: true
